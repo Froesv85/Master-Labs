@@ -17,6 +17,7 @@ Transformar planejamento em execução diária com rastreabilidade no Jira.
 - `Frontend`: feed, perfil, editor de projeto, fluxo de export
 - `Design`: sistema visual, fluxos, template PDF
 - `Product`: priorização, escopo, critérios de aceite
+- `AI-Orchestrator`: workflows n8n, RAG, CV/NLP, guardrails LGPD
 
 ## Regras de priorização
 - `P0`: bloqueia entrega do MVP
@@ -27,8 +28,11 @@ Transformar planejamento em execução diária com rastreabilidade no Jira.
 - Demo de meio de sprint (D5)
 - Demo final de sprint (D10)
 - Todo item de demo deve ter CA objetivo e estado de integração válido
+- Para features de IA, demo deve incluir evidência de pipeline n8n executando com input real.
 
 ## Indicadores mínimos
 - % de subtarefas concluídas por squad
 - SP entregue vs comprometido
 - bloqueios abertos e tempo médio de resolução
+- Relevância RAG medida (>85% alvo)
+- Latência do pipeline IA até saída útil (<15s referência)
