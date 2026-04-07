@@ -30,6 +30,7 @@ function toPositiveInt(value: string | null, fallback: number) {
 
 export async function GET(req: NextRequest) {
   const categoryParam = req.nextUrl.searchParams.get('category');
+  const queryParam = req.nextUrl.searchParams.get('q')?.trim() ?? '';
   const page = toPositiveInt(req.nextUrl.searchParams.get('page'), DEFAULT_PAGE);
   const pageSizeRaw = toPositiveInt(req.nextUrl.searchParams.get('pageSize'), DEFAULT_PAGE_SIZE);
 
@@ -55,7 +56,17 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  const where: Prisma.ProjectWhereInput = category ? { category } : {};
+  const where: Prisma.ProjectWhereInput = {
+    ...(category ? { category } : {}),
+    ...(queryParam
+      ? {
+          OR: [
+            { title: { contains: queryParam } },
+            { description: { contains: queryParam } },
+          ],
+        }
+      : {}),
+  };
 
   try {
     const [total, projects] = await Promise.all([
@@ -88,6 +99,7 @@ export async function GET(req: NextRequest) {
       },
       filters: {
         category: categoryParam ?? null,
+        q: queryParam || null,
       },
     });
   } catch (error) {

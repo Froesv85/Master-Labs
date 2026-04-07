@@ -25,6 +25,7 @@ type FeedResponse = {
   };
   filters: {
     category: string | null;
+    q: string | null;
   };
 };
 
@@ -46,6 +47,8 @@ function displayCategory(category: ProjectItem['category']) {
 
 export default function FeedPage() {
   const [selectedCategory, setSelectedCategory] = useState<FeedCategory | 'ALL'>('ALL');
+  const [searchInput, setSearchInput] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -69,6 +72,10 @@ export default function FeedPage() {
 
       if (categoryQuery) {
         params.set('category', categoryQuery);
+      }
+
+      if (searchQuery.trim()) {
+        params.set('q', searchQuery.trim());
       }
 
       try {
@@ -97,7 +104,7 @@ export default function FeedPage() {
 
     loadProjects();
     return () => controller.abort();
-  }, [categoryQuery, page]);
+  }, [categoryQuery, page, searchQuery]);
 
   return (
     <div className="min-h-screen bg-zinc-50 text-zinc-900">
@@ -108,6 +115,40 @@ export default function FeedPage() {
         </header>
 
         <section className="mb-6 flex flex-wrap items-center gap-2">
+          <form
+            className="mb-2 flex w-full flex-wrap items-center gap-2"
+            onSubmit={(event) => {
+              event.preventDefault();
+              setPage(1);
+              setSearchQuery(searchInput);
+            }}
+          >
+            <input
+              type="search"
+              value={searchInput}
+              onChange={(event) => setSearchInput(event.target.value)}
+              placeholder="Buscar por titulo ou descricao"
+              className="h-10 flex-1 rounded-lg border border-zinc-200 bg-white px-3 text-sm text-zinc-800 outline-none ring-zinc-200 placeholder:text-zinc-400 focus:ring-2"
+            />
+            <button
+              type="submit"
+              className="h-10 rounded-lg bg-zinc-900 px-4 text-sm text-white transition hover:bg-zinc-700"
+            >
+              Buscar
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setSearchInput('');
+                setSearchQuery('');
+                setPage(1);
+              }}
+              className="h-10 rounded-lg bg-white px-4 text-sm text-zinc-700 ring-1 ring-zinc-200 transition hover:bg-zinc-100"
+            >
+              Limpar
+            </button>
+          </form>
+
           <button
             type="button"
             onClick={() => {
@@ -156,7 +197,7 @@ export default function FeedPage() {
 
         {!loading && response && response.data.length === 0 ? (
           <div className="rounded-xl border border-zinc-200 bg-white p-6 text-sm text-zinc-600">
-            Nenhum projeto encontrado para este filtro.
+            Nenhum projeto encontrado para os filtros atuais.
           </div>
         ) : null}
 
