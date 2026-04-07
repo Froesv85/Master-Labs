@@ -1,0 +1,213 @@
+'use client';
+
+import { useEffect, useMemo, useState } from 'react';
+
+type FeedCategory = '3D_Printing' | 'Robotics' | 'IoT' | 'Woodworking';
+
+type ProjectItem = {
+  id: number;
+  title: string;
+  description: string | null;
+  category: 'Printing3D' | 'Robotics' | 'IoT' | 'Woodworking';
+  creatorId: number;
+  parentId: number | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type FeedResponse = {
+  data: ProjectItem[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
+  };
+  filters: {
+    category: string | null;
+  };
+};
+
+const CATEGORY_OPTIONS: Array<{ label: string; value: FeedCategory }> = [
+  { label: '3D Printing', value: '3D_Printing' },
+  { label: 'Robotics', value: 'Robotics' },
+  { label: 'IoT', value: 'IoT' },
+  { label: 'Woodworking', value: 'Woodworking' },
+];
+
+const PAGE_SIZE = 6;
+
+function displayCategory(category: ProjectItem['category']) {
+  if (category === 'Printing3D') {
+    return '3D_Printing';
+  }
+  return category;
+}
+
+export default function FeedPage() {
+  const [selectedCategory, setSelectedCategory] = useState<FeedCategory | 'ALL'>('ALL');
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [response, setResponse] = useState<FeedResponse | null>(null);
+
+  const categoryQuery = useMemo(() => {
+    return selectedCategory === 'ALL' ? null : selectedCategory;
+  }, [selectedCategory]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function loadProjects() {
+      setLoading(true);
+      setError(null);
+
+      const params = new URLSearchParams({
+        page: String(page),
+        pageSize: String(PAGE_SIZE),
+      });
+
+      if (categoryQuery) {
+        params.set('category', categoryQuery);
+      }
+
+      try {
+        const res = await fetch(`/api/projects?${params.toString()}`, {
+          signal: controller.signal,
+          cache: 'no-store',
+        });
+
+        if (!res.ok) {
+          const payload = (await res.json()) as { error?: string };
+          throw new Error(payload.error ?? 'Falha ao carregar feed.');
+        }
+
+        const payload = (await res.json()) as FeedResponse;
+        setResponse(payload);
+      } catch (err) {
+        if ((err as { name?: string }).name === 'AbortError') {
+          return;
+        }
+
+        setError(err instanceof Error ? err.message : 'Erro inesperado.');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadProjects();
+    return () => controller.abort();
+  }, [categoryQuery, page]);
+
+  return (
+    <div className="min-h-screen bg-zinc-50 text-zinc-900">
+      <main className="mx-auto w-full max-w-6xl px-6 py-10 md:px-8">
+        <header className="mb-8 flex flex-col gap-4">
+          <h1 className="text-3xl font-semibold tracking-tight">Feed de Inovacoes</h1>
+          <p className="text-sm text-zinc-600">Filtre por categoria e navegue pelos projetos publicados.</p>
+        </header>
+
+        <section className="mb-6 flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedCategory('ALL');
+              setPage(1);
+            }}
+            className={`rounded-full px-4 py-2 text-sm transition ${
+              selectedCategory === 'ALL'
+                ? 'bg-zinc-900 text-white'
+                : 'bg-white text-zinc-700 ring-1 ring-zinc-200 hover:bg-zinc-100'
+            }`}
+          >
+            Todas
+          </button>
+
+          {CATEGORY_OPTIONS.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => {
+                setSelectedCategory(option.value);
+                setPage(1);
+              }}
+              className={`rounded-full px-4 py-2 text-sm transition ${
+                selectedCategory === option.value
+                  ? 'bg-zinc-900 text-white'
+                  : 'bg-white text-zinc-700 ring-1 ring-zinc-200 hover:bg-zinc-100'
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </section>
+
+        {error ? (
+          <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</div>
+        ) : null}
+
+        {loading ? (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {Array.from({ length: PAGE_SIZE }).map((_, index) => (
+              <div key={index} className="h-32 animate-pulse rounded-xl bg-zinc-200" />
+            ))}
+          </div>
+        ) : null}
+
+        {!loading && response && response.data.length === 0 ? (
+          <div className="rounded-xl border border-zinc-200 bg-white p-6 text-sm text-zinc-600">
+            Nenhum projeto encontrado para este filtro.
+          </div>
+        ) : null}
+
+        {!loading && response && response.data.length > 0 ? (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {response.data.map((project) => (
+              <article key={project.id} className="rounded-xl border border-zinc-200 bg-white p-5">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-700">
+                    {displayCategory(project.category)}
+                  </span>
+                  <span className="text-xs text-zinc-500">#{project.id}</span>
+                </div>
+                <h2 className="mb-2 text-lg font-semibold text-zinc-900">{project.title}</h2>
+                <p className="text-sm text-zinc-600">
+                  {project.description ?? 'Projeto sem descricao no momento.'}
+                </p>
+              </article>
+            ))}
+          </div>
+        ) : null}
+
+        {!loading && response ? (
+          <footer className="mt-8 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm text-zinc-600">
+              Pagina {response.pagination.page} de {response.pagination.totalPages} • {response.pagination.total}{' '}
+              projetos
+            </p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                disabled={response.pagination.page <= 1}
+                onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                className="rounded-lg bg-white px-3 py-2 text-sm text-zinc-700 ring-1 ring-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Anterior
+              </button>
+              <button
+                type="button"
+                disabled={response.pagination.page >= response.pagination.totalPages}
+                onClick={() =>
+                  setPage((prev) => Math.min(response.pagination.totalPages, prev + 1))
+                }
+                className="rounded-lg bg-zinc-900 px-3 py-2 text-sm text-white disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Proxima
+              </button>
+            </div>
+          </footer>
+        ) : null}
+      </main>
+    </div>
+  );
+}
