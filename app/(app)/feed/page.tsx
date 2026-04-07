@@ -28,11 +28,11 @@ type FeedResponse = {
   filters: {
     category: string | null;
     q: string | null;
-    sort: 'newest' | 'oldest';
+    sort: 'newest' | 'oldest' | 'top';
   };
 };
 
-type FeedSort = 'newest' | 'oldest';
+type FeedSort = 'newest' | 'oldest' | 'top';
 
 const CATEGORY_OPTIONS: Array<{ label: string; value: FeedCategory }> = [
   { label: '3D Printing', value: '3D_Printing' },
@@ -250,6 +250,7 @@ export default function FeedPage() {
             >
               <option value="newest">Mais recentes</option>
               <option value="oldest">Mais antigos</option>
+              <option value="top">Mais votados</option>
             </select>
           </form>
 

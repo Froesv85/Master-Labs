@@ -8,7 +8,7 @@ const DEFAULT_PAGE_SIZE = 10;
 const MAX_PAGE_SIZE = 50;
 const DEFAULT_SORT = 'newest';
 
-type SortOption = 'newest' | 'oldest';
+type SortOption = 'newest' | 'oldest' | 'top';
 
 const categoryMap: Record<string, Category> = {
   '3D_Printing': Category.Printing3D,
@@ -45,9 +45,9 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  if (sortParam !== 'newest' && sortParam !== 'oldest') {
+  if (sortParam !== 'newest' && sortParam !== 'oldest' && sortParam !== 'top') {
     return NextResponse.json(
-      { error: 'Invalid sort. Use one of: newest, oldest.' },
+      { error: 'Invalid sort. Use one of: newest, oldest, top.' },
       { status: 400 }
     );
   }
@@ -89,7 +89,9 @@ export async function GET(req: NextRequest) {
         orderBy:
           sortParam === 'newest'
             ? [{ createdAt: 'desc' }, { id: 'desc' }]
-            : [{ createdAt: 'asc' }, { id: 'asc' }],
+            : sortParam === 'oldest'
+              ? [{ createdAt: 'asc' }, { id: 'asc' }]
+              : [{ votes: { _count: 'desc' } }, { createdAt: 'desc' }, { id: 'desc' }],
         select: {
           id: true,
           title: true,
