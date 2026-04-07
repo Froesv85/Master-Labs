@@ -99,12 +99,29 @@ export async function GET(req: NextRequest) {
           parentId: true,
           createdAt: true,
           updatedAt: true,
+          _count: {
+            select: {
+              votes: true,
+            },
+          },
         },
       }),
     ]);
 
+    const data = projects.map((project) => ({
+      id: project.id,
+      title: project.title,
+      description: project.description,
+      category: project.category,
+      creatorId: project.creatorId,
+      parentId: project.parentId,
+      createdAt: project.createdAt,
+      updatedAt: project.updatedAt,
+      votes: project._count.votes,
+    }));
+
     return NextResponse.json({
-      data: projects,
+      data,
       pagination: {
         page,
         pageSize,

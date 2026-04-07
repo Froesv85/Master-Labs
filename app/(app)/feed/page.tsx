@@ -10,6 +10,7 @@ type ProjectItem = {
   title: string;
   description: string | null;
   category: 'Printing3D' | 'Robotics' | 'IoT' | 'Woodworking';
+  votes: number;
   creatorId: number;
   parentId: number | null;
   createdAt: string;
@@ -58,6 +59,7 @@ export default function FeedPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [forkingProjectId, setForkingProjectId] = useState<number | null>(null);
+  const [votingProjectId, setVotingProjectId] = useState<number | null>(null);
   const [response, setResponse] = useState<FeedResponse | null>(null);
 
   const categoryQuery = useMemo(() => {
@@ -150,6 +152,49 @@ export default function FeedPage() {
       setLoading(false);
     } finally {
       setForkingProjectId(null);
+    }
+  }
+
+  async function handleVote(projectId: number) {
+    setVotingProjectId(projectId);
+    setError(null);
+
+    try {
+      const res = await fetch(`/api/projects/${projectId}/vote`, {
+        method: 'POST',
+      });
+
+      if (!res.ok) {
+        const payload = (await res.json()) as { error?: string };
+        throw new Error(payload.error ?? 'Falha ao votar no projeto.');
+      }
+
+      const payload = (await res.json()) as {
+        data: { projectId: number; votes: number; alreadyVoted: boolean };
+      };
+
+      setResponse((prev) => {
+        if (!prev) {
+          return prev;
+        }
+
+        return {
+          ...prev,
+          data: prev.data.map((project) =>
+            project.id === payload.data.projectId
+              ? { ...project, votes: payload.data.votes }
+              : project
+          ),
+        };
+      });
+
+      if (payload.data.alreadyVoted) {
+        setError('Voce ja votou neste projeto.');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro inesperado ao votar.');
+    } finally {
+      setVotingProjectId(null);
     }
   }
 
@@ -268,13 +313,21 @@ export default function FeedPage() {
                   <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-700">
                     {displayCategory(project.category)}
                   </span>
-                  <span className="text-xs text-zinc-500">#{project.id}</span>
+                  <span className="text-xs text-zinc-500">#{project.id} • {project.votes} votos</span>
                 </div>
                 <h2 className="mb-2 text-lg font-semibold text-zinc-900">{project.title}</h2>
                 <p className="text-sm text-zinc-600">
                   {project.description ?? 'Projeto sem descricao no momento.'}
                 </p>
                 <div className="mt-4 flex items-center gap-2">
+                  <button
+                    type="button"
+                    disabled={votingProjectId === project.id}
+                    onClick={() => handleVote(project.id)}
+                    className="rounded-lg bg-zinc-200 px-3 py-2 text-sm text-zinc-800 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {votingProjectId === project.id ? 'Votando...' : 'Upvote'}
+                  </button>
                   <Link
                     href={`/projects/${project.id}`}
                     className="rounded-lg bg-white px-3 py-2 text-sm text-zinc-700 ring-1 ring-zinc-200"
