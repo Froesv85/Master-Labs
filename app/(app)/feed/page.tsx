@@ -201,9 +201,17 @@ export default function FeedPage() {
   return (
     <div className="min-h-screen bg-zinc-50 text-zinc-900">
       <main className="mx-auto w-full max-w-6xl px-6 py-10 md:px-8">
-        <header className="mb-8 flex flex-col gap-4">
-          <h1 className="text-3xl font-semibold tracking-tight">Feed de Inovacoes</h1>
-          <p className="text-sm text-zinc-600">Filtre por categoria e navegue pelos projetos publicados.</p>
+        <header className="mb-8 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-semibold tracking-tight">Feed de Inovacoes</h1>
+            <p className="text-sm text-zinc-600">Filtre por categoria e navegue pelos projetos publicados.</p>
+          </div>
+          <Link
+            href="/profile"
+            className="rounded-lg bg-white px-3 py-2 text-sm text-zinc-700 ring-1 ring-zinc-200"
+          >
+            Ver Profile
+          </Link>
         </header>
 
         <section className="mb-6 flex flex-wrap items-center gap-2">
