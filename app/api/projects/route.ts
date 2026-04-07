@@ -6,6 +6,9 @@ import { prisma } from '@/lib/prisma';
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 10;
 const MAX_PAGE_SIZE = 50;
+const DEFAULT_SORT = 'newest';
+
+type SortOption = 'newest' | 'oldest';
 
 const categoryMap: Record<string, Category> = {
   '3D_Printing': Category.Printing3D,
@@ -31,12 +34,20 @@ function toPositiveInt(value: string | null, fallback: number) {
 export async function GET(req: NextRequest) {
   const categoryParam = req.nextUrl.searchParams.get('category');
   const queryParam = req.nextUrl.searchParams.get('q')?.trim() ?? '';
+  const sortParam = (req.nextUrl.searchParams.get('sort') ?? DEFAULT_SORT) as SortOption;
   const page = toPositiveInt(req.nextUrl.searchParams.get('page'), DEFAULT_PAGE);
   const pageSizeRaw = toPositiveInt(req.nextUrl.searchParams.get('pageSize'), DEFAULT_PAGE_SIZE);
 
   if (page === null || pageSizeRaw === null) {
     return NextResponse.json(
       { error: 'Invalid query params. page and pageSize must be positive integers.' },
+      { status: 400 }
+    );
+  }
+
+  if (sortParam !== 'newest' && sortParam !== 'oldest') {
+    return NextResponse.json(
+      { error: 'Invalid sort. Use one of: newest, oldest.' },
       { status: 400 }
     );
   }
@@ -75,7 +86,10 @@ export async function GET(req: NextRequest) {
         where,
         skip: (page - 1) * pageSize,
         take: pageSize,
-        orderBy: { createdAt: 'desc' },
+        orderBy:
+          sortParam === 'newest'
+            ? [{ createdAt: 'desc' }, { id: 'desc' }]
+            : [{ createdAt: 'asc' }, { id: 'asc' }],
         select: {
           id: true,
           title: true,
@@ -100,6 +114,7 @@ export async function GET(req: NextRequest) {
       filters: {
         category: categoryParam ?? null,
         q: queryParam || null,
+        sort: sortParam,
       },
     });
   } catch (error) {

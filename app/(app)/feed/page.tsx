@@ -26,8 +26,11 @@ type FeedResponse = {
   filters: {
     category: string | null;
     q: string | null;
+    sort: 'newest' | 'oldest';
   };
 };
+
+type FeedSort = 'newest' | 'oldest';
 
 const CATEGORY_OPTIONS: Array<{ label: string; value: FeedCategory }> = [
   { label: '3D Printing', value: '3D_Printing' },
@@ -49,6 +52,7 @@ export default function FeedPage() {
   const [selectedCategory, setSelectedCategory] = useState<FeedCategory | 'ALL'>('ALL');
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [sort, setSort] = useState<FeedSort>('newest');
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -68,6 +72,7 @@ export default function FeedPage() {
       const params = new URLSearchParams({
         page: String(page),
         pageSize: String(PAGE_SIZE),
+        sort,
       });
 
       if (categoryQuery) {
@@ -104,7 +109,7 @@ export default function FeedPage() {
 
     loadProjects();
     return () => controller.abort();
-  }, [categoryQuery, page, searchQuery]);
+  }, [categoryQuery, page, searchQuery, sort]);
 
   return (
     <div className="min-h-screen bg-zinc-50 text-zinc-900">
@@ -147,6 +152,18 @@ export default function FeedPage() {
             >
               Limpar
             </button>
+
+            <select
+              value={sort}
+              onChange={(event) => {
+                setSort(event.target.value as FeedSort);
+                setPage(1);
+              }}
+              className="h-10 rounded-lg border border-zinc-200 bg-white px-3 text-sm text-zinc-800 outline-none ring-zinc-200 focus:ring-2"
+            >
+              <option value="newest">Mais recentes</option>
+              <option value="oldest">Mais antigos</option>
+            </select>
           </form>
 
           <button
