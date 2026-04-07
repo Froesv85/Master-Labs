@@ -9,4 +9,70 @@ generator client {
 
 datasource db {
   provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Category {
+  Printing3D @map("3D_Printing")
+  Robotics
+  IoT
+  Woodworking
+}
+
+model User {
+  id       Int             @id @default(autoincrement())
+  email    String          @unique
+  name     String?
+  projects Project[]       @relation("creator")
+  votes    ProjectVote[]
+
+  @@index([email])
+}
+
+model Project {
+  id          Int             @id @default(autoincrement())
+  title       String
+  description String?
+  category    Category
+  creatorId   Int
+  creator     User            @relation("creator", fields: [creatorId], references: [id])
+  parentId    Int?
+  parent      Project?        @relation("fork", fields: [parentId], references: [id])
+  children    Project[]       @relation("fork")
+  embeddingId String?
+  content     String?         @db.LongText
+  votes       ProjectVote[]
+  exports     ProjectExport[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([category])
+  @@index([parentId])
+  @@index([creatorId])
+}
+
+model ProjectVote {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  projectId Int
+  user      User     @relation(fields: [userId], references: [id])
+  project   Project  @relation(fields: [projectId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([userId, projectId])
+  @@index([projectId])
+}
+
+model ProjectExport {
+  id        Int      @id @default(autoincrement())
+  projectId Int
+  project   Project  @relation(fields: [projectId], references: [id])
+  status    String   @default("queued")
+  fileUrl   String?
+  error     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([status])
 }
