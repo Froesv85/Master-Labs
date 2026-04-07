@@ -42,17 +42,27 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
     notFound();
   }
 
+  const creatorProfileHref = `/profile?email=${encodeURIComponent(project.creator.email)}`;
+
   return (
     <div className="min-h-screen bg-zinc-50 text-zinc-900">
       <main className="mx-auto w-full max-w-3xl px-6 py-10 md:px-8">
         <div className="mb-8 flex items-center justify-between gap-4">
           <h1 className="text-2xl font-semibold tracking-tight">Projeto #{project.id}</h1>
-          <Link
-            href="/feed"
-            className="rounded-lg bg-white px-3 py-2 text-sm text-zinc-700 ring-1 ring-zinc-200"
-          >
-            Voltar ao Feed
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href={creatorProfileHref}
+              className="rounded-lg bg-zinc-900 px-3 py-2 text-sm text-white"
+            >
+              Ver Profile
+            </Link>
+            <Link
+              href="/feed"
+              className="rounded-lg bg-white px-3 py-2 text-sm text-zinc-700 ring-1 ring-zinc-200"
+            >
+              Voltar ao Feed
+            </Link>
+          </div>
         </div>
 
         <article className="rounded-xl border border-zinc-200 bg-white p-6">
@@ -76,7 +86,12 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
           <dl className="grid grid-cols-1 gap-4 text-sm text-zinc-700 sm:grid-cols-2">
             <div>
               <dt className="font-medium text-zinc-500">Criador</dt>
-              <dd>{project.creator.name ?? project.creator.email}</dd>
+              <dd className="flex items-center gap-2">
+                <span>{project.creator.name ?? project.creator.email}</span>
+                <Link href={creatorProfileHref} className="text-zinc-700 underline">
+                  abrir profile
+                </Link>
+              </dd>
             </div>
             <div>
               <dt className="font-medium text-zinc-500">Criado em</dt>
