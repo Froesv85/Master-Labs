@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 
 type FeedCategory = '3D_Printing' | 'Robotics' | 'IoT' | 'Woodworking';
@@ -56,6 +57,7 @@ export default function FeedPage() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [forkingProjectId, setForkingProjectId] = useState<number | null>(null);
   const [response, setResponse] = useState<FeedResponse | null>(null);
 
   const categoryQuery = useMemo(() => {
@@ -110,6 +112,46 @@ export default function FeedPage() {
     loadProjects();
     return () => controller.abort();
   }, [categoryQuery, page, searchQuery, sort]);
+
+  async function handleFork(projectId: number) {
+    setForkingProjectId(projectId);
+    setError(null);
+
+    try {
+      const res = await fetch(`/api/projects/${projectId}/fork`, {
+        method: 'POST',
+      });
+
+      if (!res.ok) {
+        const payload = (await res.json()) as { error?: string };
+        throw new Error(payload.error ?? 'Falha ao criar fork.');
+      }
+
+      setPage(1);
+      setSearchQuery('');
+      setSearchInput('');
+      setSelectedCategory('ALL');
+      setSort('newest');
+      setLoading(true);
+
+      const refresh = await fetch(`/api/projects?page=1&pageSize=${PAGE_SIZE}&sort=newest`, {
+        cache: 'no-store',
+      });
+
+      if (!refresh.ok) {
+        throw new Error('Fork criado, mas nao foi possivel atualizar o feed.');
+      }
+
+      const payload = (await refresh.json()) as FeedResponse;
+      setResponse(payload);
+      setLoading(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro inesperado ao criar fork.');
+      setLoading(false);
+    } finally {
+      setForkingProjectId(null);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-zinc-50 text-zinc-900">
@@ -232,6 +274,22 @@ export default function FeedPage() {
                 <p className="text-sm text-zinc-600">
                   {project.description ?? 'Projeto sem descricao no momento.'}
                 </p>
+                <div className="mt-4 flex items-center gap-2">
+                  <Link
+                    href={`/projects/${project.id}`}
+                    className="rounded-lg bg-white px-3 py-2 text-sm text-zinc-700 ring-1 ring-zinc-200"
+                  >
+                    Ver
+                  </Link>
+                  <button
+                    type="button"
+                    disabled={forkingProjectId === project.id}
+                    onClick={() => handleFork(project.id)}
+                    className="rounded-lg bg-zinc-900 px-3 py-2 text-sm text-white disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {forkingProjectId === project.id ? 'Forkando...' : 'Fork'}
+                  </button>
+                </div>
               </article>
             ))}
           </div>
