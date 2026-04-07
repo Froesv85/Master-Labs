@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import { prisma } from '@/lib/prisma';
+import DifficultiesPanel from './difficulties-panel';
 
 type Params = {
   id: string;
@@ -33,6 +34,15 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
         select: {
           id: true,
           title: true,
+        },
+      },
+      difficulties: {
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        select: {
+          id: true,
+          description: true,
+          createdAt: true,
+          updatedAt: true,
         },
       },
     },
@@ -107,6 +117,8 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
             </div>
           </dl>
         </article>
+
+        <DifficultiesPanel projectId={project.id} initialDifficulties={project.difficulties} />
       </main>
     </div>
   );
