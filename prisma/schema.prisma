@@ -44,6 +44,7 @@ model Project {
   votes       ProjectVote[]
   difficulties ProjectDifficulty[]
   exports     ProjectExport[]
+  extractionLogs ProjectExtractionLog[]
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
 
@@ -87,5 +88,27 @@ model ProjectDifficulty {
   updatedAt   DateTime @updatedAt
 
   @@index([projectId])
+  @@index([createdAt])
+}
+
+model ProjectExtractionLog {
+  id              Int      @id @default(autoincrement())
+  projectId       Int
+  project         Project  @relation(fields: [projectId], references: [id])
+  status          String   @default("queued")
+  source          String   @default("manual")
+  webhookId       String?  @unique
+  piiRedactions   Int      @default(0)
+  keywords        String?  @db.LongText
+  embeddingId     String?
+  latencyMs       Int?
+  output          String?  @db.LongText
+  error           String?  @db.LongText
+  n8nExecutionId  String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([status])
   @@index([createdAt])
 }

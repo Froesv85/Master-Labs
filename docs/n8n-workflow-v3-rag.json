@@ -1,0 +1,245 @@
+{
+  "name": "MakerConnect RAG Pipeline v3.2 (Gemini)",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "extraction",
+        "httpMethod": "POST",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "webhook_trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        200,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extrair dados do webhook\nconst triggerItem = $input.first().json;\nconst payload = triggerItem.body ?? triggerItem;\nconst { webhookId, projectId, projectTitle, input, keywords, piiRedactions, embeddingId, callbackUrl } = payload;\n\nreturn [{\n  json: {\n    webhookId,\n    projectId,\n    projectTitle,\n    embeddingId,\n    callbackUrl,\n    input: typeof input === 'string' ? input : '',\n    keywords: Array.isArray(keywords) ? keywords : [],\n    piiRedactions: piiRedactions || 0,\n    startedAt: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "process_input",
+      "name": "Process Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        380,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent",
+        "authentication": "headerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { model: \"models/gemini-embedding-001\", content: { parts: [{ text: $json.keywords.join(', ') }] }, outputDimensionality: 768 } }}"
+      },
+      "id": "generate_embeddings",
+      "name": "Gemini Embeddings",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        560,
+        300
+      ],
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 15000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "YOUR_GEMINI_CREDENTIAL_ID",
+          "name": "Gemini API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://maker-knowledge-v86bxu0.svc.aped-4627-b74a.pinecone.io/query",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Api-Key",
+              "value": "pcsk_6AjfWR_MRTJq7C2M9TCZqzPdrSGubxMypuiJwrAFs9LZPZ2wAt9ZBmLKN2Z8vCm9sz5rzT"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { vector: $node[\"Gemini Embeddings\"].json.embedding.values, topK: 3, includeMetadata: true } }}"
+      },
+      "id": "pinecone_search",
+      "name": "Pinecone Search",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        740,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+        "authentication": "headerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { contents: [{ parts: [{ text: `Você é o MakerBrain. Gere requisitos técnicos e BOM para o projeto: ${$node[\"Process Input\"].json.projectTitle}\\n\\nContexto do Usuário: ${$node[\"Process Input\"].json.input}\\n\\nEvidências Técnicas (Grounding):\\n${($node[\"Pinecone Search\"].json.matches || []).map(d => d.metadata.text).join('\\n')}\\n\\nResponda estritamente em formato JSON com as keys: technicalRequirements (array), suggestedBOM (array), confidenceScore (number).` }] }] } }}"
+      },
+      "id": "generate_rag_content",
+      "name": "Gemini RAG",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        920,
+        300
+      ],
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 15000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "YOUR_GEMINI_CREDENTIAL_ID",
+          "name": "Gemini API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Preparar payload final para o callback\nconst inputData = $node[\"Process Input\"].json;\nconst aiResponse = $node[\"Gemini RAG\"].json;\nconst vectorResults = $node[\"Pinecone Search\"].json.matches || [];\n\nconst totalLatencyMs = Date.now() - new Date(inputData.startedAt).getTime();\n\nconst rawText = aiResponse.candidates[0].content.parts[0].text;\nlet parsedOutput;\ntry {\n  // Remover possível bloco de código markdown ```json ... ```\n  const cleanText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();\n  parsedOutput = JSON.parse(cleanText);\n} catch (e) {\n  parsedOutput = { error: \"Failed to parse JSON\", raw: rawText };\n}\n\nreturn [{\n  json: {\n    callbackUrl: inputData.callbackUrl,\n    payload: {\n      webhookId: inputData.webhookId,\n      status: \"done\",\n      n8nExecutionId: $execution.id,\n      latencyMs: totalLatencyMs,\n      output: {\n        ...parsedOutput,\n        groundingCount: vectorResults.length,\n        embeddingId: inputData.embeddingId\n      }\n    }\n  }\n}];"
+      },
+      "id": "prep_callback",
+      "name": "Prep Callback",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.callbackUrl }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.payload) }}"
+      },
+      "id": "callback_api",
+      "name": "Callback to API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1280,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "webhook_trigger": {
+      "main": [
+        [
+          {
+            "node": "process_input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "process_input": {
+      "main": [
+        [
+          {
+            "node": "generate_embeddings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "generate_embeddings": {
+      "main": [
+        [
+          {
+            "node": "pinecone_search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "pinecone_search": {
+      "main": [
+        [
+          {
+            "node": "generate_rag_content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "generate_rag_content": {
+      "main": [
+        [
+          {
+            "node": "prep_callback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "prep_callback": {
+      "main": [
+        [
+          {
+            "node": "callback_api",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {}
+}

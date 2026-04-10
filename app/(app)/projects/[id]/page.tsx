@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation';
 
 import { prisma } from '@/lib/prisma';
 import DifficultiesPanel from './difficulties-panel';
+import ExtractPanel from './extract-panel';
+import ExportPanel from './export-panel';
 
 type Params = {
   id: string;
@@ -118,7 +120,15 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
           </dl>
         </article>
 
+        <ExtractPanel
+          projectId={project.id}
+          initialInput={project.content ?? project.description ?? ''}
+          currentEmbeddingId={project.embeddingId}
+        />
+
         <DifficultiesPanel projectId={project.id} initialDifficulties={project.difficulties} />
+
+        <ExportPanel projectId={project.id} />
       </main>
     </div>
   );

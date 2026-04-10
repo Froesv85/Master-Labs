@@ -7,8 +7,8 @@ import { useRouter } from 'next/navigation';
 type DifficultyItem = {
   id: number;
   description: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: string | Date;
+  updatedAt: string | Date;
 };
 
 export default function DifficultiesPanel({

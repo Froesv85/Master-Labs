@@ -1,0 +1,159 @@
+# Códigos de Teste - Copie e Cole
+
+## 1. IMPORT NO N8N
+
+Arquivo: `maker-connect\docs\n8n-workflow-export.json`
+
+1. Copie TODO o conteúdo do arquivo
+2. Abra http://localhost:5678/home/workflows
+3. Clique **+**
+4. Menu **...** → **Import from URL/Clipboard**
+5. Cole
+6. Clique Activate
+
+---
+
+## 2. TESTAR EXTRACTION (PowerShell)
+
+```powershell
+$body = @{
+    input = "Arduino Mega 2560 com sensores BMP180, DHT11 e MQ135. Comunicacao via USB serial em 115200 baud. Problema: crashes aleatorios a cada 12 horas. Solucao: reduzir frequency de amostragem de 10Hz para 5Hz."
+    source = "manual"
+} | ConvertTo-Json
+
+$response = Invoke-RestMethod -Uri "http://localhost:3000/api/projects/1/extract" `
+    -Method Post `
+    -Headers @{"Content-Type" = "application/json"} `
+    -Body $body
+
+$response | ConvertTo-Json -Depth 10
+```
+
+Copie e execute. Resultado deve conter:
+- logId
+- webhookId
+- status: "queued"
+- embeddingId
+
+---
+
+## 3. CONSULTAR LOGS
+
+```powershell
+Invoke-RestMethod -Uri "http://localhost:3000/api/projects/1/extract" `
+    -Method Get | ConvertTo-Json -Depth 10
+```
+
+Deve listar todos os logs de extracao do projeto 1.
+Status deve passar de "queued" → "done" após n8n processar.
+
+---
+
+## 4. SIMULAR CALLBACK (se n8n não responder)
+
+Use o webhookId do resultado do comando #2:
+
+```powershell
+$callbackBody = @{
+    webhookId = "COLE_AQUI_O_WEBHOOKID_DO_TESTE_2"
+    status = "done"
+    n8nExecutionId = "exec_12345"
+    latencyMs = 250
+    output = @{
+        relevance = 0.87
+        keywords_found = 5
+        processing_time = "234ms"
+    }
+} | ConvertTo-Json -Depth 5
+
+Invoke-RestMethod -Uri "http://localhost:3000/api/projects/1/extract/callback" `
+    -Method Post `
+    -Headers @{"Content-Type" = "application/json"} `
+    -Body $callbackBody | ConvertTo-Json -Depth 10
+```
+
+Após isso, execute comando #3 novamente - status deve estar "done".
+
+---
+
+## 5. TESTAR ERROR HANDLING
+
+**Teste: Input pequeno**
+```powershell
+$body = @{input = "curto"} | ConvertTo-Json
+
+Invoke-RestMethod -Uri "http://localhost:3000/api/projects/1/extract" `
+    -Method Post `
+    -Headers @{"Content-Type" = "application/json"} `
+    -Body $body | ConvertTo-Json
+```
+Deve retornar erro 400 com mensagem.
+
+**Teste: Projeto nao existe**
+```powershell
+$body = @{
+    input = "teste com mais de 20 caracteres mesmo assim"
+} | ConvertTo-Json
+
+Invoke-RestMethod -Uri "http://localhost:3000/api/projects/99999/extract" `
+    -Method Post `
+    -Headers @{"Content-Type" = "application/json"} `
+    -Body $body | ConvertTo-Json
+```
+Deve retornar erro 404.
+
+---
+
+## 6. RODAR TODOS OS TESTES
+
+```powershell
+cd "c:\Users\ViniciusFroes\OneDrive - A3C Tecnologia\Área de Trabalho\7 Semestre\PAC\Master-Labs-main\maker-connect\docs"
+
+.\n8n-e2e-tests.ps1
+```
+
+Executa sequencia completa: extract → callback → verificacao.
+
+---
+
+## Arquivos de Referência
+
+- **JSON para Import**: `docs/n8n-workflow-export.json`
+- **Scripts Detalhados**: `docs/n8n-workflow-code.md`
+- **Testes Automatizados**: `docs/n8n-e2e-tests.ps1`
+- **Guia Completo**: `docs/n8n-integration-guide.md`
+- **Quick Start**: `docs/n8n-quick-start.md`
+
+---
+
+## Fluxo Esperado
+
+```
+POST /api/projects/1/extract
+    ↓
+Cria log (status: queued)
+    ↓
+Dispara webhook → n8n
+    ↓
+n8n processa
+    ↓
+n8n chama POST /api/projects/1/extract/callback
+    ↓
+Atualiza log (status: done)
+    ↓
+GET /api/projects/1/extract mostra resultado com latencyMs + output
+```
+
+---
+
+## Checklist
+
+- [ ] API rodando em http://localhost:3000
+- [ ] n8n rodando em http://localhost:5678
+- [ ] Workflow importado e ativado
+- [ ] Teste #2 executado com sucesso
+- [ ] Teste #3 mostra status "queued" após #2
+- [ ] Teste #4 atualiza log para "done"
+- [ ] Teste #3 novamente mostra status "done" + latencyMs
+
+Quando tudo estiver ✓, está pronto para S1.2 (embeddings).
