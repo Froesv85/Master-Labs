@@ -16,13 +16,16 @@ Mecanismos sociais como fork, upvotes e log de dificuldades ampliam reprodutibil
 
 ## Status atual
 
-Este repositorio saiu da fase apenas conceitual e agora possui uma base funcional do MVP social da MakerConnect.
+Este repositorio avancou da base social para um MVP funcional com trilha IA e fechamento da Fase 6 (Exportacao PDF) no Jira/Kanban em 14/04/2026.
 
 Ja disponiveis:
 - setup Next.js + Prisma + MySQL local;
 - feed filtravel com busca, paginacao e ordenacao;
 - fluxo social com ver, fork, upvote e profile maker;
 - log de dificuldades por projeto com timeline;
+- pipeline n8n para extracao e geracao RAG configurado com Ollama (bge-m3 e qwen2.5:7b) e callback para API;
+- exportacao PDF assincrona com historico e rastreabilidade;
+- armazenamento S3-compatible via MinIO para artefatos de exportacao;
 - documentos operacionais para Jira, Kanban e evolucao diaria.
 
 ### Evolucao recente
@@ -36,9 +39,9 @@ Em 07/04, a base social ficou navegavel de ponta a ponta:
 
 ### Progresso estimado do projeto
 
-- Progresso atual do MVP: **60%**
-- Justificativa: os pilares sociais principais ja estao prontos, mas a trilha IA/n8n, PDF assíncrono, LGPD e pipeline de extracao ainda precisam ser implementados.
-- Leitura pratica: o produto ja demonstra valor e navegacao real, mas ainda nao fecha o fluxo completo de automacao tecnica.
+- Progresso atual do MVP: **85%**
+- Justificativa: pilares sociais, pipeline IA base e exportacao PDF assincrona ja foram entregues; restam consolidacao de metricas e hardening para demo final.
+- Leitura pratica: o produto ja fecha o fluxo principal de automacao tecnica e entrou em fase de estabilizacao/validacao.
 
 ## Problema e Hipotese
 
@@ -77,7 +80,7 @@ Agente de IA orquestrado no n8n atuando em duas frentes:
 ### Estagios obrigatorios
 - Extracao: upload via interface web + parsing NLP de descricoes e imagens.
 - Pre-processamento: embeddings, similaridade de cosseno e filtragem de PII (LGPD).
-- Modelo IA: RAG com recuperacao vetorial e geracao contextualizada (GPT-4o / Llama 3).
+- Modelo IA: RAG com recuperacao vetorial e geracao contextualizada (Ollama local - Qwen2.5 / Llama 3.1).
 - Pos-processamento: renderizacao PDF, metricas de cobertura documental e logs de validacao.
 
 ### Indicadores de sucesso (IA)
@@ -92,7 +95,7 @@ Agente de IA orquestrado no n8n atuando em duas frentes:
 - Banco social: MySQL
 - Jobs assincronos: Redis + BullMQ
 - Assets: storage S3-compatible
-- LLMs: GPT-4o + Llama 3
+- LLMs: Ollama Local (qwen2.5:7b, llama3.1:8b) + Embeddings (bge-m3 / nomic)
 - Vetor: Pinecone ou Supabase pgvector
 - PDF Worker: Puppeteer
 
