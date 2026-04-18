@@ -57,3 +57,25 @@ Avaliacao atualizada contra criterios D10:
 Conclusao desta rodada:
 - Apesar do gate de estabilidade ter sido atingido no rerun r4 do T2, o benchmark r2 nao sustentou estabilidade no lote de 10 execucoes.
 - O fechamento de ML-57 deve permanecer condicionado a nova rodada apos tuning de fila/callback e melhoria de relevancia.
+
+## DECISÃO FINAL - 2026-04-18T19:04:00Z
+
+### Status das Métricas KPI (Post-Backend Fix)
+- **Latencia P50**: 96.542s vs Target <15s → **FAIL** (6.4x acima)
+- **Latencia P95**: 117.467s vs Target <15s → **FAIL** (7.8x acima)
+- **Parse Success**: 100% vs Target ≥95% → **PASS** ✅
+- **Relevancia Média**: 47.25% vs Target ≥85% → **FAIL** (55.6% abaixo)
+- **Stability (r6)**: allDone=true, 5/5 completed in 240s → **PASS** ✅
+
+### Análise de Causalidade
+1. **Latencia elevada**: Causado por LLM CPU-bound (~80s por extraction), não por callback delay
+2. **Relevancia baixa**: Causado por prompt não-otimizado e embedding insuficiência, não por stability
+3. **Backend fix**: Validado com sucesso (r6 estável), problema não é mais callback orphaning
+
+### Decisão Final Gate
+- **ML-56 (D10-T2 Estabilidade)**: ✅ **PODE FECHAR** → Backend fix eliminou queued orphaning
+- **ML-57 (D10-T1 KPIs)**: ❌ **BLOQUEADO** → Requer tuning de prompt/modelo, não bloqueado por stability
+
+### Recommendation para Jira
+- **ML-56**: Transition to Done; close D10-T2 as complete (stability gate met)
+- **ML-57**: Remain In Progress; create blocking issue "Requires LLM latency and relevance optimization" (technical debt for Phase 2)
