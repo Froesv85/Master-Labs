@@ -1,0 +1,84 @@
+{
+  "generatedAt": "2026-04-18T17:15:03.8731814-03:00",
+  "sampleSize": 10,
+  "inspectedLogs": 10,
+  "done": 2,
+  "p50LatencyMs": 96542.0,
+  "p95LatencyMs": 117467.0,
+  "minLatencyMs": 73292.0,
+  "maxLatencyMs": 119792.0,
+  "parseValidRatePercent": 100.0,
+  "relevanceMeanPercent": 47.25,
+  "observations": [
+    {
+      "id": 123,
+      "status": "queued",
+      "latencyMs": null,
+      "n8nExecutionId": null,
+      "updatedAt": "2026-04-18T20:12:34.057Z"
+    },
+    {
+      "id": 122,
+      "status": "done",
+      "latencyMs": 119792,
+      "n8nExecutionId": "145",
+      "updatedAt": "2026-04-18T20:14:33.565Z"
+    },
+    {
+      "id": 121,
+      "status": "queued",
+      "latencyMs": null,
+      "n8nExecutionId": null,
+      "updatedAt": "2026-04-18T20:12:33.357Z"
+    },
+    {
+      "id": 120,
+      "status": "queued",
+      "latencyMs": null,
+      "n8nExecutionId": null,
+      "updatedAt": "2026-04-18T20:12:32.979Z"
+    },
+    {
+      "id": 119,
+      "status": "queued",
+      "latencyMs": null,
+      "n8nExecutionId": null,
+      "updatedAt": "2026-04-18T20:12:32.608Z"
+    },
+    {
+      "id": 118,
+      "status": "queued",
+      "latencyMs": null,
+      "n8nExecutionId": null,
+      "updatedAt": "2026-04-18T20:12:32.255Z"
+    },
+    {
+      "id": 117,
+      "status": "done",
+      "latencyMs": 73292,
+      "n8nExecutionId": "140",
+      "updatedAt": "2026-04-18T20:13:45.27Z"
+    },
+    {
+      "id": 116,
+      "status": "queued",
+      "latencyMs": null,
+      "n8nExecutionId": null,
+      "updatedAt": "2026-04-18T20:12:31.548Z"
+    },
+    {
+      "id": 115,
+      "status": "queued",
+      "latencyMs": null,
+      "n8nExecutionId": null,
+      "updatedAt": "2026-04-18T20:12:31.209Z"
+    },
+    {
+      "id": 114,
+      "status": "queued",
+      "latencyMs": null,
+      "n8nExecutionId": null,
+      "updatedAt": "2026-04-18T20:12:30.813Z"
+    }
+  ]
+}

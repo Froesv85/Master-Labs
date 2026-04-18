@@ -14,8 +14,13 @@ Se qualquer condicao falhar, manter ML-56 em In Progress e registrar novo coment
 
 ## Artefatos preparados
 - CSV de fechamento condicional: docs/jira-kanban-update-d10-t2-retomada-normalizado-2026-04-18.csv
-- Evidencia base atual: maker-connect/docs/d10-t2-smoke-extended-result-r3.json
+- Evidencia base atual: maker-connect/docs/d10-t2-smoke-extended-result-r5.json
 - Consolidacao tecnica: docs/d10-t2-estabilidade-fluxo-2026-04-17.md
+
+## Estado atual (atualizado)
+- Snapshot mais recente: r5
+- Resultado: total=5, done=0, queued=5, failed=0, allDone=false
+- Acao: manter ML-56 em `In Progress` e nao aplicar CSV de fechamento.
 
 ## Execucao rapida (PowerShell)
 1) Dry-run

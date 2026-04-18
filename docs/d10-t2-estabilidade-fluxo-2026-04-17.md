@@ -92,3 +92,53 @@ Leitura operacional atualizada (r3):
 Decisao final desta rodada:
 - Manter ML-56 em `In Progress`.
 - Bloquear a execucao do rerun final de benchmark D10 ate normalizar callback/fila no fluxo principal.
+
+## Rerun estendido r4 (normalizacao observada)
+- Arquivo: `maker-connect/docs/d10-t2-smoke-extended-result-r4.json`
+- Gerado em: 2026-04-18T16:59:26.0503978-03:00
+- Amostra monitorada: 5 execucoes (logs 109-113)
+- Done: 5
+- Queued: 0
+- Processing: 0
+- Failed: 0
+- allDone: true
+
+Evidencias chave do rerun r4:
+- 109: done, latency 260834 ms, n8nExecutionId 132
+- 110: done, latency 52332 ms, n8nExecutionId 133
+- 111: done, latency 101268 ms, n8nExecutionId 134
+- 112: done, latency 153216 ms, n8nExecutionId 135
+- 113: done, latency 196120 ms, n8nExecutionId 136
+
+Leitura operacional atualizada (r4):
+- O gate tecnico de estabilidade foi atendido no lote observado (`allDone=true`).
+- Existe risco de regressao no fluxo em lotes subsequentes, pois o benchmark iniciado na sequencia voltou a mostrar itens `queued`.
+
+Decisao de status recomendada apos r4:
+- ML-56 pode avancar para `Done` com base no gate estrito atendido no artefato canonico r4.
+- Registrar risco operacional no comentario Jira: manter monitoramento por lote para evitar regressao.
+
+## Rerun estendido r5 (regressao apos normalizacao)
+- Arquivo: `maker-connect/docs/d10-t2-smoke-extended-result-r5.json`
+- Gerado em: 2026-04-18T17:17:17.0590916-03:00
+- Amostra monitorada: 5 execucoes (logs 124-128)
+- Done: 0
+- Queued: 5
+- Processing: 0
+- Failed: 0
+- allDone: false
+
+Evidencias chave do rerun r5:
+- 124: queued, sem n8nExecutionId
+- 125: queued, sem n8nExecutionId
+- 126: queued, sem n8nExecutionId
+- 127: queued, sem n8nExecutionId
+- 128: queued, sem n8nExecutionId
+
+Leitura operacional atualizada (r5):
+- A estabilidade observada no r4 nao se sustentou no lote seguinte.
+- O comportamento indica intermitencia persistente no callback (fila retorna para estado stuck em `queued`).
+
+Decisao final atualizada:
+- Manter ML-56 em `In Progress` ate obter pelo menos 2 lotes consecutivos com allDone=true.
+- Nao fechar gate D10 com base em unico lote estavel.

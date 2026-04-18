@@ -1,0 +1,46 @@
+{
+  "generatedAt": "2026-04-18T17:17:17.0590916-03:00",
+  "total": 5,
+  "done": 0,
+  "queued": 5,
+  "processing": 0,
+  "failed": 0,
+  "allDone": false,
+  "observations": [
+    {
+      "id": 124,
+      "status": "queued",
+      "latencyMs": null,
+      "n8nExecutionId": null,
+      "updatedAt": "2026-04-18T20:16:56.655Z"
+    },
+    {
+      "id": 125,
+      "status": "queued",
+      "latencyMs": null,
+      "n8nExecutionId": null,
+      "updatedAt": "2026-04-18T20:16:57.012Z"
+    },
+    {
+      "id": 126,
+      "status": "queued",
+      "latencyMs": null,
+      "n8nExecutionId": null,
+      "updatedAt": "2026-04-18T20:16:57.37Z"
+    },
+    {
+      "id": 127,
+      "status": "queued",
+      "latencyMs": null,
+      "n8nExecutionId": null,
+      "updatedAt": "2026-04-18T20:16:57.758Z"
+    },
+    {
+      "id": 128,
+      "status": "queued",
+      "latencyMs": null,
+      "n8nExecutionId": null,
+      "updatedAt": "2026-04-18T20:16:58.13Z"
+    }
+  ]
+}

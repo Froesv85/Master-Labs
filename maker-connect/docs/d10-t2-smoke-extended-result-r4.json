@@ -1,0 +1,46 @@
+{
+  "generatedAt": "2026-04-18T16:59:26.0503978-03:00",
+  "total": 5,
+  "done": 5,
+  "queued": 0,
+  "processing": 0,
+  "failed": 0,
+  "allDone": true,
+  "observations": [
+    {
+      "id": 109,
+      "status": "done",
+      "latencyMs": 260834,
+      "n8nExecutionId": "132",
+      "updatedAt": "2026-04-18T19:59:19.183Z"
+    },
+    {
+      "id": 110,
+      "status": "done",
+      "latencyMs": 52332,
+      "n8nExecutionId": "133",
+      "updatedAt": "2026-04-18T19:55:51.912Z"
+    },
+    {
+      "id": 111,
+      "status": "done",
+      "latencyMs": 101268,
+      "n8nExecutionId": "134",
+      "updatedAt": "2026-04-18T19:56:40.424Z"
+    },
+    {
+      "id": 112,
+      "status": "done",
+      "latencyMs": 153216,
+      "n8nExecutionId": "135",
+      "updatedAt": "2026-04-18T19:57:32.781Z"
+    },
+    {
+      "id": 113,
+      "status": "done",
+      "latencyMs": 196120,
+      "n8nExecutionId": "136",
+      "updatedAt": "2026-04-18T19:58:16.096Z"
+    }
+  ]
+}
