@@ -95,6 +95,13 @@ function createEmbeddingId(projectId: number) {
   return `emb_${projectId}_${now}_${random}`;
 }
 
+function formatUnknownError(error: unknown) {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return 'Unknown error';
+}
+
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -175,32 +182,67 @@ export async function POST(
       data: { content: sanitized, embeddingId },
     });
 
-    // Fire webhook to n8n asynchronously (don't wait)
-    const n8nWebhookUrl = process.env.N8N_EXTRACTION_WEBHOOK_URL;
-    if (n8nWebhookUrl) {
-      try {
-        console.log(`Triggering n8n webhook at ${n8nWebhookUrl} (Language: ${language})`);
-        const n8nRes = await fetch(n8nWebhookUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            webhookId,
-            projectId,
-            projectTitle: project.title,
-            language,
-            input: sanitized,
-            imageB64: body?.imageB64 || null,
-            keywords,
-            piiRedactions: redactions,
-            embeddingId,
-            callbackUrl: `${process.env.API_URL || 'http://localhost:3000'}/api/projects/${projectId}/extract/callback`,
-          }),
-        });
-        const responseText = await n8nRes.text();
-        console.log(`n8n webhook response: ${n8nRes.status} - ${responseText}`);
-      } catch (error) {
-        console.error(`Failed to trigger n8n webhook for projectId ${projectId}:`, error);
+    // Trigger n8n webhook and mark failures explicitly to avoid orphan queued logs.
+    const n8nWebhookUrl = process.env.N8N_EXTRACTION_WEBHOOK_URL?.trim();
+    const callbackBaseUrl = process.env.API_URL?.trim() || req.nextUrl.origin;
+
+    try {
+      if (!n8nWebhookUrl) {
+        throw new Error('N8N_EXTRACTION_WEBHOOK_URL is not configured.');
       }
+
+      console.log(`Triggering n8n webhook at ${n8nWebhookUrl} (Language: ${language})`);
+      const n8nRes = await fetch(n8nWebhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          webhookId,
+          projectId,
+          projectTitle: project.title,
+          language,
+          input: sanitized,
+          imageB64: body?.imageB64 || null,
+          keywords,
+          piiRedactions: redactions,
+          embeddingId,
+          callbackUrl: `${callbackBaseUrl}/api/projects/${projectId}/extract/callback`,
+        }),
+        signal: AbortSignal.timeout(10000),
+      });
+
+      const responseText = await n8nRes.text();
+      if (!n8nRes.ok) {
+        throw new Error(`n8n webhook returned ${n8nRes.status}: ${responseText}`);
+      }
+
+      console.log(`n8n webhook response: ${n8nRes.status} - ${responseText}`);
+    } catch (error) {
+      const message = formatUnknownError(error);
+      await prisma.projectExtractionLog.update({
+        where: { id: extractionLog.id },
+        data: {
+          status: 'failed',
+          error: `Failed to trigger n8n webhook: ${message}`,
+          updatedAt: new Date(),
+        },
+      });
+
+      return NextResponse.json(
+        {
+          data: {
+            logId: extractionLog.id,
+            projectId,
+            webhookId,
+            embeddingId,
+            status: 'failed',
+            source,
+            piiRedactions: redactions,
+            keywords,
+          },
+          error: `Failed to trigger n8n webhook: ${message}`,
+        },
+        { status: 502 }
+      );
     }
 
     return NextResponse.json(
