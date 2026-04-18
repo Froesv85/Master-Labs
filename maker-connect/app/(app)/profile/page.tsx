@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 import { FormEvent, useEffect, useState } from 'react';
+import { LanguageSelector } from '@/components/language-selector';
+import { useLanguage } from '@/components/language-provider';
 
 type ProfileProject = {
   id: number;
@@ -20,6 +22,7 @@ type ProfileResponse = {
       id: number;
       name: string | null;
       email: string;
+      language: string;
     };
     stats: {
       projects: number;
@@ -34,6 +37,7 @@ function displayCategory(category: ProfileProject['category']) {
 }
 
 export default function ProfilePage() {
+  const { setLanguage } = useLanguage();
   const [emailInput, setEmailInput] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -54,11 +58,31 @@ export default function ProfilePage() {
 
       const payload = (await res.json()) as ProfileResponse;
       setProfile(payload.data);
+
+      // Sincroniza o estado global com o que está no banco
+      if (payload.data.maker.language) {
+        setLanguage(payload.data.maker.language);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro inesperado ao carregar perfil.');
       setProfile(null);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleLanguageChange(code: string) {
+    if (!profile) return;
+    
+    try {
+      await fetch('/api/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: profile.maker.id, language: code }),
+      });
+      console.log('Language updated in DB');
+    } catch (err) {
+      console.error('Failed to update language', err);
     }
   }
 
@@ -79,12 +103,15 @@ export default function ProfilePage() {
             <h1 className="text-3xl font-semibold tracking-tight">Maker Profile</h1>
             <p className="text-sm text-zinc-600">Visao social do maker com projetos publicados e total de votos.</p>
           </div>
-          <Link
-            href="/feed"
-            className="rounded-lg bg-white px-3 py-2 text-sm text-zinc-700 ring-1 ring-zinc-200"
-          >
-            Voltar ao Feed
-          </Link>
+          <div className="flex items-center gap-3">
+            <LanguageSelector onSelect={handleLanguageChange} />
+            <Link
+              href="/feed"
+              className="rounded-lg bg-white px-3 py-2 text-sm text-zinc-700 ring-1 ring-zinc-200"
+            >
+              Voltar ao Feed
+            </Link>
+          </div>
         </header>
 
         <form onSubmit={handleSubmit} className="mb-6 flex flex-wrap items-center gap-2">

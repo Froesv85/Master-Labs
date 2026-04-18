@@ -1,8 +1,13 @@
 # Testes de integração MakerConnect + n8n (PowerShell)
 # Use: .\n8n-e2e-tests.ps1
 
-$API_URL = "http://localhost:3000"
-$PROJECT_ID = 1
+param(
+    [string]$ApiUrl = "http://localhost:3000",
+    [int]$ProjectId = 7
+)
+
+$API_URL = $ApiUrl
+$PROJECT_ID = $ProjectId
 
 Write-Host "=== MakerConnect E2E Tests (PowerShell) ===" -ForegroundColor Cyan
 Write-Host ""
@@ -10,7 +15,7 @@ Write-Host ""
 # Test 1: Health check
 Write-Host "Test 1: Health Check" -ForegroundColor Yellow
 try {
-    $health = Invoke-RestMethod -Uri "${API_URL}/api/projects/${PROJECT_ID}" -Method Get
+    $health = Invoke-RestMethod -Uri "${API_URL}/api/projects" -Method Get
     Write-Host "✓ API respondendo" -ForegroundColor Green
 } catch {
     Write-Host "✗ API indisponível" -ForegroundColor Red

@@ -1,0 +1,6 @@
+Work Item ID,JiraKey,Issue Type,Current Status,Suggested Status,Comment
+,ML-53,Story,To Do,In Progress,"Gate D5 iniciado. Story colocada em execucao com foco em validacao E2E e controle de risco para a demo."
+,ML-61,Sub-task,To Do,In Progress,"Subtarefa D5 distribuida para execucao imediata: validacao do fluxo E2E completo com evidencia de callback e logs por etapa."
+,ML-60,Sub-task,To Do,In Progress,"Subtarefa D5 distribuida para execucao imediata: validacao de falha controlada e observabilidade com log de causa raiz."
+,ML-59,Sub-task,To Do,In Progress,"Subtarefa D5 distribuida para execucao imediata: consolidacao de snapshot parcial de metricas IA (p50/p95/parse)."
+,ML-58,Sub-task,To Do,In Progress,"Subtarefa D5 distribuida para execucao imediata: validacao de trilha LGPD e evidencia de mascaramento PII."

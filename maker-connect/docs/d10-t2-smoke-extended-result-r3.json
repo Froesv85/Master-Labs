@@ -1,0 +1,52 @@
+{
+  "runLabel": "D10-T2-R3-authoritative-snapshot",
+  "generatedAt": "2026-04-18T02:56:06.537Z",
+  "projectId": 7,
+  "total": 5,
+  "done": 0,
+  "queued": 5,
+  "failed": 0,
+  "allDone": false,
+  "logs": [
+    {
+      "id": 108,
+      "status": "queued",
+      "source": "manual",
+      "createdAt": "2026-04-18T02:55:27.580Z",
+      "updatedAt": "2026-04-18T02:55:27.580Z",
+      "n8nExecutionId": null
+    },
+    {
+      "id": 107,
+      "status": "queued",
+      "source": "manual",
+      "createdAt": "2026-04-18T02:55:27.189Z",
+      "updatedAt": "2026-04-18T02:55:27.189Z",
+      "n8nExecutionId": null
+    },
+    {
+      "id": 106,
+      "status": "queued",
+      "source": "manual",
+      "createdAt": "2026-04-18T02:55:26.821Z",
+      "updatedAt": "2026-04-18T02:55:26.821Z",
+      "n8nExecutionId": null
+    },
+    {
+      "id": 105,
+      "status": "queued",
+      "source": "manual",
+      "createdAt": "2026-04-18T02:55:26.457Z",
+      "updatedAt": "2026-04-18T02:55:26.457Z",
+      "n8nExecutionId": null
+    },
+    {
+      "id": 104,
+      "status": "queued",
+      "source": "manual",
+      "createdAt": "2026-04-18T02:55:26.090Z",
+      "updatedAt": "2026-04-18T02:55:26.090Z",
+      "n8nExecutionId": null
+    }
+  ]
+}

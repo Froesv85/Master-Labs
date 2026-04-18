@@ -1,12 +1,9 @@
 import 'dotenv/config';
 import { Pinecone } from '@pinecone-database/pinecone';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// Instanciar o cliente do Gemini
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
-const embeddingModel = genAI.getGenerativeModel({ model: "gemini-embedding-001" });
+const ollamaBaseUrl = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
+const embedModel = process.env.OLLAMA_EMBED_MODEL || 'nomic-embed-text';
 
-// Conhecimento técnico real para popular o banco
 const KNOWLEDGE_BASE = [
   {
     id: 'comp_esp32_wroom',
@@ -29,39 +26,45 @@ async function seed() {
   const pcApiKey = process.env.PINECONE_API_KEY;
   const indexName = process.env.PINECONE_INDEX || 'maker-knowledge';
 
-  if (!pcApiKey || !process.env.GEMINI_API_KEY) {
-    console.error('❌ Erro: Chaves de API (Gemini ou Pinecone) não encontradas no .env');
+  if (!pcApiKey) {
+    console.error('❌ Erro: Chave de API do Pinecone não encontrada no .env');
     return;
   }
 
-  console.log('🌲 Conectando ao Pinecone...');
   const pc = new Pinecone({ apiKey: pcApiKey });
   const index = pc.index(indexName);
 
-  for (const item of KNOWLEDGE_BASE) {
-    console.log(`🧠 Gerando embedding com Gemini para: ${item.id}...`);
-    
-    // Gerar o vetor real via Gemini
-    const result = await embeddingModel.embedContent({
-      content: { parts: [{ text: item.text }] },
-      outputDimensionality: 768
+  async function generateEmbedding(text) {
+    const response = await fetch(`${ollamaBaseUrl}/api/embeddings`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: embedModel, prompt: text })
     });
-    const vector = Array.from(result.embedding.values);
 
-    console.log(`📥 Fazendo Upsert no Pinecone...`);
-    await index.upsert({
-      records: [{
-        id: item.id,
-        values: vector,
-        metadata: {
-          ...item.metadata,
-          text: item.text // Guardamos o texto para o RAG recuperar depois
-        }
-      }]
-    });
+    if (!response.ok) throw new Error(`Erro Ollama: ${response.status}`);
+    const data = await response.json();
+    return data.embedding;
   }
 
-  console.log('✅ Base de conhecimento populada com sucesso usando Google Gemini!');
+  try {
+    for (const item of KNOWLEDGE_BASE) {
+      console.log(`🧠 Gerando embedding para: ${item.id}...`);
+      const vector = await generateEmbedding(item.text);
+      
+      console.log(`📤 Enviando ao Pinecone...`);
+      await index.upsert({
+        records: [{
+          id: item.id,
+          values: vector,
+          metadata: { ...item.metadata, text: item.text }
+        }]
+      });
+      console.log(`✅ ${item.id} ok!`);
+    }
+    console.log(`\n🎉 Pronto!`);
+  } catch (error) {
+    console.error('❌ Erro:', error.message);
+  }
 }
 
-seed().catch(console.error);
+seed();

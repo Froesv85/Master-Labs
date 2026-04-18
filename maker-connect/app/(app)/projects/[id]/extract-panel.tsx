@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useMemo, useState } from 'react';
+import CodeViewer from './code-viewer';
 
 type ExtractResponse = {
   data: {
@@ -15,6 +16,7 @@ type ExtractResponse = {
       output?: {
         technicalRequirements?: string[];
         suggestedBOM?: Array<{ item: string; quantity: number | string; notes: string }>;
+        suggestedCode?: string;
         confidenceScore?: number;
       };
     };
@@ -32,11 +34,23 @@ export default function ExtractPanel({
   const [pollIntervalId, setPollIntervalId] = useState<NodeJS.Timeout | null>(null);
 
   const [input, setInput] = useState(initialInput);
+  const [imageB64, setImageB64] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ExtractResponse['data'] | null>(null);
 
   const inputLength = useMemo(() => input.trim().length, [input]);
+
+  async function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImageB64(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  }
 
   async function pollStatus(webhookId: string) {
     try {
@@ -75,6 +89,7 @@ export default function ExtractPanel({
         body: JSON.stringify({
           input,
           source: 'manual',
+          imageB64,
         }),
       });
 
@@ -135,13 +150,42 @@ export default function ExtractPanel({
           <span>Texto atual: {inputLength}</span>
           {currentEmbeddingId ? <span>Embedding atual: {currentEmbeddingId}</span> : null}
         </div>
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium text-zinc-700">Opcional: Enviar imagem (Esquema/Circuito)</label>
+          <div className="flex items-center gap-4">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="block w-full text-xs text-zinc-500
+                file:mr-4 file:py-2 file:px-4
+                file:rounded-full file:border-0
+                file:text-xs file:font-semibold
+                file:bg-zinc-100 file:text-zinc-700
+                hover:file:bg-zinc-200"
+            />
+            {imageB64 && (
+              <div className="relative h-12 w-12 shrink-0">
+                <img src={imageB64} alt="Preview" className="h-full w-full rounded-md object-cover ring-1 ring-zinc-200" />
+                <button 
+                  type="button" 
+                  onClick={() => setImageB64(null)} 
+                  className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[10px] text-white"
+                >
+                  ×
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
         <div className="flex items-center gap-2">
           <button
             type="submit"
             disabled={loading}
-            className="rounded-lg bg-zinc-900 px-4 py-2 text-sm text-white disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-lg bg-zinc-900 px-4 py-2 text-sm text-white disabled:cursor-not-allowed disabled:opacity-60 transition-all hover:bg-zinc-800"
           >
-            {loading ? 'Processando...' : 'Executar extracao'}
+            {loading ? 'Processando...' : 'Executar extracao com Vision'}
           </button>
         </div>
       </form>
@@ -176,15 +220,22 @@ export default function ExtractPanel({
                   </li>
                 ))}
               </ul>
-              
+
               <h4 className="font-bold mb-2">📊 BOM Sugerido:</h4>
-              <ul className="list-disc pl-5 space-y-1">
+              <ul className="list-disc pl-5 space-y-1 mb-4">
                 {result.output.suggestedBOM?.map((bom: any, i: number) => (
                   <li key={i}>
                     <strong>{typeof bom?.quantity === 'object' ? JSON.stringify(bom?.quantity) : bom?.quantity}x {typeof bom?.item === 'object' ? JSON.stringify(bom?.item) : bom?.item}</strong>: <span className="text-emerald-700">{typeof bom?.notes === 'object' ? JSON.stringify(bom?.notes) : bom?.notes}</span>
                   </li>
                 ))}
               </ul>
+
+              {result.output.suggestedCode && (
+                <>
+                  <h4 className="font-bold mb-2 mt-4 text-zinc-900 leading-none">💻 Firmware Sugerido:</h4>
+                  <CodeViewer code={result.output.suggestedCode} />
+                </>
+              )}
             </div>
           )}
         </div>

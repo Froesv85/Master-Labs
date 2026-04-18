@@ -25,6 +25,7 @@ model User {
   name     String?
   projects Project[]       @relation("creator")
   votes    ProjectVote[]
+  language String          @default("pt-BR")
 
   @@index([email])
 }
@@ -105,6 +106,7 @@ model ProjectExtractionLog {
   output          String?  @db.LongText
   error           String?  @db.LongText
   n8nExecutionId  String?
+  language        String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

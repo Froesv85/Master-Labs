@@ -1,6 +1,61 @@
 # Atualizacao Jira e Kanban - 10/04/2026 (Fase 6: Exportação PDF)
 
-## 1) Atualizacao Jira (pronto para aplicar)
+## Reexecucao e validacao final em 17/04/2026
+
+Reaplicacao do pacote executada com sucesso via script `scripts/update-jira-statuses.ps1` e arquivo `docs/jira-kanban-update-fase6.csv`.
+
+Validacao executada antes da aplicacao real:
+- Dry-run concluido sem erros de parse, autenticacao ou mapeamento de issues.
+- Todas as transicoes previstas foram listadas corretamente para: ML-28, ML-27, ML-19, ML-26, ML-25, ML-18 e ML-14.
+
+Execucao real (sem erros de transicao):
+- ML-28 -> Done, comentario adicionado (id 10176)
+- ML-27 -> Done, comentario adicionado (id 10177)
+- ML-19 -> Done, comentario adicionado (id 10178)
+- ML-26 -> Done, comentario adicionado (id 10179)
+- ML-25 -> Done, comentario adicionado (id 10180)
+- ML-18 -> Done, comentario adicionado (id 10181)
+- ML-14 -> Done, comentario adicionado (id 10182)
+
+Resumo operacional:
+- Dry-run executado antes da aplicacao real.
+- Execucao real concluida sem erros de transicao.
+
+## Execucao aplicada em 14/04/2026
+
+Atualizacao executada no Jira com sucesso para a Fase 6.
+
+Issues com status final `Done`:
+- ML-14
+- ML-18
+- ML-19
+- ML-25
+- ML-26
+- ML-27
+- ML-28
+
+Observacoes da execucao:
+- O comentario original da ML-27 falhou por parse JSON no Jira e foi substituido por comentario seguro em ingles.
+- A issue ML-28 recebeu comentario duplicado durante a primeira tentativa e a reexecucao.
+
+## Snapshot Kanban apos atualizacao
+
+### Done
+- ML-14 (Epic S2-E1 Exportacao PDF)
+- ML-18
+- ML-19
+- ML-25
+- ML-26
+- ML-27
+- ML-28
+
+### In Progress
+- Sem itens da Fase 6.
+
+### To Do
+- Definir proxima frente apos fechamento da Fase 6 (ex.: metricas IA/latencia e backlog da sprint seguinte).
+
+## 1) Plano de atualizacao Jira (referencia)
 
 Status recomendado por issue para a conclusao da Fase 6 (Exportacao PDF Auditavel):
 

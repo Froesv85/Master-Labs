@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma';
 type ExtractRequestBody = {
   input?: string;
   source?: 'manual' | 'webhook';
+  imageB64?: string; // Base64 representation of the image
 };
 
 function parseProjectId(value: string) {
@@ -126,13 +127,19 @@ export async function POST(
   try {
     const project = await prisma.project.findUnique({
       where: { id: projectId },
-      select: { id: true, title: true, description: true },
+      select: { 
+        id: true, 
+        title: true, 
+        description: true,
+        creator: { select: { language: true } }
+      },
     });
 
     if (!project) {
       return NextResponse.json({ error: 'Project not found.' }, { status: 404 });
     }
 
+    const language = project.creator.language || 'pt-BR';
     const webhookId = createWebhookId();
     const { sanitized, redactions } = anonymizeSensitiveData(input);
     const keywords = extractKeywords(sanitized);
@@ -148,6 +155,7 @@ export async function POST(
         piiRedactions: redactions,
         keywords: JSON.stringify(keywords),
         embeddingId,
+        language,
       },
       select: {
         id: true,
@@ -156,6 +164,7 @@ export async function POST(
         webhookId: true,
         piiRedactions: true,
         keywords: true,
+        language: true,
         createdAt: true,
       },
     });
@@ -170,7 +179,7 @@ export async function POST(
     const n8nWebhookUrl = process.env.N8N_EXTRACTION_WEBHOOK_URL;
     if (n8nWebhookUrl) {
       try {
-        console.log(`Triggering n8n webhook at ${n8nWebhookUrl}`);
+        console.log(`Triggering n8n webhook at ${n8nWebhookUrl} (Language: ${language})`);
         const n8nRes = await fetch(n8nWebhookUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -178,7 +187,9 @@ export async function POST(
             webhookId,
             projectId,
             projectTitle: project.title,
+            language,
             input: sanitized,
+            imageB64: body?.imageB64 || null,
             keywords,
             piiRedactions: redactions,
             embeddingId,

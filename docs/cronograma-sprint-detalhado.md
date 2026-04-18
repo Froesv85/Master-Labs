@@ -18,6 +18,10 @@ CORES:
 
 ## 📊 Distribuição por Sprint (Vinicius Froes)
 
+## ✅ Marco de Consistência (Atualização de Status)
+
+- **S2-E1 concluído em 14/04/2026** (fechamento aplicado no Jira/Kanban: ML-14, ML-18, ML-19, ML-25, ML-26, ML-27, ML-28).
+
 ### **SPRINT S0.1 (Weeks 1-2: 04-15 Abril)**
 **Foco:** Database + API Boilerplate + n8n Setup  
 **Capacity:** 8 SP  
@@ -109,6 +113,8 @@ CORES:
 **Foco:** PDF Export Worker  
 **Capacity:** 8 SP  
 **Burn:** 8/8 (100%)
+
+**Status consolidado:** ✅ **S2-E1 concluído em 14/04/2026**
 
 | Task | SP | Owner | Status | ETA | Dependencies |
 |------|----|----|--------|-----|-------|

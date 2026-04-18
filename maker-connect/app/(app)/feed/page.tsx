@@ -206,12 +206,20 @@ export default function FeedPage() {
             <h1 className="text-3xl font-semibold tracking-tight">Feed de Inovacoes</h1>
             <p className="text-sm text-zinc-600">Filtre por categoria e navegue pelos projetos publicados.</p>
           </div>
-          <Link
-            href="/profile"
-            className="rounded-lg bg-white px-3 py-2 text-sm text-zinc-700 ring-1 ring-zinc-200"
-          >
-            Ver Profile
-          </Link>
+          <div className="flex gap-2">
+            <Link
+              href="/admin/metrics"
+              className="rounded-lg bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700 ring-1 ring-emerald-200 hover:bg-emerald-100 transition-colors"
+            >
+              Metricas IA
+            </Link>
+            <Link
+              href="/profile"
+              className="rounded-lg bg-white px-3 py-2 text-sm text-zinc-700 ring-1 ring-zinc-200"
+            >
+              Ver Profile
+            </Link>
+          </div>
         </header>
 
         <section className="mb-6 flex flex-wrap items-center gap-2">

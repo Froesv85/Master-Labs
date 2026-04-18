@@ -62,6 +62,7 @@ export async function POST(
       try {
         let techReqs: string[] = [];
         let bom: any[] = [];
+        let suggestedCode = '';
         const latestExtraction = project.extractionLogs[0];
 
         if (latestExtraction?.output) {
@@ -71,6 +72,7 @@ export async function POST(
                typeof r === 'string' ? r : (r.description || r.name || JSON.stringify(r))
             );
             bom = parsed.suggestedBOM || [];
+            suggestedCode = parsed.suggestedCode || '';
           } catch (e) {
              console.error('Falha ao parsear extracao AI:', e);
           }
@@ -86,7 +88,8 @@ export async function POST(
             description: d.description
           })),
           technicalRequirements: techReqs,
-          suggestedBom: bom
+          suggestedBom: bom,
+          suggestedCode: suggestedCode
         };
 
         const pdfBuffer = await buildPdf(exportData);

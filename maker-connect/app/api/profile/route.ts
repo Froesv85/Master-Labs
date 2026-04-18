@@ -37,6 +37,7 @@ export async function GET(req: NextRequest) {
         id: true,
         name: true,
         email: true,
+        language: true,
         projects: {
           orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
           select: {
@@ -90,6 +91,30 @@ export async function GET(req: NextRequest) {
     });
   } catch (error) {
     console.error('GET /api/profile failed', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+export async function PATCH(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const { userId, language } = body;
+
+    if (!userId || !language) {
+      return NextResponse.json({ error: 'Missing userId or language.' }, { status: 400 });
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: Number(userId) },
+      data: { language },
+    });
+
+    return NextResponse.json({
+      message: 'Idioma atualizado com sucesso.',
+      language: updatedUser.language,
+    });
+  } catch (error) {
+    console.error('PATCH /api/profile failed', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

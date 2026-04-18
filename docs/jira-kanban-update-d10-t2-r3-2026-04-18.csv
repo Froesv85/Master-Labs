@@ -1,0 +1,2 @@
+JiraKey,Suggested Status,Comment
+ML-56,In Progress,"Atualizacao r3: maker-connect/docs/d10-t2-smoke-extended-result-r3.json registrou total=5, done=0, queued=5, failed=0, allDone=false (logs 104-108 sem n8nExecutionId). Fluxo com regressao de estabilidade; manter ML-56 em In Progress e bloquear rerun final do benchmark D10 ate normalizar callback/fila."

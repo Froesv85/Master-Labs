@@ -1,0 +1,2 @@
+JiraKey,Suggested Status,Comment
+ML-56,Done,"Retomada D+1: fluxo principal normalizado apos novo rerun estendido (criterio atendido: total=5, done=5, queued=0, failed=0, allDone=true). Encerrando D10-T2 com evidencia canonica atualizada em maker-connect/docs/d10-t2-smoke-extended-result-<novo>.json e consolidacao em docs/d10-t2-estabilidade-fluxo-2026-04-17.md."
