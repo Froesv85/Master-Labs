@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { normalizeExtractionOutput } from '@/lib/extraction-output-schema';
 import { prisma } from '@/lib/prisma';
 
 type CallbackBody = {
@@ -66,7 +67,7 @@ export async function POST(
     };
 
     if (body.output) {
-      updateData.output = JSON.stringify(body.output);
+      updateData.output = JSON.stringify(normalizeExtractionOutput(body.output));
     }
 
     if (body.error) {

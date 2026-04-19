@@ -14,7 +14,13 @@ type ExtractResponse = {
       processedContent: string;
       processedAt: string;
       output?: {
-        technicalRequirements?: string[];
+        schemaVersion?: string;
+        technicalRequirements?: Array<{
+          id: string;
+          name: string;
+          detail: string;
+          priority: 'high' | 'medium' | 'low';
+        }>;
         suggestedBOM?: Array<{ item: string; quantity: number | string; notes: string }>;
         suggestedCode?: string;
         confidenceScore?: number;
@@ -214,9 +220,10 @@ export default function ExtractPanel({
               <ul className="list-disc pl-5 mb-4 space-y-1">
                 {result.output.technicalRequirements?.map((req: any, i: number) => (
                   <li key={i}>
-                    {typeof req === 'string' 
-                      ? req 
-                      : (req?.description || req?.name || JSON.stringify(req))}
+                    <strong>{req?.name || `Requirement ${i + 1}`}</strong>
+                    {': '}
+                    {req?.detail || 'No detail provided.'}
+                    {req?.priority ? ` [${req.priority}]` : ''}
                   </li>
                 ))}
               </ul>

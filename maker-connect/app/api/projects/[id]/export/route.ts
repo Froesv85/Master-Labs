@@ -69,7 +69,7 @@ export async function POST(
           try {
             const parsed = typeof latestExtraction.output === 'string' ? JSON.parse(latestExtraction.output) : latestExtraction.output;
             techReqs = (parsed.technicalRequirements || []).map((r: any) => 
-               typeof r === 'string' ? r : (r.description || r.name || JSON.stringify(r))
+              typeof r === 'string' ? r : (r.detail || r.description || r.name || JSON.stringify(r))
             );
             bom = parsed.suggestedBOM || [];
             suggestedCode = parsed.suggestedCode || '';
