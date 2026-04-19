@@ -243,6 +243,6 @@ Fechamento para o dia:
 
 ## 15) Encerramento do dia e plano de amanha
 
-- Status recomendado para Jira: ML-66 CLOSED NO-GO, ML-57 In Progress, ML-72 In Progress com bloqueio de gate em concorrencia 1;
+- Status recomendado para Jira: ML-66 CLOSED NO-GO, ML-57 In Progress, ML-74 (trilha ML-72) In Progress com bloqueio de gate em concorrencia 1;
 - plano de amanha registrado em docs/d10-plano-execucao-amanha-2026-04-20.md;
 - foco de amanha: reparo do baseline de parse/schema, smoke end-to-end da fila Redis/BullMQ e nova tentativa de rollout progressivo.

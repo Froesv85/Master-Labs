@@ -30,7 +30,7 @@ Retomar a trilha ML-72 com foco em estabilizar o baseline q4, validar o fluxo Re
 
 ### P1-2) Fechamento operacional em docs e Jira
 - Publicar o fechamento final do dia com o estado da arquitetura aprovada.
-- Atualizar Jira com a situacao real de ML-66, ML-57 e ML-72.
+- Atualizar Jira com a situacao real de ML-66, ML-57 e ML-74 (trilha ML-72).
 - Criterio de aceite: rastreabilidade clara entre evidencia, decisao e proximo passo.
 
 ## Janela sugerida
