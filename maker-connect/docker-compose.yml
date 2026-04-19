@@ -1,4 +1,13 @@
 services:
+  redis:
+    image: redis:7-alpine
+    container_name: maker-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+
   mysql:
     image: mysql:8.0
     container_name: maker-mysql
@@ -37,5 +46,6 @@ services:
       "
 
 volumes:
+  redis-data:
   mysql-data:
   minio-data:

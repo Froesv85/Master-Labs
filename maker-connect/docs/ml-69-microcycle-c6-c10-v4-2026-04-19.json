@@ -1,0 +1,69 @@
+{
+  "generatedAt": "2026-04-19T17:21:08.726Z",
+  "model": "qwen2.5:7b-instruct",
+  "endpoint": "http://localhost:11434",
+  "retrievalExperiment": "microcycle_c6_c10_t5_v4_adaptive_budget",
+  "summary": {
+    "sampleSize": 2,
+    "parseValidRatePercent": 100,
+    "schemaValidRatePercent": 100,
+    "p50LatencyMs": 31030,
+    "p95LatencyMs": 31030,
+    "relevanceProxyAvgPercent": 87.5,
+    "avgContextChars": 176
+  },
+  "baselineV3": {
+    "sampleSize": 2,
+    "parseValidRatePercent": 100,
+    "schemaValidRatePercent": 100,
+    "p50LatencyMs": 36605,
+    "p95LatencyMs": 36605,
+    "relevanceProxyAvgPercent": 87.5,
+    "avgContextChars": 218
+  },
+  "deltaV4MinusV3": {
+    "parseValidRatePercent": 0,
+    "schemaValidRatePercent": 0,
+    "p50LatencyMs": -5575,
+    "p95LatencyMs": -5575,
+    "relevanceProxyAvgPercent": 0,
+    "avgContextChars": -42
+  },
+  "gateSummary": {
+    "parseGate95": true,
+    "schemaGate95": true,
+    "relevanceGate85": true
+  },
+  "perSample": [
+    {
+      "id": "C6",
+      "title": "Telemetria com wifi instavel",
+      "domain": "telemetry-sensing",
+      "latencyMs": 38445,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 75,
+      "contextChars": 189,
+      "usedNumPredict": 520,
+      "usedFallback": true,
+      "normalizedApplied": true,
+      "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Reconecto Exponencial\",\n      \"detail\": \"Implementar reconexão exponencial para o ESP32 em caso de perda de conexão com a rede Wi-Fi.\",\n      \"priority\"",
+      "error": null
+    },
+    {
+      "id": "C10",
+      "title": "Pipeline com anonimiza PII",
+      "domain": "maintenance-governance",
+      "latencyMs": 31030,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 100,
+      "contextChars": 163,
+      "usedNumPredict": 500,
+      "usedFallback": true,
+      "normalizedApplied": true,
+      "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Anonimização de PII antes da inferência\",\n      \"detail\": \"Implementar um pipeline que anonimiza os dados pessoais (PII) antes do processo de extração d",
+      "error": null
+    }
+  ]
+}

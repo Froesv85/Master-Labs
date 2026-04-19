@@ -1,0 +1,50 @@
+{
+  "generatedAt": "2026-04-18T18:50:03.1176855-03:00",
+  "lotLabel": "r6",
+  "observePolicy": {
+    "maxObserveSeconds": 240
+  },
+  "total": 5,
+  "done": 5,
+  "queued": 0,
+  "processing": 0,
+  "failed": 0,
+  "allDone": true,
+  "observations": [
+    {
+      "id": 150,
+      "status": "done",
+      "latencyMs": 89150,
+      "n8nExecutionId": "173",
+      "updatedAt": "2026-04-18T21:47:36.679Z"
+    },
+    {
+      "id": 151,
+      "status": "done",
+      "latencyMs": 43693,
+      "n8nExecutionId": "174",
+      "updatedAt": "2026-04-18T21:46:51.62Z"
+    },
+    {
+      "id": 152,
+      "status": "done",
+      "latencyMs": 131590,
+      "n8nExecutionId": "175",
+      "updatedAt": "2026-04-18T21:48:19.922Z"
+    },
+    {
+      "id": 153,
+      "status": "done",
+      "latencyMs": 226995,
+      "n8nExecutionId": "176",
+      "updatedAt": "2026-04-18T21:49:55.723Z"
+    },
+    {
+      "id": 154,
+      "status": "done",
+      "latencyMs": 192150,
+      "n8nExecutionId": "177",
+      "updatedAt": "2026-04-18T21:49:21.364Z"
+    }
+  ]
+}

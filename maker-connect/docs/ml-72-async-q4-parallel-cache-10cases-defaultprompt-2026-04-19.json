@@ -1,0 +1,329 @@
+{
+  "generatedAt": "2026-04-19T18:44:17.460Z",
+  "models": {
+    "primary": "qwen2.5:7b-instruct-q4_K_M",
+    "fallback": "qwen2.5:7b-instruct",
+    "embedding": "nomic-embed-text"
+  },
+  "endpoint": "http://localhost:11434",
+  "retrievalExperiment": "async_q4_parallel_embedding_cache_prompt_reduction",
+  "config": {
+    "concurrency": 1,
+    "promptProfile": "default",
+    "enableEmbeddings": true,
+    "requestTimeoutMs": 180000
+  },
+  "runtimeStats": {
+    "modelFallbackCount": 0,
+    "embeddingCacheHits": 352,
+    "embeddingCacheMisses": 0,
+    "embeddingFallbackToLexical": 0
+  },
+  "summary": {
+    "sampleSize": 10,
+    "parseValidRatePercent": 100,
+    "schemaValidRatePercent": 100,
+    "p50LatencyMs": 31912,
+    "p95LatencyMs": 35786,
+    "p50QueueWaitMs": 1,
+    "p95QueueWaitMs": 1,
+    "relevanceProxyAvgPercent": 92.5,
+    "avgContextChars": 458
+  },
+  "baselineCurated": {
+    "sampleSize": 10,
+    "parseValidRatePercent": 100,
+    "schemaValidRatePercent": 100,
+    "p50LatencyMs": 31694,
+    "p95LatencyMs": 38281,
+    "relevanceProxyAvgPercent": 92.5,
+    "avgContextChars": 658
+  },
+  "c6Comparison": {
+    "baseline": {
+      "latencyMs": 32681,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 75,
+      "modelUsed": "qwen2.5:7b-instruct-q4_K_M",
+      "usedNumPredict": 420,
+      "usedFallback": false
+    },
+    "optimized": {
+      "latencyMs": 31717,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 75,
+      "modelUsed": "qwen2.5:7b-instruct-q4_K_M",
+      "usedNumPredict": 420,
+      "usedFallback": true
+    },
+    "deltaOptimizedMinusBaseline": {
+      "latencyMs": -964,
+      "relevanceProxyPercent": 0
+    }
+  },
+  "deltaVsCurated": {
+    "parseValidRatePercent": 0,
+    "schemaValidRatePercent": 0,
+    "p50LatencyMs": 218,
+    "p95LatencyMs": -2495,
+    "relevanceProxyAvgPercent": 0,
+    "avgContextChars": -200
+  },
+  "gateSummary": {
+    "parseGate95": true,
+    "schemaGate95": true,
+    "relevanceGate85": true
+  },
+  "perSample": [
+    {
+      "id": "C6",
+      "title": "Telemetria com wifi instavel",
+      "domain": "telemetry-sensing",
+      "latencyMs": 31717,
+      "queueWaitMs": 2,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 75,
+      "contextChars": 275,
+      "evidenceIds": [
+        "E14",
+        "E11",
+        "E90"
+      ],
+      "mode": "optimized",
+      "modelUsed": "qwen2.5:7b-instruct-q4_K_M",
+      "usedNumPredict": 420,
+      "usedFallback": true,
+      "normalizedApplied": true,
+      "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Reconecto Exponencial\",\n      \"detail\": \"Implementar um algoritmo de reconexão exponencial para o ESP32 quando a conexão com a rede Wi-Fi falhar.\",\n    ",
+      "error": null
+    },
+    {
+      "id": "C1",
+      "title": "Estacao meteo ESP32",
+      "domain": "telemetry-sensing",
+      "latencyMs": 30267,
+      "queueWaitMs": 1,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 100,
+      "contextChars": 474,
+      "evidenceIds": [
+        "E11",
+        "E12",
+        "E13",
+        "E90",
+        "E33"
+      ],
+      "mode": "baseline",
+      "modelUsed": "qwen2.5:7b-instruct-q4_K_M",
+      "usedNumPredict": 420,
+      "usedFallback": false,
+      "normalizedApplied": true,
+      "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Ciclo de amostragem e debounce para DHT22\",\n      \"detail\": \"Implementar um ciclo de amostragem regular com debounce para garantir leituras precisas do ",
+      "error": null
+    },
+    {
+      "id": "C2",
+      "title": "Irrigacao automatica",
+      "domain": "actuation-control",
+      "latencyMs": 29703,
+      "queueWaitMs": 1,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 100,
+      "contextChars": 469,
+      "evidenceIds": [
+        "E21",
+        "E23",
+        "E22",
+        "E90",
+        "E33"
+      ],
+      "mode": "baseline",
+      "modelUsed": "qwen2.5:7b-instruct-q4_K_M",
+      "usedNumPredict": 420,
+      "usedFallback": false,
+      "normalizedApplied": true,
+      "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Leitura Periodica do Sensor de Umidade\",\n      \"detail\": \"Implementar leituras periódicas do sensor de umidade para monitorar a condição do solo.\",\n    ",
+      "error": null
+    },
+    {
+      "id": "C3",
+      "title": "Monitoramento de vibracao",
+      "domain": "telemetry-sensing",
+      "latencyMs": 36702,
+      "queueWaitMs": 1,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 100,
+      "contextChars": 501,
+      "evidenceIds": [
+        "E12",
+        "E11",
+        "E13",
+        "E91",
+        "E31"
+      ],
+      "mode": "baseline",
+      "modelUsed": "qwen2.5:7b-instruct-q4_K_M",
+      "usedNumPredict": 420,
+      "usedFallback": false,
+      "normalizedApplied": true,
+      "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Monitoreamento de Vibração com MPU6050 e Alerta por RMS\",\n      \"detail\": \"Implementar a leitura da aceleração do MPU6050, calcular o RMS das amostras e",
+      "error": null
+    },
+    {
+      "id": "C4",
+      "title": "Casa inteligente com fallback local",
+      "domain": "actuation-control",
+      "latencyMs": 35786,
+      "queueWaitMs": 0,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 100,
+      "contextChars": 468,
+      "evidenceIds": [
+        "E23",
+        "E21",
+        "E22",
+        "E90",
+        "E14"
+      ],
+      "mode": "baseline",
+      "modelUsed": "qwen2.5:7b-instruct-q4_K_M",
+      "usedNumPredict": 420,
+      "usedFallback": false,
+      "normalizedApplied": true,
+      "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Integração com API HTTP e fallback local\",\n      \"detail\": \"Implementar comunicação via API HTTP para controle remoto da iluminação, utilizando ESP8266 ",
+      "error": null
+    },
+    {
+      "id": "C5",
+      "title": "Controle de motor com ponte H",
+      "domain": "actuation-control",
+      "latencyMs": 32315,
+      "queueWaitMs": 1,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 100,
+      "contextChars": 476,
+      "evidenceIds": [
+        "E22",
+        "E23",
+        "E21",
+        "E90",
+        "E42"
+      ],
+      "mode": "baseline",
+      "modelUsed": "qwen2.5:7b-instruct-q4_K_M",
+      "usedNumPredict": 420,
+      "usedFallback": false,
+      "normalizedApplied": true,
+      "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Limites de corrente e proteção termica para a ponte H L298N\",\n      \"detail\": \"Implementar limites de corrente e proteção termica na ponte H L298N, regi",
+      "error": null
+    },
+    {
+      "id": "C7",
+      "title": "Monitor de bateria",
+      "domain": "power-safety",
+      "latencyMs": 31912,
+      "queueWaitMs": 0,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 75,
+      "contextChars": 455,
+      "evidenceIds": [
+        "E31",
+        "E32",
+        "E33",
+        "E90",
+        "E12"
+      ],
+      "mode": "baseline",
+      "modelUsed": "qwen2.5:7b-instruct-q4_K_M",
+      "usedNumPredict": 420,
+      "usedFallback": false,
+      "normalizedApplied": true,
+      "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Monitoramento de tensão da bateria Li-Ion\",\n      \"detail\": \"Implementar um sistema que monitore a tensão da bateria Li-Ion, emitindo alertas quando a t",
+      "error": null
+    },
+    {
+      "id": "C8",
+      "title": "Log de manutencao maker",
+      "domain": "maintenance-governance",
+      "latencyMs": 27656,
+      "queueWaitMs": 0,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 100,
+      "contextChars": 495,
+      "evidenceIds": [
+        "E42",
+        "E43",
+        "E41",
+        "E91",
+        "E22"
+      ],
+      "mode": "baseline",
+      "modelUsed": "qwen2.5:7b-instruct-q4_K_M",
+      "usedNumPredict": 420,
+      "usedFallback": false,
+      "normalizedApplied": true,
+      "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Monitoramento de Corrente e Temperatura\",\n      \"detail\": \"Implementar sensores para monitorar corrente e temperatura da bancada.\",\n      \"priority\": \"h",
+      "error": null
+    },
+    {
+      "id": "C9",
+      "title": "Sensores analogicos com calibracao",
+      "domain": "telemetry-sensing",
+      "latencyMs": 33597,
+      "queueWaitMs": 1,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 100,
+      "contextChars": 488,
+      "evidenceIds": [
+        "E13",
+        "E12",
+        "E11",
+        "E91",
+        "E33"
+      ],
+      "mode": "baseline",
+      "modelUsed": "qwen2.5:7b-instruct-q4_K_M",
+      "usedNumPredict": 420,
+      "usedFallback": false,
+      "normalizedApplied": true,
+      "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Calibração de sensores analógicos\",\n      \"detail\": \"Implementar calibração em dois pontos para os sensores analógicos, utilizando evidência [E13].\",\n  ",
+      "error": null
+    },
+    {
+      "id": "C10",
+      "title": "Pipeline com anonimiza PII",
+      "domain": "maintenance-governance",
+      "latencyMs": 34607,
+      "queueWaitMs": 0,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 75,
+      "contextChars": 477,
+      "evidenceIds": [
+        "E41",
+        "E43",
+        "E42",
+        "E90",
+        "E12"
+      ],
+      "mode": "baseline",
+      "modelUsed": "qwen2.5:7b-instruct-q4_K_M",
+      "usedNumPredict": 420,
+      "usedFallback": false,
+      "normalizedApplied": true,
+      "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Anonimização de PII\",\n      \"detail\": \"Implementar um processo que anonimize os identificadores pessoais antes da inferência, mantendo uma trilha auditá",
+      "error": null
+    }
+  ]
+}

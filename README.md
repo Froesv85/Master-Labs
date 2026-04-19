@@ -1,137 +1,112 @@
 # Master-Labs
 
-MakerConnect: Rede social técnica para governança de projetos IoT com documentação automatizada via agentes de IA e n8n.
+MakerConnect: rede social técnica para governança de projetos IoT com automação documental via IA (RAG), n8n e trilha auditável.
 
-MakerConnect: A technical social network for IoT project governance with automated documentation via AI agents and n8n.
+## Visão do Projeto
 
-## Resumo da Proposta
+O MakerConnect integra três pilares:
+- camada social: feed, fork, upvote, profile e log de dificuldades;
+- camada IA: extração, RAG, callback e métricas operacionais;
+- camada documental: exportação PDF assíncrona com histórico.
 
-Este trabalho apresenta a MakerConnect, uma rede social para cultura Maker e IoT que integra um pipeline funcional de IA Generativa orquestrado por n8n.
+Objetivo principal:
+- reduzir esforço de documentação técnica em projetos maker IoT;
+- aumentar rastreabilidade e reprodutibilidade;
+- manter evidência técnica verificável para banca/operação.
 
-A plataforma aplica RAG (Retrieval-Augmented Generation) com agentes baseados em GPT-4o para extrair requisitos de entradas nao estruturadas e gerar documentacao tecnica em PDF automaticamente.
+## Status Atual (18/04/2026)
 
-A base vetorial (Pinecone/Supabase) usa dados reais de componentes eletronicos para reduzir alucinacoes tecnicas.
+### Entregas já implementadas
+- Next.js + Prisma + MySQL local;
+- feed com filtros, busca, paginação e ordenação;
+- fork com linhagem por `parentId`;
+- upvote idempotente por usuário/projeto;
+- log de dificuldades por projeto;
+- pipeline de extração com anonimização de PII, keywords e webhook n8n;
+- callback de extração com persistência de `status`, `latencyMs` e `output`;
+- exportação PDF assíncrona com status e upload em MinIO/S3;
+- endpoint de métricas para observabilidade (IA + PDF + recentes).
 
-Mecanismos sociais como fork, upvotes e log de dificuldades ampliam reprodutibilidade e rastreabilidade. A conformidade com LGPD e tratada com anonimização de PII antes do processamento por IA.
+### Decisão de gates D10 (Jira)
+- ML-56: **Concluído** (estabilidade do fluxo atendida).
+- ML-57: **Em andamento** (bloqueado por otimização de latência/relevância).
+- Epic de Fase 2: **ML-64** (`LLM Latency & Relevance Tuning`).
+- Blocker técnico: **ML-65** (`Requires LLM Optimization (Phase 2)`).
 
-## Status atual
+## Stack Técnica
 
-Este repositorio avancou da base social para um MVP funcional com trilha IA e fechamento da Fase 6 (Exportacao PDF) no Jira/Kanban em 14/04/2026.
+- Frontend/API: Next.js 16 + React 19
+- ORM e dados transacionais: Prisma + MySQL
+- Orquestração IA: n8n
+- LLM/Embeddings locais: Ollama (`qwen2.5:7b-instruct`, `bge-m3`, fallback `llama3.1:8b`)
+- Banco vetorial: Pinecone
+- Object storage: MinIO/S3
+- Geração PDF: jsPDF
 
-Ja disponiveis:
-- setup Next.js + Prisma + MySQL local;
-- feed filtravel com busca, paginacao e ordenacao;
-- fluxo social com ver, fork, upvote e profile maker;
-- log de dificuldades por projeto com timeline;
-- pipeline n8n para extracao e geracao RAG configurado com Ollama (bge-m3 e qwen2.5:7b) e callback para API;
-- exportacao PDF assincrona com historico e rastreabilidade;
-- armazenamento S3-compatible via MinIO para artefatos de exportacao;
-- documentos operacionais para Jira, Kanban e evolucao diaria.
+## Arquitetura (Resumo)
 
-### Evolucao recente
+Fluxo principal:
+1. usuário aciona extração;
+2. API sanitiza PII + extrai keywords + cria log `queued`;
+3. API dispara n8n;
+4. n8n roda embedding + retrieval + geração;
+5. n8n chama callback na API com status/output;
+6. API persiste resultado e expõe métricas;
+7. usuário dispara exportação PDF;
+8. PDF é gerado de forma assíncrona e enviado ao MinIO/S3.
 
-Em 07/04, a base social ficou navegavel de ponta a ponta:
-- Feed -> Projeto -> Profile conectado;
-- fork com lineage por `parentId`;
-- upvote idempotente com contador;
-- profile maker com total de votos e lista de projetos;
-- log de dificuldades persistido no banco e exibido na pagina do projeto.
+## Qualidade, Ética e LGPD
 
-### Progresso estimado do projeto
+- anonimização de PII antes da trilha de IA;
+- rastreabilidade por estados assíncronos (`queued`, `processing`, `done`, `failed`);
+- histórico operacional para auditoria técnica;
+- backlog explícito para mitigação de risco de KPI IA.
 
-- Progresso atual do MVP: **85%**
-- Justificativa: pilares sociais, pipeline IA base e exportacao PDF assincrona ja foram entregues; restam consolidacao de metricas e hardening para demo final.
-- Leitura pratica: o produto ja fecha o fluxo principal de automacao tecnica e entrou em fase de estabilizacao/validacao.
+## Como Executar
 
-## Problema e Hipotese
+### 1) Ambiente principal (aplicação)
 
-Problema de pesquisa: como agentes de IA Generativa orquestrados via n8n podem reduzir a lacuna de documentacao em comunidades maker, promovendo reprodutibilidade e rastreabilidade em projetos IoT?
+```bash
+cd maker-connect
+npm install
+npm run dev
+```
 
-Hipotese: integrar pipeline RAG em uma rede social maker reduz tempo e esforco cognitivo de documentacao tecnica, aumentando padronizacao e reuso de hardware.
+Aplicação: `http://localhost:3000`
 
-## Objetivos
+### 2) Infra local de apoio (MySQL + MinIO)
 
-Objetivo geral:
-- Desenvolver a MakerConnect integrando IA Generativa e orquestracao n8n para automatizar documentacao tecnica e gerenciar ciclo de vida de projetos IoT.
+```bash
+cd maker-connect
+docker compose up -d
+```
 
-Objetivos especificos:
-- Implementar pipeline funcional com Extracao, RAG e Pos-processamento.
-- Orquestrar workflows via n8n em nuvem.
-- Construir base vetorial com dados reais de componentes eletronicos.
-- Modelar estrutura social com forks, upvotes, BOM e logs.
-- Garantir conformidade LGPD com anonimização de PII.
-- Validar reducao do esforco documental por metricas comparativas.
+## Documentos-Chave
 
-## Escopo do MVP
+### Arquitetura e banca
+- `docs/c4-banca-makerconnect-2026-04-18.md`
+- `docs/fala-apresentador-12-slides-2026-04-18.md`
 
-- Feed de Inovacoes com filtros por categoria (`3D Printing`, `Robotics`, `IoT`, `Woodworking`)
-- Perfil `Maker Professional` com `Hardware Stack` e medalhas
-- Repositorio social com `fork`, BOM interativa, log de dificuldades e coautoria
-- Exportacao assincrona de documentacao tecnica em PDF
-- Gamificacao por `upvotes` e autoridade maker
+### Operação e decisões D10
+- `docs/d10-t2-estabilidade-fluxo-2026-04-17.md`
+- `docs/d10-benchmark-final-2026-04-17.md`
+- `docs/jira-closure-comments-d10-2026-04-18.md`
 
-## Pipeline Funcional de IA (Obrigatorio)
+### IA/RAG e modelos
+- `docs/plano-migracao-gemini-ollama.md`
+- `docs/ollama-deployment-runbook.md`
+- `docs/ollama-models-recommendation.md`
 
-### MakerBrain Agent
-Agente de IA orquestrado no n8n atuando em duas frentes:
-- `RAG`: recuperacao vetorial com base em evidencias para gerar requisitos SW/HW estruturados.
-- `Pipeline CV/NLP`: extracao de entradas nao estruturadas (texto/imagem) para documentacao tecnica auditavel.
+## Estrutura do Repositório
 
-### Estagios obrigatorios
-- Extracao: upload via interface web + parsing NLP de descricoes e imagens.
-- Pre-processamento: embeddings, similaridade de cosseno e filtragem de PII (LGPD).
-- Modelo IA: RAG com recuperacao vetorial e geracao contextualizada (Ollama local - Qwen2.5 / Llama 3.1).
-- Pos-processamento: renderizacao PDF, metricas de cobertura documental e logs de validacao.
+- `maker-connect/`: aplicação principal (web + API + prisma + scripts)
+- `docs/`: documentação de produto, arquitetura, execução e banca
+- `scripts/`: automações operacionais (incluindo Jira)
+- `AGENTS.md`: orquestração de papéis e protocolo de trabalho
 
-### Indicadores de sucesso (IA)
-- Relevancia de sugestoes RAG > 85%.
-- Tempo total de processamento IA + exportacao < 15s (meta de referencia para demo).
-- Evidencia de validacao de recuperacao vetorial por similaridade.
-- Reducao mensuravel do tempo de documentacao tecnica.
+## Próximos Passos (Fase 2)
 
-## Arquitetura de referencia (planejada)
-
-- `Web (React)` + `API (Node.js)` + `n8n Orchestrator` + `Worker PDF`
-- Banco social: MySQL
-- Jobs assincronos: Redis + BullMQ
-- Assets: storage S3-compatible
-- LLMs: Ollama Local (qwen2.5:7b, llama3.1:8b) + Embeddings (bge-m3 / nomic)
-- Vetor: Pinecone ou Supabase pgvector
-- PDF Worker: Puppeteer
-
-Fluxos criticos planejados:
-- upload por URL assinada com envio direto ao storage;
-- exportacao de PDF assincrona com status `queued`, `processing`, `done`, `failed`;
-- webhook do frontend para n8n com pre/pos-processamento IA;
-- enriquecimento da documentacao automatica com RAG + extracao de imagem;
-- anonimização de PII antes de qualquer chamada para LLM externa.
-
-## Estrutura atual do repositorio
-
-- `.github/copilot-instructions.md`: guia operacional para agentes de codigo
-- `AGENTS.md`: definicao de papeis e protocolo entre agentes
-- `.github/skills/`: skills de execucao por especialidade
-- `.github/templates/`: modelos para Jira, ADR e demos D5/D10
-- `.github/skills/ai-orchestrator-makerbrain.skill.md`: operacao do pipeline IA no n8n
-- `.github/templates/prd-ia-makerbrain.template.md`: campos de PRD IA para Jira/Poster
-
-## Qualidade, Etica e LGPD
-
-- Anonimizar PII antes do processamento por IA.
-- Exigir consentimento explicito para compartilhamento de projetos.
-- Garantir criptografia em transito e em repouso.
-- Medir cobertura documental, tempo medio de geracao e indice de reprodutibilidade.
-
-## Como usar este repositorio agora
-
-1. Ler `AGENTS.md` para entender responsabilidades.
-2. Escolher a skill adequada em `.github/skills/` antes de propor solucao.
-3. Usar templates em `.github/templates/` para padronizar planejamento e execucao.
-4. Evoluir para implementacao mantendo decisoes registradas por ADR.
-
-## Proximos passos sugeridos
-
-- Criar backlog no Jira via template CSV.
-- Priorizar Sprint 0/1/2 com capacidade por squad.
-- Iniciar scaffolding tecnico da base `Web + API + n8n + Worker`.
-- Publicar ADR de arquitetura para IA (orquestracao, RAG, LGPD, metricas).
+- otimizar latência (P50/P95) do pipeline IA;
+- elevar relevância média RAG para meta de benchmark;
+- reexecutar benchmark com critérios de aceite fechados;
+- consolidar hardening para demonstração final e transição para UAT.

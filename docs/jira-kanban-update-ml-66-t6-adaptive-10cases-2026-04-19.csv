@@ -1,0 +1,2 @@
+JiraKey,Suggested Status,Comment
+ML-66,In Progress,"[2026-04-19][T6] Adaptive budget + normalizacao aplicados no lote de 10 casos. Resultado: parse 100%, schema 100%, relevancia media 92.5% (gates preservados), p50 39223ms, p95 40752ms. Comparado ao baseline curado ML-68: p50 +7529ms, p95 +2471ms, contexto medio 658 -> 477 chars. Conclusao: a estrategia em escala manteve qualidade, mas piorou latencia; nao e candidata de fechamento para performance. Evidencia em maker-connect/docs/ml-70-adaptive-domain-curation-validation-10cases-2026-04-19.{json,md}."

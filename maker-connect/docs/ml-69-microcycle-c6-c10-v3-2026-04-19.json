@@ -1,0 +1,46 @@
+{
+  "generatedAt": "2026-04-19T17:02:42.450Z",
+  "model": "qwen2.5:7b-instruct",
+  "endpoint": "http://localhost:11434",
+  "retrievalExperiment": "microcycle_c6_c10_balanced_v3",
+  "summary": {
+    "sampleSize": 2,
+    "parseValidRatePercent": 100,
+    "schemaValidRatePercent": 100,
+    "p50LatencyMs": 36605,
+    "p95LatencyMs": 36605,
+    "relevanceProxyAvgPercent": 87.5,
+    "avgContextChars": 218
+  },
+  "gateSummary": {
+    "parseGate95": true,
+    "schemaGate95": true,
+    "relevanceGate85": true
+  },
+  "perSample": [
+    {
+      "id": "C6",
+      "title": "Telemetria com wifi instavel",
+      "domain": "telemetry-sensing",
+      "latencyMs": 37442,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 75,
+      "contextChars": 219,
+      "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Reconecto Exponencial ESP32\",\n      \"detail\": \"Implementar um algoritmo de reconexão exponencial para lidar com a instabilidade da rede Wi-Fi.\",\n      \"",
+      "error": null
+    },
+    {
+      "id": "C10",
+      "title": "Pipeline com anonimiza PII",
+      "domain": "maintenance-governance",
+      "latencyMs": 36605,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 100,
+      "contextChars": 217,
+      "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Anonimização de PII antes da inferência\",\n      \"detail\": \"Implementar um pipeline que anonimiza os dados pessoais embutidos no texto antes do processo ",
+      "error": null
+    }
+  ]
+}

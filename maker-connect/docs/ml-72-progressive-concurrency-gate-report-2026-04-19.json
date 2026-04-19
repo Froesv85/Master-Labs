@@ -1,0 +1,29 @@
+{
+  "generatedAt": "2026-04-19T19:11:06.091Z",
+  "strategy": "progressive-concurrency-gate",
+  "promptProfile": "default",
+  "gate": {
+    "parseMinPercent": 95,
+    "schemaMinPercent": 95,
+    "p95MaxMs": 40000
+  },
+  "steps": [
+    {
+      "concurrency": 1,
+      "parseValidRatePercent": 90,
+      "schemaValidRatePercent": 90,
+      "p50LatencyMs": 30563,
+      "p95LatencyMs": 33962,
+      "relevanceProxyAvgPercent": 82.5,
+      "gate": {
+        "parse": false,
+        "schema": false,
+        "p95": true
+      },
+      "gatePass": false,
+      "artifactJson": "docs/ml-72-progressive-concurrency-1-2026-04-19T19-11-06-086Z.json",
+      "artifactMd": "docs/ml-72-progressive-concurrency-1-2026-04-19T19-11-06-086Z.md"
+    }
+  ],
+  "stoppedAt": 1
+}

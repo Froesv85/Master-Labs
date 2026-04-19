@@ -1,0 +1,229 @@
+{
+  "generatedAt": "2026-04-19T16:19:16.252Z",
+  "model": "qwen2.5:7b-instruct",
+  "endpoint": "http://localhost:11434",
+  "retrievalExperiment": "domain_scoring_plus_curated_evidence",
+  "curated": {
+    "sampleSize": 10,
+    "parseValidRatePercent": 100,
+    "schemaValidRatePercent": 100,
+    "p50LatencyMs": 31694,
+    "p95LatencyMs": 38281,
+    "relevanceProxyAvgPercent": 92.5,
+    "avgContextChars": 658
+  },
+  "previousPruned": {
+    "sampleSize": 10,
+    "parseValidRatePercent": 100,
+    "schemaValidRatePercent": 90,
+    "p50LatencyMs": 28187,
+    "p95LatencyMs": 36423,
+    "relevanceProxyAvgPercent": 72.5,
+    "avgContextChars": 241
+  },
+  "deltaCuratedMinusPrevPruned": {
+    "parseValidRatePercent": 0,
+    "schemaValidRatePercent": 10,
+    "p50LatencyMs": 3507,
+    "p95LatencyMs": 1858,
+    "relevanceProxyAvgPercent": 20,
+    "avgContextChars": 417
+  },
+  "gateSummary": {
+    "parseGate95": true,
+    "schemaGate95": true,
+    "relevanceGate85": true
+  },
+  "perSample": [
+    {
+      "id": "C1",
+      "title": "Estacao meteo ESP32",
+      "domain": "telemetry-sensing",
+      "latencyMs": 38281,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 100,
+      "contextChars": 649,
+      "evidenceIds": [
+        "E11",
+        "E12",
+        "E13",
+        "E90",
+        "E33"
+      ],
+      "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Ciclo de amostragem e debounce para ESP32 + DHT22\",\n      \"detail\": \"Implementar um ciclo de amostragem regular com debounce para garantir leituras prec",
+      "error": null
+    },
+    {
+      "id": "C2",
+      "title": "Irrigacao automatica",
+      "domain": "actuation-control",
+      "latencyMs": 28808,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 100,
+      "contextChars": 643,
+      "evidenceIds": [
+        "E21",
+        "E23",
+        "E22",
+        "E90",
+        "E33"
+      ],
+      "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Leitura periódica de sensor de umidade\",\n      \"detail\": \"Implementar leituras periódicas do sensor de umidade para monitoramento contínuo da condição d",
+      "error": null
+    },
+    {
+      "id": "C3",
+      "title": "Monitoramento de vibracao",
+      "domain": "telemetry-sensing",
+      "latencyMs": 35432,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 100,
+      "contextChars": 677,
+      "evidenceIds": [
+        "E12",
+        "E11",
+        "E13",
+        "E91",
+        "E31"
+      ],
+      "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Monitoramento de Vibracao com MPU6050 e RMS\",\n      \"detail\": \"Implementar a leitura de vibracao utilizando o sensor MPU6050, calcular o RMS (Root Mean ",
+      "error": null
+    },
+    {
+      "id": "C4",
+      "title": "Casa inteligente com fallback local",
+      "domain": "actuation-control",
+      "latencyMs": 31694,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 100,
+      "contextChars": 648,
+      "evidenceIds": [
+        "E23",
+        "E21",
+        "E22",
+        "E90",
+        "E14"
+      ],
+      "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Controlador de iluminação com ESP8266 e PIR\",\n      \"detail\": \"Implementar um sistema que utilize o ESP8266 para controlar a iluminação através do senso",
+      "error": null
+    },
+    {
+      "id": "C5",
+      "title": "Controle de motor com ponte H",
+      "domain": "actuation-control",
+      "latencyMs": 30640,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 100,
+      "contextChars": 661,
+      "evidenceIds": [
+        "E22",
+        "E23",
+        "E21",
+        "E90",
+        "E42"
+      ],
+      "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Configuração de corrente no L298N\",\n      \"detail\": \"Definir os limites de corrente para proteção do motor DC conectado à ponte H L298N.\",\n      \"priori",
+      "error": null
+    },
+    {
+      "id": "C6",
+      "title": "Telemetria com wifi instavel",
+      "domain": "telemetry-sensing",
+      "latencyMs": 27854,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 75,
+      "contextChars": 650,
+      "evidenceIds": [
+        "E14",
+        "E11",
+        "E12",
+        "E90",
+        "E23"
+      ],
+      "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Reconecto Exponencial\",\n      \"detail\": \"Implementar um algoritmo de reconexo exponencial para lidar com a instabilidade da rede Wi-Fi.\",\n      \"priorit",
+      "error": null
+    },
+    {
+      "id": "C7",
+      "title": "Monitor de bateria",
+      "domain": "power-safety",
+      "latencyMs": 34731,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 100,
+      "contextChars": 620,
+      "evidenceIds": [
+        "E31",
+        "E32",
+        "E33",
+        "E90",
+        "E12"
+      ],
+      "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Monitoramento de tensão da bateria Li-Ion\",\n      \"detail\": \"Implementar um sistema que amostra a tensão da bateria Li-Ion com divisor resistivo e compe",
+      "error": null
+    },
+    {
+      "id": "C8",
+      "title": "Log de manutencao maker",
+      "domain": "maintenance-governance",
+      "latencyMs": 28631,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 100,
+      "contextChars": 691,
+      "evidenceIds": [
+        "E42",
+        "E43",
+        "E41",
+        "E91",
+        "E22"
+      ],
+      "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Monitoramento de Corrente e Temperatura\",\n      \"detail\": \"Implementar sensores para monitorar corrente e temperatura da bancada.\",\n      \"priority\": \"h",
+      "error": null
+    },
+    {
+      "id": "C9",
+      "title": "Sensores analogicos com calibracao",
+      "domain": "telemetry-sensing",
+      "latencyMs": 26214,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 100,
+      "contextChars": 663,
+      "evidenceIds": [
+        "E13",
+        "E11",
+        "E12",
+        "E91",
+        "E33"
+      ],
+      "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Filtro de Sensores Analógicos\",\n      \"detail\": \"Implementar um filtro passa-baixa para reduzir o ruído nos sensores analógicos.\",\n      \"priority\": \"hi",
+      "error": null
+    },
+    {
+      "id": "C10",
+      "title": "Pipeline com anonimiza PII",
+      "domain": "maintenance-governance",
+      "latencyMs": 33307,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 50,
+      "contextChars": 673,
+      "evidenceIds": [
+        "E41",
+        "E43",
+        "E42",
+        "E90",
+        "E12"
+      ],
+      "rawResponsePreview": "{\n    \"schemaVersion\": \"mc_extract_v2\",\n    \"technicalRequirements\": [\n        {\n            \"id\": \"TR-1\",\n            \"name\": \"Anonimização de PII\",\n            \"detail\": \"Implementar a anonimização dos identificadores pessoais antes da inferência e manter um",
+      "error": null
+    }
+  ]
+}

@@ -1,0 +1,259 @@
+{
+  "generatedAt": "2026-04-19T17:36:17.728Z",
+  "model": "qwen2.5:7b-instruct",
+  "endpoint": "http://localhost:11434",
+  "retrievalExperiment": "adaptive_domain_scoring_plus_curated_evidence",
+  "summary": {
+    "sampleSize": 10,
+    "parseValidRatePercent": 100,
+    "schemaValidRatePercent": 100,
+    "p50LatencyMs": 39223,
+    "p95LatencyMs": 40752,
+    "relevanceProxyAvgPercent": 92.5,
+    "avgContextChars": 477
+  },
+  "baselineCurated": {
+    "sampleSize": 10,
+    "parseValidRatePercent": 100,
+    "schemaValidRatePercent": 100,
+    "p50LatencyMs": 31694,
+    "p95LatencyMs": 38281,
+    "relevanceProxyAvgPercent": 92.5,
+    "avgContextChars": 658
+  },
+  "deltaVsCurated": {
+    "parseValidRatePercent": 0,
+    "schemaValidRatePercent": 0,
+    "p50LatencyMs": 7529,
+    "p95LatencyMs": 2471,
+    "relevanceProxyAvgPercent": 0,
+    "avgContextChars": -181
+  },
+  "gateSummary": {
+    "parseGate95": true,
+    "schemaGate95": true,
+    "relevanceGate85": true
+  },
+  "perSample": [
+    {
+      "id": "C1",
+      "title": "Estacao meteo ESP32",
+      "domain": "telemetry-sensing",
+      "latencyMs": 35006,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 100,
+      "contextChars": 474,
+      "evidenceIds": [
+        "E11",
+        "E12",
+        "E13",
+        "E90",
+        "E33"
+      ],
+      "usedNumPredict": 520,
+      "usedFallback": true,
+      "normalizedApplied": true,
+      "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Ciclo de amostragem e debounce para DHT22\",\n      \"detail\": \"Implementar um ciclo de amostragem regular do sensor DHT22 com debounce para garantir leitu",
+      "error": null
+    },
+    {
+      "id": "C2",
+      "title": "Irrigacao automatica",
+      "domain": "actuation-control",
+      "latencyMs": 31717,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 100,
+      "contextChars": 469,
+      "evidenceIds": [
+        "E21",
+        "E23",
+        "E22",
+        "E90",
+        "E33"
+      ],
+      "usedNumPredict": 360,
+      "usedFallback": false,
+      "normalizedApplied": true,
+      "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Histerese para Rele e Bomba DC\",\n      \"detail\": \"[E21] Rele e bomba DC: histerese minima para evitar chattering e acionamento ciclico indevido.\",\n     ",
+      "error": null
+    },
+    {
+      "id": "C3",
+      "title": "Monitoramento de vibracao",
+      "domain": "telemetry-sensing",
+      "latencyMs": 40752,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 100,
+      "contextChars": 501,
+      "evidenceIds": [
+        "E12",
+        "E11",
+        "E13",
+        "E91",
+        "E31"
+      ],
+      "usedNumPredict": 520,
+      "usedFallback": true,
+      "normalizedApplied": true,
+      "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Monitoreamento de Vibração com MPU6050 e Alerta de Limite\",\n      \"detail\": \"Implementar a leitura da RMS (Root Mean Square) dos dados do MPU6050, utili",
+      "error": null
+    },
+    {
+      "id": "C4",
+      "title": "Casa inteligente com fallback local",
+      "domain": "actuation-control",
+      "latencyMs": 40077,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 100,
+      "contextChars": 468,
+      "evidenceIds": [
+        "E23",
+        "E21",
+        "E22",
+        "E90",
+        "E14"
+      ],
+      "usedNumPredict": 520,
+      "usedFallback": true,
+      "normalizedApplied": true,
+      "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Controlador de iluminação com ESP8266 e PIR\",\n      \"detail\": \"Implementar um sistema que use o ESP8266 para controlar a iluminação através do sensor PI",
+      "error": null
+    },
+    {
+      "id": "C5",
+      "title": "Controle de motor com ponte H",
+      "domain": "actuation-control",
+      "latencyMs": 39223,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 100,
+      "contextChars": 476,
+      "evidenceIds": [
+        "E22",
+        "E23",
+        "E21",
+        "E90",
+        "E42"
+      ],
+      "usedNumPredict": 520,
+      "usedFallback": true,
+      "normalizedApplied": true,
+      "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Limites de corrente e proteção termica para a ponte H L298N\",\n      \"detail\": \"Implementar limites de corrente e proteção termica na ponte H L298N, regi",
+      "error": null
+    },
+    {
+      "id": "C6",
+      "title": "Telemetria com wifi instavel",
+      "domain": "telemetry-sensing",
+      "latencyMs": 40111,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 75,
+      "contextChars": 470,
+      "evidenceIds": [
+        "E14",
+        "E11",
+        "E12",
+        "E90",
+        "E23"
+      ],
+      "usedNumPredict": 520,
+      "usedFallback": true,
+      "normalizedApplied": true,
+      "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Reconecto Exponencial Wi-Fi\",\n      \"detail\": \"Implementar um algoritmo de reconexão exponencial para o ESP32 quando a conexão com a rede Wi-Fi falhar, ",
+      "error": null
+    },
+    {
+      "id": "C7",
+      "title": "Monitor de bateria",
+      "domain": "power-safety",
+      "latencyMs": 39817,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 75,
+      "contextChars": 455,
+      "evidenceIds": [
+        "E31",
+        "E32",
+        "E33",
+        "E90",
+        "E12"
+      ],
+      "usedNumPredict": 520,
+      "usedFallback": true,
+      "normalizedApplied": true,
+      "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Monitoramento de tensão da bateria Li-Ion\",\n      \"detail\": \"Implementar um sistema que monitore a tensão da bateria Li-Ion, emitindo alertas para subte",
+      "error": null
+    },
+    {
+      "id": "C8",
+      "title": "Log de manutencao maker",
+      "domain": "maintenance-governance",
+      "latencyMs": 33040,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 100,
+      "contextChars": 495,
+      "evidenceIds": [
+        "E42",
+        "E43",
+        "E41",
+        "E91",
+        "E22"
+      ],
+      "usedNumPredict": 340,
+      "usedFallback": false,
+      "normalizedApplied": true,
+      "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Monitoramento de Corrente e Temperatura\",\n      \"detail\": \"Implementar sensores para monitorar corrente e temperatura da bancada.\",\n      \"priority\": \"h",
+      "error": null
+    },
+    {
+      "id": "C9",
+      "title": "Sensores analogicos com calibracao",
+      "domain": "telemetry-sensing",
+      "latencyMs": 36995,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 100,
+      "contextChars": 488,
+      "evidenceIds": [
+        "E13",
+        "E11",
+        "E12",
+        "E91",
+        "E33"
+      ],
+      "usedNumPredict": 520,
+      "usedFallback": true,
+      "normalizedApplied": true,
+      "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Calibração de sensores analógicos\",\n      \"detail\": \"Implementar calibração em dois pontos para os sensores analógicos, utilizando o E13 como referência",
+      "error": null
+    },
+    {
+      "id": "C10",
+      "title": "Pipeline com anonimiza PII",
+      "domain": "maintenance-governance",
+      "latencyMs": 37400,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 75,
+      "contextChars": 477,
+      "evidenceIds": [
+        "E41",
+        "E43",
+        "E42",
+        "E90",
+        "E12"
+      ],
+      "usedNumPredict": 520,
+      "usedFallback": true,
+      "normalizedApplied": true,
+      "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Anonimização de PII\",\n      \"detail\": \"Implementar a anonimização dos identificadores pessoais antes da inferência e manter uma trilha auditável por exe",
+      "error": null
+    }
+  ]
+}

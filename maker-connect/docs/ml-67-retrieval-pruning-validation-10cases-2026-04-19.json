@@ -1,0 +1,403 @@
+{
+  "generatedAt": "2026-04-19T15:50:45.240Z",
+  "model": "qwen2.5:7b-instruct",
+  "endpoint": "http://localhost:11434",
+  "retrievalExperiment": "broad_vs_pruned_topk",
+  "broad": {
+    "sampleSize": 10,
+    "parseValidRatePercent": 100,
+    "schemaValidRatePercent": 80,
+    "p50LatencyMs": 30068,
+    "p95LatencyMs": 37823,
+    "relevanceProxyAvgPercent": 70,
+    "avgContextChars": 572
+  },
+  "pruned": {
+    "sampleSize": 10,
+    "parseValidRatePercent": 100,
+    "schemaValidRatePercent": 90,
+    "p50LatencyMs": 28187,
+    "p95LatencyMs": 36423,
+    "relevanceProxyAvgPercent": 72.5,
+    "avgContextChars": 241
+  },
+  "deltaPrunedMinusBroad": {
+    "parseValidRatePercent": 0,
+    "schemaValidRatePercent": 10,
+    "p50LatencyMs": -1881,
+    "p95LatencyMs": -1400,
+    "relevanceProxyAvgPercent": 2.5,
+    "avgContextChars": -331
+  },
+  "perSample": {
+    "broad": [
+      {
+        "id": "C1",
+        "title": "Estacao meteo ESP32",
+        "latencyMs": 37823,
+        "parseValid": true,
+        "schemaValid": false,
+        "relevanceProxyPercent": 100,
+        "contextChars": 571,
+        "evidenceIds": [
+          "E1",
+          "E2",
+          "E3",
+          "E10",
+          "E5",
+          "E7",
+          "E8"
+        ],
+        "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Configuração de Deep Sleep no ESP32\",\n      \"detail\": \"Implementar deep sleep para minimizar o consumo de energia do ESP32, garantin",
+        "error": null
+      },
+      {
+        "id": "C2",
+        "title": "Irrigacao automatica",
+        "latencyMs": 29647,
+        "parseValid": true,
+        "schemaValid": true,
+        "relevanceProxyPercent": 50,
+        "contextChars": 565,
+        "evidenceIds": [
+          "E3",
+          "E5",
+          "E1",
+          "E2",
+          "E4",
+          "E9",
+          "E10"
+        ],
+        "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Leitura periodica de sensores\",\n      \"detail\": \"Implementar leituras regulares dos sensores de umidade do solo para monitoramento c",
+        "error": null
+      },
+      {
+        "id": "C3",
+        "title": "Monitoramento de vibracao",
+        "latencyMs": 27523,
+        "parseValid": true,
+        "schemaValid": true,
+        "relevanceProxyPercent": 100,
+        "contextChars": 565,
+        "evidenceIds": [
+          "E9",
+          "E7",
+          "E1",
+          "E3",
+          "E5",
+          "E10",
+          "E4"
+        ],
+        "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Monitoramento de Vibração com MPU6050\",\n      \"detail\": \"Implementar leitura de dados do MPU6050 e cálculo do RMS para monitorar vib",
+        "error": null
+      },
+      {
+        "id": "C4",
+        "title": "Casa inteligente com fallback local",
+        "latencyMs": 28840,
+        "parseValid": true,
+        "schemaValid": true,
+        "relevanceProxyPercent": 75,
+        "contextChars": 588,
+        "evidenceIds": [
+          "E8",
+          "E3",
+          "E1",
+          "E2",
+          "E4",
+          "E5",
+          "E6"
+        ],
+        "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Fallback local para rede instável\",\n      \"detail\": \"Implementar cache local e envio em lote na reconexão da rede Wi-Fi.\",\n      \"pr",
+        "error": null
+      },
+      {
+        "id": "C5",
+        "title": "Controle de motor com ponte H",
+        "latencyMs": 31045,
+        "parseValid": true,
+        "schemaValid": false,
+        "relevanceProxyPercent": 100,
+        "contextChars": 570,
+        "evidenceIds": [
+          "E3",
+          "E1",
+          "E2",
+          "E7",
+          "E8",
+          "E10",
+          "E4"
+        ],
+        "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Controle de corrente e proteção termica\",\n      \"detail\": \"Implementar proteção de corrente e monitoramento da temperatura do motor ",
+        "error": null
+      },
+      {
+        "id": "C6",
+        "title": "Telemetria com wifi instavel",
+        "latencyMs": 32333,
+        "parseValid": true,
+        "schemaValid": true,
+        "relevanceProxyPercent": 75,
+        "contextChars": 588,
+        "evidenceIds": [
+          "E8",
+          "E2",
+          "E1",
+          "E4",
+          "E3",
+          "E5",
+          "E6"
+        ],
+        "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Reconecto automático e cache local\",\n      \"detail\": \"Implementar um mecanismo de reconexão automática e cache local para lidar com ",
+        "error": null
+      },
+      {
+        "id": "C7",
+        "title": "Monitor de bateria",
+        "latencyMs": 25529,
+        "parseValid": true,
+        "schemaValid": true,
+        "relevanceProxyPercent": 50,
+        "contextChars": 558,
+        "evidenceIds": [
+          "E7",
+          "E2",
+          "E3",
+          "E9",
+          "E1",
+          "E4",
+          "E8"
+        ],
+        "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Gestão de Bateria\",\n      \"detail\": \"Implementar subtensão, registro de ciclos e desligamento seguro com redundância.\",\n      \"prior",
+        "error": null
+      },
+      {
+        "id": "C8",
+        "title": "Log de manutencao maker",
+        "latencyMs": 24694,
+        "parseValid": true,
+        "schemaValid": true,
+        "relevanceProxyPercent": 75,
+        "contextChars": 565,
+        "evidenceIds": [
+          "E10",
+          "E4",
+          "E5",
+          "E1",
+          "E2",
+          "E3",
+          "E9"
+        ],
+        "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Checklist de manutenção maker\",\n      \"detail\": \"Inspeções de corrente, temperatura e conexões.\",\n      \"priority\": \"high\"\n    },\n  ",
+        "error": null
+      },
+      {
+        "id": "C9",
+        "title": "Sensores analogicos com calibracao",
+        "latencyMs": 30068,
+        "parseValid": true,
+        "schemaValid": true,
+        "relevanceProxyPercent": 25,
+        "contextChars": 565,
+        "evidenceIds": [
+          "E5",
+          "E1",
+          "E9",
+          "E10",
+          "E3",
+          "E2",
+          "E4"
+        ],
+        "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Calibração de sensores analógicos\",\n      \"detail\": \"Implementação de calibração em dois pontos, aplicação de filtro de ruído e vali",
+        "error": null
+      },
+      {
+        "id": "C10",
+        "title": "Pipeline com anonimiza PII",
+        "latencyMs": 30273,
+        "parseValid": true,
+        "schemaValid": true,
+        "relevanceProxyPercent": 50,
+        "contextChars": 584,
+        "evidenceIds": [
+          "E6",
+          "E4",
+          "E2",
+          "E3",
+          "E1",
+          "E5",
+          "E7"
+        ],
+        "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Anonimização de PII\",\n      \"detail\": \"Implementar a anonimização dos identificadores pessoais antes da inferência externa, garantin",
+        "error": null
+      }
+    ],
+    "pruned": [
+      {
+        "id": "C1",
+        "title": "Estacao meteo ESP32",
+        "latencyMs": 27882,
+        "parseValid": true,
+        "schemaValid": true,
+        "relevanceProxyPercent": 100,
+        "contextChars": 240,
+        "evidenceIds": [
+          "E1",
+          "E2",
+          "E3"
+        ],
+        "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"GPIO e Deep Sleep\",\n      \"detail\": \"Utilização de GPIO para conexão com o sensor DHT22 e display OLED, além do modo deep sleep para",
+        "error": null
+      },
+      {
+        "id": "C2",
+        "title": "Irrigacao automatica",
+        "latencyMs": 28244,
+        "parseValid": true,
+        "schemaValid": true,
+        "relevanceProxyPercent": 75,
+        "contextChars": 245,
+        "evidenceIds": [
+          "E3",
+          "E5",
+          "E1"
+        ],
+        "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Leitura periodica de sensores\",\n      \"detail\": \"Implementar leituras periódicas dos sensores de umidade do solo para monitoramento ",
+        "error": null
+      },
+      {
+        "id": "C3",
+        "title": "Monitoramento de vibracao",
+        "latencyMs": 23091,
+        "parseValid": true,
+        "schemaValid": true,
+        "relevanceProxyPercent": 75,
+        "contextChars": 225,
+        "evidenceIds": [
+          "E9",
+          "E7",
+          "E1"
+        ],
+        "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\"id\": \"TR-1\", \"name\": \"Monitoramento de Vibração com MPU6050\", \"detail\": \"Implementar leitura de vibração utilizando o sensor MPU6050 e calcular RMS.\", \"priority\": \"hig",
+        "error": null
+      },
+      {
+        "id": "C4",
+        "title": "Casa inteligente com fallback local",
+        "latencyMs": 31751,
+        "parseValid": true,
+        "schemaValid": true,
+        "relevanceProxyPercent": 75,
+        "contextChars": 244,
+        "evidenceIds": [
+          "E8",
+          "E3",
+          "E1"
+        ],
+        "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Fallback local para rede instável\",\n      \"detail\": \"Implementar cache local e envio em lote na reconexão para garantir a continuida",
+        "error": null
+      },
+      {
+        "id": "C5",
+        "title": "Controle de motor com ponte H",
+        "latencyMs": 28187,
+        "parseValid": true,
+        "schemaValid": false,
+        "relevanceProxyPercent": 100,
+        "contextChars": 240,
+        "evidenceIds": [
+          "E3",
+          "E1",
+          "E2"
+        ],
+        "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Controle de corrente do motor DC com ponte H L298N\",\n      \"detail\": \"Implementação de proteção de corrente para evitar sobrecarga n",
+        "error": null
+      },
+      {
+        "id": "C6",
+        "title": "Telemetria com wifi instavel",
+        "latencyMs": 24522,
+        "parseValid": true,
+        "schemaValid": true,
+        "relevanceProxyPercent": 75,
+        "contextChars": 235,
+        "evidenceIds": [
+          "E8",
+          "E2",
+          "E1"
+        ],
+        "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\"id\": \"TR-1\", \"name\": \"Conexão Wi-Fi instável\", \"detail\": \"Implementar cache local e envio em lote para garantir a continuidade dos dados mesmo com conexões interrompid",
+        "error": null
+      },
+      {
+        "id": "C7",
+        "title": "Monitor de bateria",
+        "latencyMs": 22727,
+        "parseValid": true,
+        "schemaValid": true,
+        "relevanceProxyPercent": 50,
+        "contextChars": 245,
+        "evidenceIds": [
+          "E7",
+          "E2",
+          "E3"
+        ],
+        "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\"id\": \"TR-1\", \"name\": \"Gestão de Bateria\", \"detail\": \"Implementação de subtensão, registro de ciclos e desligamento seguro.\", \"priority\": \"high\"},\n    {\"id\": \"TR-2\", \"n",
+        "error": null
+      },
+      {
+        "id": "C8",
+        "title": "Log de manutencao maker",
+        "latencyMs": 21736,
+        "parseValid": true,
+        "schemaValid": true,
+        "relevanceProxyPercent": 100,
+        "contextChars": 251,
+        "evidenceIds": [
+          "E10",
+          "E4",
+          "E5"
+        ],
+        "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\"id\": \"TR-1\", \"name\": \"Checklist de manutenção maker\", \"detail\": \"Inspeções de corrente, temperatura e conexões.\", \"priority\": \"high\"},\n    {\"id\": \"TR-2\", \"name\": \"Regi",
+        "error": null
+      },
+      {
+        "id": "C9",
+        "title": "Sensores analogicos com calibracao",
+        "latencyMs": 29919,
+        "parseValid": true,
+        "schemaValid": true,
+        "relevanceProxyPercent": 25,
+        "contextChars": 230,
+        "evidenceIds": [
+          "E5",
+          "E1",
+          "E9"
+        ],
+        "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Calibração de sensores analógicos\",\n      \"detail\": \"Implementação de calibração em dois pontos, aplicação de filtro de ruído e vali",
+        "error": null
+      },
+      {
+        "id": "C10",
+        "title": "Pipeline com anonimiza PII",
+        "latencyMs": 36423,
+        "parseValid": true,
+        "schemaValid": true,
+        "relevanceProxyPercent": 50,
+        "contextChars": 259,
+        "evidenceIds": [
+          "E6",
+          "E4",
+          "E2"
+        ],
+        "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Anonimização de PII antes da inferência externa\",\n      \"detail\": \"Implementar a anonimização dos identificadores pessoais antes do ",
+        "error": null
+      }
+    ]
+  },
+  "gateSummary": {
+    "parseGate95": true,
+    "schemaGate95": false,
+    "relevanceGate85": false
+  }
+}

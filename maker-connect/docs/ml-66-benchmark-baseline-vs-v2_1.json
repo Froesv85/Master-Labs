@@ -1,0 +1,115 @@
+{
+  "generatedAt": "2026-04-19T14:43:26.893Z",
+  "model": "llama3.1:8b",
+  "endpoint": "http://localhost:11434",
+  "sampleSize": 4,
+  "minParseSchemaThresholdPercent": 95,
+  "baseline": {
+    "total": 4,
+    "parseValidRatePercent": 75,
+    "schemaValidRatePercent": 75,
+    "p50LatencyMs": 24398,
+    "p95LatencyMs": 40705,
+    "relevanceProxyAvgPercent": 62.5
+  },
+  "v2": {
+    "total": 4,
+    "parseValidRatePercent": 100,
+    "schemaValidRatePercent": 100,
+    "p50LatencyMs": 26380,
+    "p95LatencyMs": 26909,
+    "relevanceProxyAvgPercent": 81.25
+  },
+  "v2BestNumPredict": 560,
+  "v2Rounds": [
+    {
+      "numPredict": 560,
+      "accepted": true,
+      "summary": {
+        "total": 4,
+        "parseValidRatePercent": 100,
+        "schemaValidRatePercent": 100,
+        "p50LatencyMs": 26380,
+        "p95LatencyMs": 26909,
+        "relevanceProxyAvgPercent": 81.25
+      }
+    }
+  ],
+  "delta": {
+    "parseValidRatePercent": 25,
+    "schemaValidRatePercent": 25,
+    "p50LatencyMs": 1982,
+    "p95LatencyMs": -13796,
+    "relevanceProxyAvgPercent": 18.75
+  },
+  "perSample": {
+    "baseline": [
+      {
+        "id": "S1",
+        "latencyMs": 40705,
+        "parseValid": true,
+        "schemaValid": true,
+        "relevanceProxyPercent": 100,
+        "rawResponsePreview": "{\n\"technicalRequirements\":[{\n\"name\":\"Datasheet ESP32\",\n\"detail\":\"GPIO, Wi-Fi e modos de economia de energia\"\n},{\n\"name\":\"Boas práticas MQTT\",\n\"detail\":\"QoS, reconnect e keepalive\"\n}],\n\"suggestedBOM\":[{\n\"item\":\"ESP32\",\n\"quantity\":1\n},{\n\"item\":\"DHT22\",\n\"quantity\":1\n},{\n\"item\":\"Display OLED\",\n\"quantity"
+      },
+      {
+        "id": "S2",
+        "latencyMs": 24398,
+        "parseValid": false,
+        "schemaValid": false,
+        "relevanceProxyPercent": 0,
+        "rawResponsePreview": "{\n\"technicalRequirements\":[{\n\"name\":\"Leitura periodica do sensor de umidade\",\n\"detail\":\"Utilizar a biblioteca ESP32 para leitura periódica do sensor de umidade, com intervalo de 1 minuto\"\n},{\n\"name\":\"Histerese para evitar liga/desliga rapido\",\n\"detail\":\"Implementar uma histerese no sistema para evit"
+      },
+      {
+        "id": "S3",
+        "latencyMs": 21821,
+        "parseValid": true,
+        "schemaValid": true,
+        "relevanceProxyPercent": 75,
+        "rawResponsePreview": "{\n\"technicalRequirements\":[\n    {\"name\":\"Datasheet ESP32: GPIO, Wi-Fi e modos de economia de energia.\",\"detail\":\"O ESP32 tem 34 GPIOs, suporte a Wi-Fi e modos de economia de energia como o Deep Sleep.\"},\n    {\"name\":\"Boas praticas MQTT: QoS, reconnect e keepalive.\",\"detail\":\"O QoS (Quality of Servic"
+      },
+      {
+        "id": "S4",
+        "latencyMs": 11201,
+        "parseValid": true,
+        "schemaValid": true,
+        "relevanceProxyPercent": 75,
+        "rawResponsePreview": "{\n\"technicalRequirements\":[{\n\"name\":\"Datasheet ESP32\",\n\"detail\":\"GPIO, Wi-Fi e modos de economia de energia\"\n},{\n\"name\":\"Boas práticas MQTT\",\n\"detail\":\"QoS, reconnect e keepalive\"\n}],\n\"suggestedBOM\":[{\n\"item\":\"ESP8266\",\n\"quantity\":1\n},{\n\"item\":\"PIR sensor\",\n\"quantity\":1\n},{\n\"item\":\"Rele\",\n\"quantity\""
+      }
+    ],
+    "v2": [
+      {
+        "id": "S1",
+        "latencyMs": 15138,
+        "parseValid": true,
+        "schemaValid": true,
+        "relevanceProxyPercent": 75,
+        "rawResponsePreview": "{\"schemaVersion\":\"mc_extract_v2\",\"technicalRequirements\":[{\"id\":\"TR-1\",\"name\":\"ESP32 Microcontrolador\",\"detail\":\"Medição de temperatura e umidade\",\"priority\":\"high\"},{\"id\":\"TR-2\",\"name\":\"DHT22 Sensor\",\"detail\":\"Leitura de dados do sensor\",\"priority\":\"medium\"},{\"id\":\"TR-3\",\"name\":\"OLED Display\",\"deta"
+      },
+      {
+        "id": "S2",
+        "latencyMs": 26909,
+        "parseValid": true,
+        "schemaValid": true,
+        "relevanceProxyPercent": 75,
+        "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Sensor de umidade de solo\",\n      \"detail\": \"Leitura periodica da umidade do solo\",\n      \"priority\": \"high\"\n    },\n    {\n      \"id\": \"TR-2\",\n      \"name\": \"Rele 5V\",\n      \"detail\": \"Controla"
+      },
+      {
+        "id": "S3",
+        "latencyMs": 14320,
+        "parseValid": true,
+        "schemaValid": true,
+        "relevanceProxyPercent": 75,
+        "rawResponsePreview": "{\"schemaVersion\":\"mc_extract_v2\",\"technicalRequirements\":[{\"id\":\"TR-1\",\"name\":\"Acelerometro MPU6050\",\"detail\":\"Medir vibracao\",\"priority\":\"high\"},{\"id\":\"TR-2\",\"name\":\"RTC\",\"detail\":\"Timestamp de data e hora\",\"priority\":\"medium\"},{\"id\":\"TR-3\",\"name\":\"Bateria\",\"detail\":\"Redundancia de alimentacao\",\"pr"
+      },
+      {
+        "id": "S4",
+        "latencyMs": 26380,
+        "parseValid": true,
+        "schemaValid": true,
+        "relevanceProxyPercent": 100,
+        "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"ESP8266\",\n      \"detail\": \"Microcontrolador para conexão com API HTTP e PIR\",\n      \"priority\": \"high\"\n    },\n    {\n      \"id\": \"TR-2\",\n      \"name\": \"PIR Sensor\",\n      \"detail\": \"Sensor de p"
+      }
+    ]
+  }
+}

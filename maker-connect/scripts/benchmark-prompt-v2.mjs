@@ -43,22 +43,59 @@ function buildEvidenceText(input) {
   ].join('\n---\n');
 }
 
+function buildEvidenceTop1(input) {
+  return `Contexto do projeto: ${input}`;
+}
+
 function baselinePrompt(sample) {
   return `Voce e o MakerBrain. Responda SOMENTE JSON valido em pt-BR.\nProjeto: ${sample.title}.\nContexto resumido: ${sample.input.slice(0, 800)}\n\nEvidencias tecnicas (top 3):\n${buildEvidenceText(sample.input)}\n\nFormato de saida obrigatorio:\n{"technicalRequirements":[{"name":"string","detail":"string"}],"suggestedBOM":[{"item":"string","quantity":1}],"confidenceScore":0}\n\nRegras:\n1) confidenceScore entre 0 e 100\n2) Sem markdown\n3) Maximo 6 itens por array.`;
 }
 
 function v2Prompt(sample) {
-  return `Voce e o MakerBrain v2. Responda APENAS JSON valido, sem markdown, sem texto extra.\nIdioma: pt-BR.\nProjeto: ${sample.title}.\nEntrada do usuario: ${sample.input.slice(0, 900)}\n\nEvidencias tecnicas:\n${buildEvidenceText(sample.input)}\n\nSchema unico OBRIGATORIO:\n{\n  "schemaVersion":"mc_extract_v2",\n  "technicalRequirements":[\n    {"id":"TR-1","name":"string","detail":"string","priority":"high|medium|low"}\n  ],\n  "suggestedBOM":[\n    {"item":"string","quantity":"string","notes":"string"}\n  ],\n  "suggestedCode":"string",\n  "confidenceScore":0\n}\n\nRegras duras:\n1) schemaVersion deve ser exatamente mc_extract_v2\n2) Maximo 6 itens em technicalRequirements e suggestedBOM\n3) confidenceScore numero entre 0 e 100\n4) technicalRequirements[*].priority apenas high, medium ou low\n5) suggestedCode sempre string (vazia se nao houver)\n6) Se faltar dado, preencher campo com string vazia, nunca remover chave.`;
+  return `Voce e o MakerBrain v2.3 (latency-only). Responda SOMENTE JSON valido em pt-BR.\nProjeto: ${sample.title}.\nContexto resumido: ${sample.input.slice(0, 360)}\n\nEvidencia tecnica (top 1):\n${buildEvidenceTop1(sample.input)}\n\nFormato de saida obrigatorio:\n{"schemaVersion":"mc_extract_v2","technicalRequirements":[{"id":"TR-1","name":"string","detail":"string","priority":"medium"}],"suggestedBOM":[{"item":"string","quantity":"1","notes":"string"}],"suggestedCode":"","confidenceScore":0}\n\nRegras duras:\n1) Sem markdown e sem texto fora do JSON\n2) confidenceScore entre 0 e 100\n3) priority apenas high, medium ou low\n4) technicalRequirements: minimo 3 e maximo 4 itens\n5) suggestedBOM: minimo 3 e maximo 4 itens\n6) quantity DEVE ser string (ex: "1", "2"), nunca numero\n7) detail e notes: texto minimo e direto (20 a 60 caracteres)\n8) suggestedCode deve ser string vazia\n9) Nao adicionar campos extras`;
 }
 
 function parseJsonFromResponse(text) {
+  if (typeof text === 'object' && text !== null) {
+    return text;
+  }
   if (typeof text !== 'string') return null;
   const clean = text.replace(/```json/gi, '').replace(/```/g, '').trim();
-  try {
-    return JSON.parse(clean);
-  } catch {
-    return null;
+
+  const tryParse = (value) => {
+    try {
+      return JSON.parse(value);
+    } catch {
+      return null;
+    }
+  };
+
+  // 1) Fast path.
+  const direct = tryParse(clean);
+  if (direct) return direct;
+
+  // 2) Remove uncommon control chars and trailing commas before ] or }.
+  const sanitized = clean
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '')
+    .replace(/,\s*([}\]])/g, '$1');
+
+  const sanitizedParsed = tryParse(sanitized);
+  if (sanitizedParsed) return sanitizedParsed;
+
+  // 3) Try extracting the first JSON object block from noisy output.
+  const firstBrace = sanitized.indexOf('{');
+  const lastBrace = sanitized.lastIndexOf('}');
+  if (firstBrace >= 0 && lastBrace > firstBrace) {
+    const sliced = sanitized.slice(firstBrace, lastBrace + 1);
+    const slicedParsed = tryParse(sliced);
+    if (slicedParsed) return slicedParsed;
+
+    const slicedNoTrailingCommas = sliced.replace(/,\s*([}\]])/g, '$1');
+    const repairedSliced = tryParse(slicedNoTrailingCommas);
+    if (repairedSliced) return repairedSliced;
   }
+
+  return null;
 }
 
 function tokenize(text) {
@@ -113,28 +150,42 @@ function validateV2Shape(output) {
   return reqValid && bomValid;
 }
 
-async function generate(prompt) {
+async function generate(prompt, numPredict = 280) {
   const started = Date.now();
-  const res = await fetch(`${BASE_URL}/api/generate`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: MODEL,
-      prompt,
-      stream: false,
-      format: 'json',
-      options: { temperature: 0.1, num_predict: 300 },
-    }),
-  });
+  const controller = new AbortController();
+  const timeoutMs = 120000;
+  const timeoutHandle = setTimeout(() => controller.abort(), timeoutMs);
+  let res;
+  try {
+    res = await fetch(`${BASE_URL}/api/generate`, {
+      method: 'POST',
+      signal: controller.signal,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: MODEL,
+        prompt,
+        stream: false,
+        format: 'json',
+        options: { temperature: 0.05, num_predict: numPredict },
+      }),
+    });
+  } finally {
+    clearTimeout(timeoutHandle);
+  }
 
   const data = await res.json();
   const latencyMs = Date.now() - started;
-  const parsed = parseJsonFromResponse(data.response || '');
+  const rawResponse = data.response ?? data;
+  const parsed = parseJsonFromResponse(rawResponse);
 
   return {
     ok: res.ok,
     latencyMs,
     raw: data,
+    rawResponsePreview:
+      typeof rawResponse === 'string'
+        ? rawResponse.slice(0, 300)
+        : JSON.stringify(rawResponse).slice(0, 300),
     parsed,
   };
 }
@@ -172,28 +223,113 @@ function summarize(results, mode) {
   };
 }
 
+function meetsThreshold(summary, minPercent = 95) {
+  return summary.parseValidRatePercent >= minPercent && summary.schemaValidRatePercent >= minPercent;
+}
+
+async function runV2Progressive(samplesToRun, minPercent = 95) {
+  const budgets = [560];
+  const rounds = [];
+  let best = null;
+
+  for (const budget of budgets) {
+    console.log(`[v2.3] Running round with num_predict=${budget}...`);
+    const v2Results = [];
+
+    for (const sample of samplesToRun) {
+      const v = await generate(v2Prompt(sample), budget);
+      v2Results.push({ ...v, sample });
+    }
+
+    const summary = summarize(v2Results, 'v2');
+    const accepted = meetsThreshold(summary, minPercent);
+
+    rounds.push({
+      numPredict: budget,
+      accepted,
+      summary,
+      perSample: v2Results.map((r) => ({
+        id: r.sample.id,
+        latencyMs: r.latencyMs,
+        parseValid: Boolean(r.parsed),
+        schemaValid: validateV2Shape(r.parsed),
+        relevanceProxyPercent: r.parsed ? relevanceProxy(r.sample, r.parsed) : 0,
+        rawResponsePreview: r.rawResponsePreview,
+      })),
+    });
+
+    if (accepted) {
+      console.log(
+        `[v2.3] num_predict=${budget} accepted (parse=${summary.parseValidRatePercent}%, schema=${summary.schemaValidRatePercent}%, p50=${summary.p50LatencyMs}ms)`
+      );
+      best = {
+        numPredict: budget,
+        summary,
+        perSample: rounds[rounds.length - 1].perSample,
+      };
+      continue;
+    }
+
+    console.log(
+      `[v2.3] num_predict=${budget} rejected (parse=${summary.parseValidRatePercent}%, schema=${summary.schemaValidRatePercent}%). Stopping sweep.`
+    );
+
+    // Stop only after we have at least one accepted round and then regress.
+    if (best) {
+      break;
+    }
+  }
+
+  return { rounds, best };
+}
+
 async function run() {
   const baselineResults = [];
-  const v2Results = [];
 
   for (const sample of samples) {
-    const b = await generate(baselinePrompt(sample));
+    const b = await generate(baselinePrompt(sample), 280);
     baselineResults.push({ ...b, sample });
-
-    const v = await generate(v2Prompt(sample));
-    v2Results.push({ ...v, sample });
   }
 
   const baselineSummary = summarize(baselineResults, 'baseline');
-  const v2Summary = summarize(v2Results, 'v2');
+  const minPercent = 95;
+  const v2Progressive = await runV2Progressive(samples, minPercent);
+  const v2Best =
+    v2Progressive.best ||
+    (v2Progressive.rounds.length
+      ? {
+          numPredict: null,
+          summary: v2Progressive.rounds[0].summary,
+          perSample: v2Progressive.rounds[0].perSample,
+        }
+      : {
+          numPredict: null,
+          summary: {
+            total: samples.length,
+            parseValidRatePercent: 0,
+            schemaValidRatePercent: 0,
+            p50LatencyMs: 0,
+            p95LatencyMs: 0,
+            relevanceProxyAvgPercent: 0,
+          },
+          perSample: [],
+        });
+  const v2Summary = v2Best.summary;
 
   const report = {
     generatedAt: new Date().toISOString(),
     model: MODEL,
     endpoint: BASE_URL,
     sampleSize: samples.length,
+    minParseSchemaThresholdPercent: minPercent,
     baseline: baselineSummary,
     v2: v2Summary,
+    v2BestNumPredict: v2Best.numPredict,
+    v2Rounds: v2Progressive.rounds.map((r) => ({
+      numPredict: r.numPredict,
+      accepted: r.accepted,
+      summary: r.summary,
+    })),
     delta: {
       parseValidRatePercent: Math.round((v2Summary.parseValidRatePercent - baselineSummary.parseValidRatePercent) * 100) / 100,
       schemaValidRatePercent: Math.round((v2Summary.schemaValidRatePercent - baselineSummary.schemaValidRatePercent) * 100) / 100,
@@ -209,24 +345,26 @@ async function run() {
         parseValid: Boolean(r.parsed),
         schemaValid: validateBaselineShape(r.parsed),
         relevanceProxyPercent: r.parsed ? relevanceProxy(r.sample, r.parsed) : 0,
+        rawResponsePreview: r.rawResponsePreview,
       })),
-      v2: v2Results.map((r) => ({
-        id: r.sample.id,
-        latencyMs: r.latencyMs,
-        parseValid: Boolean(r.parsed),
-        schemaValid: validateV2Shape(r.parsed),
-        relevanceProxyPercent: r.parsed ? relevanceProxy(r.sample, r.parsed) : 0,
-      })),
+      v2: v2Best.perSample,
     },
   };
 
   const docsDir = path.resolve(process.cwd(), 'docs');
-  const outJson = path.join(docsDir, 'ml-66-benchmark-baseline-vs-v2.json');
+  const outJson = path.join(docsDir, 'ml-66-benchmark-baseline-vs-v2_1.json');
   fs.writeFileSync(outJson, JSON.stringify(report, null, 2), 'utf-8');
 
-  const md = `# ML-66 Benchmark - Baseline vs Prompt v2\n\nGenerated at: ${report.generatedAt}\nModel: ${MODEL}\n\n## Summary\n\n| Metric | Baseline | v2 | Delta |\n|---|---:|---:|---:|\n| Parse valid rate (%) | ${report.baseline.parseValidRatePercent} | ${report.v2.parseValidRatePercent} | ${report.delta.parseValidRatePercent} |\n| Schema valid rate (%) | ${report.baseline.schemaValidRatePercent} | ${report.v2.schemaValidRatePercent} | ${report.delta.schemaValidRatePercent} |\n| P50 latency (ms) | ${report.baseline.p50LatencyMs} | ${report.v2.p50LatencyMs} | ${report.delta.p50LatencyMs} |\n| P95 latency (ms) | ${report.baseline.p95LatencyMs} | ${report.v2.p95LatencyMs} | ${report.delta.p95LatencyMs} |\n| Relevance proxy avg (%) | ${report.baseline.relevanceProxyAvgPercent} | ${report.v2.relevanceProxyAvgPercent} | ${report.delta.relevanceProxyAvgPercent} |\n\n## Notes\n\n- v2 enforces unified schema: \\\`schemaVersion: mc_extract_v2\\\`.\n- v2 requires strict fields for technicalRequirements and suggestedBOM.\n- Relevance here is a proxy based on expected keyword coverage per sample.\n\n## Artifacts\n\n- JSON report: \\\`docs/ml-66-benchmark-baseline-vs-v2.json\\\`\n`;
+  const roundsTable = report.v2Rounds
+    .map(
+      (r) =>
+        `| ${r.numPredict} | ${r.accepted ? 'yes' : 'no'} | ${r.summary.parseValidRatePercent} | ${r.summary.schemaValidRatePercent} | ${r.summary.p50LatencyMs} | ${r.summary.p95LatencyMs} |`
+    )
+    .join('\n');
 
-  const outMd = path.join(docsDir, 'ml-66-benchmark-baseline-vs-v2.md');
+  const md = `# ML-66 Benchmark - Baseline vs Prompt v2.3\n\nGenerated at: ${report.generatedAt}\nModel: ${MODEL}\n\n## Summary\n\n| Metric | Baseline | v2.3 (fixed 560) | Delta |\n|---|---:|---:|---:|\n| Parse valid rate (%) | ${report.baseline.parseValidRatePercent} | ${report.v2.parseValidRatePercent} | ${report.delta.parseValidRatePercent} |\n| Schema valid rate (%) | ${report.baseline.schemaValidRatePercent} | ${report.v2.schemaValidRatePercent} | ${report.delta.schemaValidRatePercent} |\n| P50 latency (ms) | ${report.baseline.p50LatencyMs} | ${report.v2.p50LatencyMs} | ${report.delta.p50LatencyMs} |\n| P95 latency (ms) | ${report.baseline.p95LatencyMs} | ${report.v2.p95LatencyMs} | ${report.delta.p95LatencyMs} |\n| Relevance proxy avg (%) | ${report.baseline.relevanceProxyAvgPercent} | ${report.v2.relevanceProxyAvgPercent} | ${report.delta.relevanceProxyAvgPercent} |\n\nFixed v2.3 num_predict: ${report.v2BestNumPredict}\nTarget parse/schema threshold: >= ${report.minParseSchemaThresholdPercent}%\n\n## Fixed num_predict round\n\n| num_predict | accepted | parse (%) | schema (%) | p50 (ms) | p95 (ms) |\n|---:|:---:|---:|---:|---:|---:|\n${roundsTable}\n\n## Notes\n\n- v2.3 foca apenas em latencia real: top 1 evidencia, contexto mais curto, campos textuais minimos.\n- num_predict fixo em 560.\n- Relevance here is a proxy based on expected keyword coverage per sample.\n\n## Artifacts\n\n- JSON report: docs/ml-66-benchmark-baseline-vs-v2_1.json\n`;
+
+  const outMd = path.join(docsDir, 'ml-66-benchmark-baseline-vs-v2_1.md');
   fs.writeFileSync(outMd, md, 'utf-8');
 
   console.log(JSON.stringify(report, null, 2));

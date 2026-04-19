@@ -25,7 +25,7 @@ if (-not $Comment) {
 $authHeader = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("$JiraEmail`:$JiraApiToken"))
 
 # Add comment to issue
-$addCommentUrl = "$JiraBaseUrl/rest/api/3/issue/$IssueKey/comments"
+$addCommentUrl = "$JiraBaseUrl/rest/api/3/issue/$IssueKey/comment"
 
 $headers = @{
     "Authorization" = "Basic $authHeader"
