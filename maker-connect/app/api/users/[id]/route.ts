@@ -1,0 +1,38 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const userId = parseInt(id);
+  if (isNaN(userId)) return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: {
+      profile: true,
+      badges: { orderBy: { earnedAt: 'desc' } },
+      robots: {
+        include: { awards: true },
+        orderBy: { eloScore: 'desc' },
+      },
+      projects: {
+        orderBy: { createdAt: 'desc' },
+        take: 6,
+      },
+      ownedTeams: {
+        include: { members: true },
+      },
+      teamMemberships: {
+        include: { team: { include: { members: true } } },
+      },
+      communities: {
+        include: { community: true },
+      },
+      following: { select: { followingId: true } },
+      followers: { select: { followerId: true } },
+    },
+  });
+
+  if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
+  return NextResponse.json(user);
+}
