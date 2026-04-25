@@ -1,7 +1,61 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { Modal, Field, FormActions, inputCls, selectCls } from '@/components/modal';
+
+function CreateRobotModal({ onClose, onCreated }: { onClose: () => void; onCreated: (r: Robot) => void }) {
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [category, setCategory] = useState('sumo');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!name.trim()) { setError('Nome obrigatório'); return; }
+    setSaving(true); setError(null);
+    try {
+      const res = await fetch('/api/robots', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, description, category }),
+      });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error ?? 'Erro ao cadastrar'); }
+      const robot = await res.json();
+      onCreated(robot);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao cadastrar robô');
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Modal title="Cadastrar Robô" onClose={onClose}>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Field label="Nome do Robô">
+          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: ThunderBot MK4" className={inputCls} />
+        </Field>
+        <Field label="Descrição" hint="(opcional)">
+          <textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Especificações, construção, diferenciais..." className={`${inputCls} resize-none`} />
+        </Field>
+        <Field label="Categoria">
+          <select value={category} onChange={(e) => setCategory(e.target.value)} className={selectCls}>
+            <option value="sumo">🥊 Sumo</option>
+            <option value="combat">⚔️ Combate</option>
+            <option value="line_follower">➰ Line Follower</option>
+            <option value="autonomous">🧠 Autônomo</option>
+            <option value="educational">🎓 Educacional</option>
+            <option value="competition">🏁 Competição</option>
+          </select>
+        </Field>
+        {error && <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-xs text-red-400">{error}</p>}
+        <FormActions onClose={onClose} saving={saving} label="Cadastrar Robô" />
+      </form>
+    </Modal>
+  );
+}
 
 type Award = { id: number; title: string; placement: number | null; year: number };
 type Robot = {
@@ -50,9 +104,11 @@ function WinRate({ wins, losses, draws }: { wins: number; losses: number; draws:
 }
 
 export default function RobotsPage() {
+  const router = useRouter();
   const [robots, setRobots] = useState<Robot[]>([]);
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState<string | null>(null);
+  const [showCreate, setShowCreate] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -66,6 +122,13 @@ export default function RobotsPage() {
   const top3 = [...robots].sort((a, b) => b.eloScore - a.eloScore).slice(0, 3);
 
   return (
+    <>
+    {showCreate && (
+      <CreateRobotModal
+        onClose={() => setShowCreate(false)}
+        onCreated={(robot) => { setRobots((prev) => [robot, ...prev]); setShowCreate(false); }}
+      />
+    )}
     <div className="space-y-6">
       {/* Header — RoboCore bold style */}
       <div className="flex items-center justify-between">
@@ -75,10 +138,12 @@ export default function RobotsPage() {
           </h1>
           <p className="text-sm text-zinc-400">Ranking, histórico de partidas e premiações</p>
         </div>
-        <div className="hidden items-center gap-2 rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-2 sm:flex">
-          <span className="text-amber-400 text-lg">⚡</span>
-          <span className="text-xs font-bold text-amber-400 uppercase tracking-wide">{robots.length} robôs cadastrados</span>
-        </div>
+        <button
+          onClick={() => setShowCreate(true)}
+          className="flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2.5 text-sm font-bold text-black shadow-[0_0_14px_rgba(245,158,11,0.3)] transition hover:bg-amber-400"
+        >
+          + Cadastrar Robô
+        </button>
       </div>
 
       {/* Podium — top 3 */}
@@ -158,10 +223,13 @@ export default function RobotsPage() {
           {robots.map((robot, idx) => {
             const cat = categoryConfig(robot.category);
             return (
-              <Link
+              <div
                 key={robot.id}
-                href={`/robots/${robot.id}`}
-                className="group flex flex-col gap-4 rounded-xl border border-white/10 bg-slate-900/60 p-5 transition-all hover:border-amber-500/30 hover:bg-slate-800/80 hover:shadow-[0_0_16px_rgba(245,158,11,0.1)]"
+                role="button"
+                tabIndex={0}
+                onClick={() => router.push(`/robots/${robot.id}`)}
+                onKeyDown={(e) => e.key === 'Enter' && router.push(`/robots/${robot.id}`)}
+                className="group flex cursor-pointer flex-col gap-4 rounded-xl border border-white/10 bg-slate-900/60 p-5 transition-all hover:border-amber-500/30 hover:bg-slate-800/80 hover:shadow-[0_0_16px_rgba(245,158,11,0.1)]"
               >
                 {/* Header */}
                 <div className="flex items-start justify-between gap-2">
@@ -176,7 +244,11 @@ export default function RobotsPage() {
                         )}
                         <h3 className="font-bold text-zinc-100 group-hover:text-amber-300">{robot.name}</h3>
                       </div>
-                      <Link href={`/profile/${robot.owner.id}`} onClick={(e) => e.stopPropagation()} className="text-xs text-zinc-500 hover:text-amber-400">
+                      <Link
+                        href={`/profile/${robot.owner.id}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-xs text-zinc-500 hover:text-amber-400"
+                      >
                         {robot.owner.name}
                       </Link>
                     </div>
@@ -197,7 +269,7 @@ export default function RobotsPage() {
                     <span className="text-yellow-400">🏆 {robot.awards.length}</span>
                   )}
                 </div>
-              </Link>
+              </div>
             );
           })}
           {robots.length === 0 && (
@@ -206,5 +278,6 @@ export default function RobotsPage() {
         </div>
       )}
     </div>
+    </>
   );
 }

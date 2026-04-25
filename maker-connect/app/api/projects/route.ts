@@ -143,3 +143,34 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const { title, description, category, creatorId = 1 } = body as {
+      title: string;
+      description?: string;
+      category: string;
+      creatorId?: number;
+    };
+
+    if (!title?.trim()) return NextResponse.json({ error: 'Título obrigatório' }, { status: 400 });
+    const cat = categoryMap[category];
+    if (!cat) return NextResponse.json({ error: 'Categoria inválida' }, { status: 400 });
+
+    const project = await prisma.project.create({
+      data: {
+        title: title.trim(),
+        description: description?.trim() || null,
+        category: cat,
+        creatorId,
+      },
+      select: { id: true, title: true, category: true, createdAt: true },
+    });
+
+    return NextResponse.json(project, { status: 201 });
+  } catch (error) {
+    console.error('POST /api/projects failed', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}

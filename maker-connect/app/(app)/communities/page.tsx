@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { Modal, Field, FormActions, inputCls, selectCls } from '@/components/modal';
 
 type Community = {
   id: number; name: string; description: string | null; category: string;
@@ -11,16 +12,79 @@ type Community = {
 };
 
 const CATEGORY_CONFIG: Record<string, { label: string; emoji: string; color: string; accent: string }> = {
-  Robotics: { label: 'Robótica', emoji: '🤖', color: 'border-blue-500/30 hover:border-blue-500/50', accent: 'bg-blue-900/40 text-blue-300' },
+  Robotics:   { label: 'Robótica',    emoji: '🤖', color: 'border-blue-500/30 hover:border-blue-500/50',   accent: 'bg-blue-900/40 text-blue-300' },
   Printing3D: { label: '3D Printing', emoji: '🖨️', color: 'border-violet-500/30 hover:border-violet-500/50', accent: 'bg-violet-900/40 text-violet-300' },
-  IoT: { label: 'IoT', emoji: '📡', color: 'border-teal-500/30 hover:border-teal-500/50', accent: 'bg-teal-900/40 text-teal-300' },
-  Woodworking: { label: 'Woodworking', emoji: '🪵', color: 'border-amber-500/30 hover:border-amber-500/50', accent: 'bg-amber-900/40 text-amber-300' },
+  IoT:        { label: 'IoT',         emoji: '📡', color: 'border-teal-500/30 hover:border-teal-500/50',    accent: 'bg-teal-900/40 text-teal-300' },
+  Woodworking:{ label: 'Woodworking', emoji: '🪵', color: 'border-amber-500/30 hover:border-amber-500/50',  accent: 'bg-amber-900/40 text-amber-300' },
 };
+
+function CreateCommunityModal({ onClose, onCreated }: { onClose: () => void; onCreated: (c: Community) => void }) {
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [category, setCategory] = useState('Robotics');
+  const [isPublic, setIsPublic] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!name.trim()) { setError('Nome obrigatório'); return; }
+    setSaving(true); setError(null);
+    try {
+      const res = await fetch('/api/communities', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, description, category, isPublic }),
+      });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error ?? 'Erro ao criar'); }
+      const community = await res.json();
+      onCreated(community);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao criar comunidade');
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Modal title="Criar Comunidade" onClose={onClose}>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Field label="Nome da Comunidade">
+          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Robótica de Competição Brasil" className={inputCls} />
+        </Field>
+        <Field label="Descrição" hint="(opcional)">
+          <textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Sobre o que é esta comunidade?" className={`${inputCls} resize-none`} />
+        </Field>
+        <Field label="Categoria">
+          <select value={category} onChange={(e) => setCategory(e.target.value)} className={selectCls}>
+            <option value="Robotics">🤖 Robótica</option>
+            <option value="Printing3D">🖨️ 3D Printing</option>
+            <option value="IoT">📡 IoT</option>
+            <option value="Woodworking">🪵 Woodworking</option>
+          </select>
+        </Field>
+        <Field label="Visibilidade">
+          <label className="flex cursor-pointer items-center gap-3">
+            <div
+              onClick={() => setIsPublic((v) => !v)}
+              className={`relative h-5 w-9 rounded-full transition-colors ${isPublic ? 'bg-amber-500' : 'bg-slate-600'}`}
+            >
+              <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${isPublic ? 'translate-x-4' : 'translate-x-0.5'}`} />
+            </div>
+            <span className="text-sm text-zinc-300">{isPublic ? 'Pública — qualquer um pode entrar' : 'Privada — só por aprovação'}</span>
+          </label>
+        </Field>
+        {error && <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-xs text-red-400">{error}</p>}
+        <FormActions onClose={onClose} saving={saving} label="Criar Comunidade" />
+      </form>
+    </Modal>
+  );
+}
 
 export default function CommunitiesPage() {
   const [communities, setCommunities] = useState<Community[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string | null>(null);
+  const [showCreate, setShowCreate] = useState(false);
 
   useEffect(() => {
     fetch('/api/communities')
@@ -32,6 +96,13 @@ export default function CommunitiesPage() {
   const filtered = filter ? communities.filter((c) => c.category === filter) : communities;
 
   return (
+    <>
+    {showCreate && (
+      <CreateCommunityModal
+        onClose={() => setShowCreate(false)}
+        onCreated={(c) => { setCommunities((prev) => [c, ...prev]); setShowCreate(false); }}
+      />
+    )}
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
@@ -40,11 +111,12 @@ export default function CommunitiesPage() {
           </h1>
           <p className="text-sm text-zinc-400">Grupos temáticos, discussões e base de conhecimento</p>
         </div>
-        <div className="hidden items-center gap-2 rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-2 sm:flex">
-          <span className="text-xs font-bold uppercase tracking-wide text-amber-400">
-            {communities.length} comunidades
-          </span>
-        </div>
+        <button
+          onClick={() => setShowCreate(true)}
+          className="flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2.5 text-sm font-bold text-black shadow-[0_0_14px_rgba(245,158,11,0.3)] transition hover:bg-amber-400"
+        >
+          + Criar Comunidade
+        </button>
       </div>
 
       {/* Category filters */}
@@ -123,5 +195,6 @@ export default function CommunitiesPage() {
         </div>
       )}
     </div>
+    </>
   );
 }

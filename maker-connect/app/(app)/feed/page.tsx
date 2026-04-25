@@ -2,6 +2,56 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
+import { Modal, Field, FormActions, inputCls, selectCls } from '@/components/modal';
+
+function CreateProjectModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [category, setCategory] = useState('Robotics');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!title.trim()) { setError('Título obrigatório'); return; }
+    setSaving(true); setError(null);
+    try {
+      const res = await fetch('/api/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, description, category }),
+      });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error ?? 'Erro ao criar'); }
+      onCreated();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao criar projeto');
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Modal title="Criar Projeto" onClose={onClose}>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Field label="Título">
+          <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Nome do projeto" className={inputCls} />
+        </Field>
+        <Field label="Descrição" hint="(opcional)">
+          <textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="O que você está construindo?" className={`${inputCls} resize-none`} />
+        </Field>
+        <Field label="Categoria">
+          <select value={category} onChange={(e) => setCategory(e.target.value)} className={selectCls}>
+            <option value="Robotics">Robótica</option>
+            <option value="Printing3D">3D Printing</option>
+            <option value="IoT">IoT</option>
+            <option value="Woodworking">Woodworking</option>
+          </select>
+        </Field>
+        {error && <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-xs text-red-400">{error}</p>}
+        <FormActions onClose={onClose} saving={saving} label="Criar Projeto" />
+      </form>
+    </Modal>
+  );
+}
 import { fetchProjectsFeed, forkProject, voteProject } from '@/features/social/projects/api';
 import type { FeedCategory, FeedSort, ProjectItem, ProjectsFeedResponse } from '@/features/social/projects/types';
 
@@ -168,6 +218,7 @@ export default function FeedPage() {
   const [forkingProjectId, setForkingProjectId] = useState<number | null>(null);
   const [votingProjectId, setVotingProjectId] = useState<number | null>(null);
   const [response, setResponse] = useState<ProjectsFeedResponse | null>(null);
+  const [showCreate, setShowCreate] = useState(false);
 
   const categoryQuery = useMemo(() => selectedCategory === 'ALL' ? null : selectedCategory, [selectedCategory]);
 
@@ -227,7 +278,18 @@ export default function FeedPage() {
 
   const hasActiveSearch = searchQuery.trim().length > 0;
 
+  async function handleCreated() {
+    setShowCreate(false);
+    setPage(1); setSearchQuery(''); setSearchInput(''); setSelectedCategory('ALL'); setSort('newest');
+    setLoading(true);
+    const payload = await fetchProjectsFeed({ page: 1, pageSize: PAGE_SIZE, sort: 'newest' });
+    setResponse(payload);
+    setLoading(false);
+  }
+
   return (
+    <>
+    {showCreate && <CreateProjectModal onClose={() => setShowCreate(false)} onCreated={handleCreated} />}
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -237,6 +299,12 @@ export default function FeedPage() {
           </h1>
           <p className="text-sm text-zinc-400">Explore, vote e faça fork dos melhores projetos maker.</p>
         </div>
+        <button
+          onClick={() => setShowCreate(true)}
+          className="flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2.5 text-sm font-bold text-black shadow-[0_0_14px_rgba(245,158,11,0.3)] transition hover:bg-amber-400"
+        >
+          + Criar Projeto
+        </button>
       </div>
 
       {/* Search + Sort bar */}
@@ -366,5 +434,6 @@ export default function FeedPage() {
         </div>
       )}
     </div>
+    </>
   );
 }

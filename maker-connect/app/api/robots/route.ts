@@ -25,3 +25,33 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({ robots, total, page, pageSize });
 }
+
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const { name, description, category, ownerId = 1 } = body as {
+      name: string;
+      description?: string;
+      category: string;
+      ownerId?: number;
+    };
+
+    if (!name?.trim()) return NextResponse.json({ error: 'Nome obrigatório' }, { status: 400 });
+    if (!category) return NextResponse.json({ error: 'Categoria obrigatória' }, { status: 400 });
+
+    const robot = await prisma.robot.create({
+      data: {
+        name: name.trim(),
+        description: description?.trim() || null,
+        category: category as never,
+        ownerId,
+      },
+      include: { owner: { select: { id: true, name: true } }, awards: true, _count: { select: { matches: true } } },
+    });
+
+    return NextResponse.json(robot, { status: 201 });
+  } catch (error) {
+    console.error('POST /api/robots failed', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}

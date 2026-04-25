@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { LogoIcon } from '@/components/logo';
 
 const NAV_ITEMS = [
   { href: '/feed', label: 'Feed', icon: '◈' },
@@ -22,9 +23,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-0">
           {/* Logo */}
           <Link href="/feed" className="flex items-center gap-2 py-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.5)]">
-              <span className="text-lg font-black text-black">M</span>
-            </div>
+            <LogoIcon size={36} />
             <div className="hidden sm:block">
               <span className="text-base font-black tracking-tight text-white">
                 MAKER<span className="text-amber-400">CONNECT</span>

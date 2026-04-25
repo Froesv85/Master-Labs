@@ -86,7 +86,7 @@ async function processPdfExportJob(jobData: PdfExportJobData) {
   }
 
   let techReqs: string[] = [];
-  let bom: Array<Record<string, unknown>> = [];
+  let bom: Array<{ quantity: string; item: string; notes: string }> = [];
   let suggestedCode = '';
   const latestExtraction = project.extractionLogs[0];
 

@@ -91,11 +91,212 @@ function WinRateBadge({ wins, losses, draws }: { wins: number; losses: number; d
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
+const CURRENT_USER_ID = '1'; // substituir por session quando auth existir
+
+type EditForm = {
+  name: string;
+  bio: string;
+  location: string;
+  website: string;
+  githubUrl: string;
+  expertiseRaw: string; // comma-separated
+};
+
+function EditProfileModal({
+  user,
+  onClose,
+  onSaved,
+}: {
+  user: UserData;
+  onClose: () => void;
+  onSaved: (updated: UserData) => void;
+}) {
+  const [form, setForm] = useState<EditForm>({
+    name: user.name ?? '',
+    bio: user.profile?.bio ?? '',
+    location: user.profile?.location ?? '',
+    website: user.profile?.website ?? '',
+    githubUrl: user.profile?.githubUrl ?? '',
+    expertiseRaw: (() => {
+      try { return (JSON.parse(user.profile?.expertise ?? '[]') as string[]).join(', '); }
+      catch { return ''; }
+    })(),
+  });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  function set(field: keyof EditForm, value: string) {
+    setForm((f) => ({ ...f, [field]: value }));
+  }
+
+  async function handleSave(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setError(null);
+    const expertise = form.expertiseRaw
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+    try {
+      const res = await fetch(`/api/users/${user.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: form.name,
+          bio: form.bio,
+          location: form.location,
+          website: form.website,
+          githubUrl: form.githubUrl,
+          expertise,
+        }),
+      });
+      if (!res.ok) throw new Error('Erro ao salvar');
+      // re-fetch full user to get updated data
+      const fresh = await fetch(`/api/users/${user.id}`).then((r) => r.json());
+      onSaved(fresh);
+    } catch {
+      setError('Não foi possível salvar. Tente novamente.');
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
+
+      {/* Modal */}
+      <div className="relative w-full max-w-lg rounded-2xl border border-amber-500/20 bg-[#0d1424] shadow-[0_0_60px_rgba(0,0,0,0.8)]">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
+          <h2 className="text-base font-black text-white">Editar Perfil</h2>
+          <button
+            onClick={onClose}
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSave} className="space-y-4 p-6">
+          {/* Name */}
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-zinc-400">
+              Nome
+            </label>
+            <input
+              value={form.name}
+              onChange={(e) => set('name', e.target.value)}
+              placeholder="Seu nome completo"
+              className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder-zinc-600 outline-none transition focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/30"
+            />
+          </div>
+
+          {/* Bio */}
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-zinc-400">
+              Bio
+            </label>
+            <textarea
+              rows={3}
+              value={form.bio}
+              onChange={(e) => set('bio', e.target.value)}
+              placeholder="Conte um pouco sobre você e seus projetos..."
+              className="w-full resize-none rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder-zinc-600 outline-none transition focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/30"
+            />
+          </div>
+
+          {/* Location + Website */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-zinc-400">
+                Localização
+              </label>
+              <input
+                value={form.location}
+                onChange={(e) => set('location', e.target.value)}
+                placeholder="São Paulo, SP"
+                className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder-zinc-600 outline-none transition focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/30"
+              />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-zinc-400">
+                Website
+              </label>
+              <input
+                value={form.website}
+                onChange={(e) => set('website', e.target.value)}
+                placeholder="https://..."
+                className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder-zinc-600 outline-none transition focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/30"
+              />
+            </div>
+          </div>
+
+          {/* GitHub */}
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-zinc-400">
+              GitHub URL
+            </label>
+            <input
+              value={form.githubUrl}
+              onChange={(e) => set('githubUrl', e.target.value)}
+              placeholder="https://github.com/seu-usuario"
+              className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder-zinc-600 outline-none transition focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/30"
+            />
+          </div>
+
+          {/* Expertise */}
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-zinc-400">
+              Expertise{' '}
+              <span className="font-normal normal-case text-zinc-600">(separadas por vírgula)</span>
+            </label>
+            <input
+              value={form.expertiseRaw}
+              onChange={(e) => set('expertiseRaw', e.target.value)}
+              placeholder="Arduino, ESP32, Robótica, Impressão 3D"
+              className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder-zinc-600 outline-none transition focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/30"
+            />
+          </div>
+
+          {error && (
+            <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-xs text-red-400">
+              {error}
+            </p>
+          )}
+
+          {/* Actions */}
+          <div className="flex justify-end gap-3 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-lg border border-white/10 px-5 py-2.5 text-sm font-semibold text-zinc-400 transition hover:bg-white/5"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="rounded-lg bg-amber-500 px-5 py-2.5 text-sm font-bold text-black shadow-[0_0_16px_rgba(245,158,11,0.3)] transition hover:bg-amber-400 disabled:opacity-60"
+            >
+              {saving ? 'Salvando…' : 'Salvar'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export default function ProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'projects' | 'robots' | 'teams' | 'communities'>('projects');
+  const [editing, setEditing] = useState(false);
+
+  const isOwner = id === CURRENT_USER_ID;
 
   useEffect(() => {
     fetch(`/api/users/${id}`)
@@ -121,6 +322,14 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
   const expertise: string[] = user.profile?.expertise ? JSON.parse(user.profile.expertise) : [];
 
   return (
+    <>
+    {editing && (
+      <EditProfileModal
+        user={user}
+        onClose={() => setEditing(false)}
+        onSaved={(updated) => { setUser(updated); setEditing(false); }}
+      />
+    )}
     <div className="space-y-6">
       {/* ── Profile Hero Card ────────────────────────────────────────── */}
       <div className="overflow-hidden rounded-xl border border-amber-500/20 bg-gradient-to-br from-slate-900 to-[#0f1829]">
@@ -139,9 +348,19 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
 
             {/* Info */}
             <div className="flex-1 space-y-3">
-              <div>
-                <h1 className="text-2xl font-black text-white sm:text-3xl">{user.name ?? 'Maker Anônimo'}</h1>
-                <p className="text-sm text-zinc-400">{user.email}</p>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h1 className="text-2xl font-black text-white sm:text-3xl">{user.name ?? 'Maker Anônimo'}</h1>
+                  <p className="text-sm text-zinc-400">{user.email}</p>
+                </div>
+                {isOwner && (
+                  <button
+                    onClick={() => setEditing(true)}
+                    className="flex shrink-0 items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs font-bold text-amber-400 transition hover:bg-amber-500/20"
+                  >
+                    ✏️ Editar Perfil
+                  </button>
+                )}
               </div>
 
               {user.profile?.bio && (
@@ -341,5 +560,6 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
         </div>
       )}
     </div>
+    </>
   );
 }

@@ -36,3 +36,49 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
   return NextResponse.json(user);
 }
+
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const userId = parseInt(id);
+  if (isNaN(userId)) return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
+
+  const body = await req.json();
+  const { name, bio, location, website, githubUrl, expertise } = body as {
+    name?: string;
+    bio?: string;
+    location?: string;
+    website?: string;
+    githubUrl?: string;
+    expertise?: string[];
+  };
+
+  const [updatedUser] = await prisma.$transaction([
+    prisma.user.update({
+      where: { id: userId },
+      data: {
+        ...(name !== undefined && { name: name.trim() || null }),
+        profile: {
+          upsert: {
+            create: {
+              bio: bio?.trim() || null,
+              location: location?.trim() || null,
+              website: website?.trim() || null,
+              githubUrl: githubUrl?.trim() || null,
+              expertise: expertise ? JSON.stringify(expertise) : null,
+            },
+            update: {
+              ...(bio !== undefined && { bio: bio.trim() || null }),
+              ...(location !== undefined && { location: location.trim() || null }),
+              ...(website !== undefined && { website: website.trim() || null }),
+              ...(githubUrl !== undefined && { githubUrl: githubUrl.trim() || null }),
+              ...(expertise !== undefined && { expertise: JSON.stringify(expertise) }),
+            },
+          },
+        },
+      },
+      include: { profile: true },
+    }),
+  ]);
+
+  return NextResponse.json(updatedUser);
+}
