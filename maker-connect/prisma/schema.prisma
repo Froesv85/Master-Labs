@@ -42,6 +42,12 @@ enum CommunityRole {
   member
 }
 
+enum MembershipStatus {
+  pending
+  approved
+  rejected
+}
+
 model User {
   id              Int               @id @default(autoincrement())
   email           String            @unique
@@ -229,17 +235,19 @@ model Community {
 }
 
 model CommunityMember {
-  id          Int           @id @default(autoincrement())
+  id          Int              @id @default(autoincrement())
   communityId Int
   userId      Int
-  community   Community     @relation(fields: [communityId], references: [id])
-  user        User          @relation(fields: [userId], references: [id])
-  role        CommunityRole @default(member)
-  joinedAt    DateTime      @default(now())
+  community   Community        @relation(fields: [communityId], references: [id])
+  user        User             @relation(fields: [userId], references: [id])
+  role        CommunityRole    @default(member)
+  status      MembershipStatus @default(approved)
+  joinedAt    DateTime         @default(now())
 
   @@unique([communityId, userId])
   @@index([communityId])
   @@index([userId])
+  @@index([communityId, status])
 }
 
 model CommunityPost {

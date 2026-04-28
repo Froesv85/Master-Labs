@@ -3,7 +3,7 @@ import { NextRequest } from 'next/server';
 jest.mock('@/lib/prisma', () => ({
   prisma: {
     community: { findUnique: jest.fn() },
-    communityMember: { findUnique: jest.fn() },
+    communityMember: { findUnique: jest.fn(), findFirst: jest.fn() },
     communityPost: {
       create: jest.fn(),
       findMany: jest.fn(),
@@ -124,7 +124,7 @@ describe('POST /api/communities/[id]/posts', () => {
   it('retorna 403 para não-membro mesmo em comunidade pública', async () => {
     (getSession as jest.Mock).mockResolvedValue(mockSession);
     (prisma.community.findUnique as jest.Mock).mockResolvedValue(mockPublicCommunity);
-    (prisma.communityMember.findUnique as jest.Mock).mockResolvedValue(null);
+    (prisma.communityMember.findFirst as jest.Mock).mockResolvedValue(null);
     const res = await POST(
       makePostRequest('1', { title: 'Título válido', content: 'conteudo valido aqui' }),
       { params: params('1') }
@@ -137,7 +137,7 @@ describe('POST /api/communities/[id]/posts', () => {
   it('retorna 403 para não-membro em comunidade privada', async () => {
     (getSession as jest.Mock).mockResolvedValue(mockSession);
     (prisma.community.findUnique as jest.Mock).mockResolvedValue(mockPrivateCommunity);
-    (prisma.communityMember.findUnique as jest.Mock).mockResolvedValue(null);
+    (prisma.communityMember.findFirst as jest.Mock).mockResolvedValue(null);
     const res = await POST(
       makePostRequest('2', { title: 'Título válido', content: 'conteudo valido aqui' }),
       { params: params('2') }
@@ -148,7 +148,7 @@ describe('POST /api/communities/[id]/posts', () => {
   it('cria post sem mídia quando membro da comunidade', async () => {
     (getSession as jest.Mock).mockResolvedValue(mockSession);
     (prisma.community.findUnique as jest.Mock).mockResolvedValue(mockPublicCommunity);
-    (prisma.communityMember.findUnique as jest.Mock).mockResolvedValue(mockMembership);
+    (prisma.communityMember.findFirst as jest.Mock).mockResolvedValue(mockMembership);
     (prisma.communityPost.create as jest.Mock).mockResolvedValue(mockPost);
 
     const res = await POST(
@@ -166,7 +166,7 @@ describe('POST /api/communities/[id]/posts', () => {
   it('faz upload de mídia quando mediaB64 e mediaContentType presentes', async () => {
     (getSession as jest.Mock).mockResolvedValue(mockSession);
     (prisma.community.findUnique as jest.Mock).mockResolvedValue(mockPublicCommunity);
-    (prisma.communityMember.findUnique as jest.Mock).mockResolvedValue(mockMembership);
+    (prisma.communityMember.findFirst as jest.Mock).mockResolvedValue(mockMembership);
     (uploadPostMedia as jest.Mock).mockResolvedValue({
       url: 'http://localhost:9000/maker-assets/communities/1/posts/img.jpg',
       contentType: 'image/jpeg',
@@ -198,7 +198,7 @@ describe('POST /api/communities/[id]/posts', () => {
   it('retorna 400 quando mediaB64 presente mas mediaContentType ausente', async () => {
     (getSession as jest.Mock).mockResolvedValue(mockSession);
     (prisma.community.findUnique as jest.Mock).mockResolvedValue(mockPublicCommunity);
-    (prisma.communityMember.findUnique as jest.Mock).mockResolvedValue(mockMembership);
+    (prisma.communityMember.findFirst as jest.Mock).mockResolvedValue(mockMembership);
 
     const res = await POST(
       makePostRequest('1', {
@@ -217,7 +217,7 @@ describe('POST /api/communities/[id]/posts', () => {
   it('retorna 422 quando tipo de mídia não é suportado', async () => {
     (getSession as jest.Mock).mockResolvedValue(mockSession);
     (prisma.community.findUnique as jest.Mock).mockResolvedValue(mockPublicCommunity);
-    (prisma.communityMember.findUnique as jest.Mock).mockResolvedValue(mockMembership);
+    (prisma.communityMember.findFirst as jest.Mock).mockResolvedValue(mockMembership);
     (uploadPostMedia as jest.Mock).mockRejectedValue(
       new Error('Unsupported media type: application/pdf')
     );
@@ -240,7 +240,7 @@ describe('POST /api/communities/[id]/posts', () => {
   it('retorna 422 quando arquivo excede 5 MB', async () => {
     (getSession as jest.Mock).mockResolvedValue(mockSession);
     (prisma.community.findUnique as jest.Mock).mockResolvedValue(mockPublicCommunity);
-    (prisma.communityMember.findUnique as jest.Mock).mockResolvedValue(mockMembership);
+    (prisma.communityMember.findFirst as jest.Mock).mockResolvedValue(mockMembership);
     (uploadPostMedia as jest.Mock).mockRejectedValue(
       new Error('File too large: 6000000 bytes. Maximum allowed: 5242880 bytes (5 MB).')
     );
@@ -263,7 +263,7 @@ describe('POST /api/communities/[id]/posts', () => {
   it('salva authorId da sessão independente do body', async () => {
     (getSession as jest.Mock).mockResolvedValue(mockSession);
     (prisma.community.findUnique as jest.Mock).mockResolvedValue(mockPublicCommunity);
-    (prisma.communityMember.findUnique as jest.Mock).mockResolvedValue(mockMembership);
+    (prisma.communityMember.findFirst as jest.Mock).mockResolvedValue(mockMembership);
     (prisma.communityPost.create as jest.Mock).mockResolvedValue(mockPost);
 
     await POST(
@@ -317,7 +317,7 @@ describe('GET /api/communities/[id]/posts', () => {
   it('retorna 403 para não-membro em comunidade privada', async () => {
     (prisma.community.findUnique as jest.Mock).mockResolvedValue(mockPrivateCommunity);
     (getSession as jest.Mock).mockResolvedValue(mockSession);
-    (prisma.communityMember.findUnique as jest.Mock).mockResolvedValue(null);
+    (prisma.communityMember.findFirst as jest.Mock).mockResolvedValue(null);
     const res = await GET(makeGetRequest('2'), { params: params('2') });
     expect(res.status).toBe(403);
   });

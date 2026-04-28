@@ -11,8 +11,8 @@ function parseCommunityId(value: string) {
 }
 
 async function requireMembership(communityId: number, userId: number) {
-  const membership = await prisma.communityMember.findUnique({
-    where: { communityId_userId: { communityId, userId } },
+  const membership = await prisma.communityMember.findFirst({
+    where: { communityId, userId, status: 'approved' },
     select: { id: true },
   });
   return membership !== null;
