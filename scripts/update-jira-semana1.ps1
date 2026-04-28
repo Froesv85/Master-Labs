@@ -111,7 +111,7 @@ foreach ($issue in $issues) {
             }
         }
 
-        $commentResponse = Invoke-WebRequest -Uri "$JiraUrl/rest/api/3/issues/$($issue.Key)/comments" `
+        $commentResponse = Invoke-WebRequest -Uri "$JiraUrl/rest/api/3/issue/$($issue.Key)/comment" `
             -Headers $headers `
             -Body ($commentBody | ConvertTo-Json -Depth 10) `
             -Method POST `
@@ -128,7 +128,7 @@ foreach ($issue in $issues) {
                 }
             }
 
-            Invoke-WebRequest -Uri "$JiraUrl/rest/api/3/issues/$($issue.Key)/transitions" `
+            Invoke-WebRequest -Uri "$JiraUrl/rest/api/3/issue/$($issue.Key)/transitions" `
                 -Headers $headers `
                 -Body ($transitionBody | ConvertTo-Json -Depth 10) `
                 -Method POST `
