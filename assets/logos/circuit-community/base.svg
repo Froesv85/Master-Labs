@@ -1,0 +1,38 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="200" height="200" fill="#FFFFFF"/>
+  
+  <!-- Circuito (L invertido) -->
+  <path d="M 65 60 L 135 60 L 135 90 L 75 90" stroke="#1A3A4D" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Pontos de conexão (nós do circuito) -->
+  <circle cx="65" cy="60" r="5" fill="#FFA500"/>
+  <circle cx="135" cy="60" r="5" fill="#FFA500"/>
+  <circle cx="135" cy="90" r="5" fill="#1A3A4D"/>
+  <circle cx="75" cy="90" r="5" fill="#1A3A4D"/>
+  
+  <!-- Radiação/comunidade (linhas saindo dos nós) -->
+  <!-- De (65, 60) -->
+  <line x1="65" y1="60" x2="50" y2="40" stroke="#FFB84D" stroke-width="1.5"/>
+  <line x1="65" y1="60" x2="45" y2="55" stroke="#FFB84D" stroke-width="1.5"/>
+  <circle cx="50" cy="40" r="2.5" fill="#FFB84D" opacity="0.85"/>
+  <circle cx="45" cy="55" r="2.5" fill="#FFB84D" opacity="0.85"/>
+  
+  <!-- De (135, 60) -->
+  <line x1="135" y1="60" x2="150" y2="40" stroke="#FFB84D" stroke-width="1.5"/>
+  <line x1="135" y1="60" x2="155" y2="50" stroke="#FFB84D" stroke-width="1.5"/>
+  <circle cx="150" cy="40" r="2.5" fill="#FFB84D" opacity="0.85"/>
+  <circle cx="155" cy="50" r="2.5" fill="#FFB84D" opacity="0.85"/>
+  
+  <!-- De (135, 90) -->
+  <line x1="135" y1="90" x2="155" y2="105" stroke="#FFB84D" stroke-width="1.5"/>
+  <line x1="135" y1="90" x2="150" y2="120" stroke="#FFB84D" stroke-width="1.5"/>
+  <circle cx="155" cy="105" r="2.5" fill="#FFB84D" opacity="0.85"/>
+  <circle cx="150" cy="120" r="2.5" fill="#FFB84D" opacity="0.85"/>
+  
+  <!-- De (75, 90) -->
+  <line x1="75" y1="90" x2="60" y2="115" stroke="#FFB84D" stroke-width="1.5"/>
+  <line x1="75" y1="90" x2="50" y2="105" stroke="#FFB84D" stroke-width="1.5"/>
+  <circle cx="60" cy="115" r="2.5" fill="#FFB84D" opacity="0.85"/>
+  <circle cx="50" cy="105" r="2.5" fill="#FFB84D" opacity="0.85"/>
+</svg>

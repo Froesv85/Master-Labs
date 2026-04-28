@@ -1,0 +1,25 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="200" height="200" fill="#FFFFFF"/>
+  
+  <!-- Nó central (principal) -->
+  <circle cx="100" cy="100" r="8" fill="#FFA500"/>
+  
+  <!-- Nós secundários (laranja) -->
+  <circle cx="130" cy="75" r="6" fill="#FFB84D" opacity="0.9"/>
+  <circle cx="130" cy="125" r="6" fill="#FFB84D" opacity="0.9"/>
+  
+  <!-- Nós secundários (azul) -->
+  <circle cx="70" cy="75" r="6" fill="#1A3A4D" opacity="0.8"/>
+  <circle cx="70" cy="125" r="6" fill="#1A3A4D" opacity="0.8"/>
+  
+  <!-- Linhas de conexão -->
+  <line x1="100" y1="100" x2="130" y2="75" stroke="#FFA500" stroke-width="2.5"/>
+  <line x1="100" y1="100" x2="130" y2="125" stroke="#FFA500" stroke-width="2.5"/>
+  <line x1="100" y1="100" x2="70" y2="75" stroke="#1A3A4D" stroke-width="2.5"/>
+  <line x1="100" y1="100" x2="70" y2="125" stroke="#1A3A4D" stroke-width="2.5"/>
+  
+  <!-- Linhas conectando secundários (suave) -->
+  <line x1="130" y1="75" x2="70" y2="75" stroke="#e0e0e0" stroke-width="1.5" stroke-dasharray="3,3"/>
+  <line x1="130" y1="125" x2="70" y2="125" stroke="#e0e0e0" stroke-width="1.5" stroke-dasharray="3,3"/>
+</svg>
