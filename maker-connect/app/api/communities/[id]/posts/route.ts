@@ -1,12 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
+import { uploadPostMedia } from '@/lib/community-media';
 
 type Params = { params: Promise<{ id: string }> };
 
 function parseCommunityId(value: string) {
   const n = Number(value);
   return Number.isInteger(n) && n > 0 ? n : null;
+}
+
+async function requireMembership(communityId: number, userId: number) {
+  const membership = await prisma.communityMember.findUnique({
+    where: { communityId_userId: { communityId, userId } },
+    select: { id: true },
+  });
+  return membership !== null;
 }
 
 export async function POST(req: NextRequest, { params }: Params) {
@@ -44,22 +53,41 @@ export async function POST(req: NextRequest, { params }: Params) {
 
   const community = await prisma.community.findUnique({
     where: { id: communityId },
-    select: { id: true, isPublic: true },
+    select: { id: true },
   });
   if (!community) {
     return NextResponse.json({ error: 'Community not found.' }, { status: 404 });
   }
 
-  if (!community.isPublic) {
-    const membership = await prisma.communityMember.findUnique({
-      where: { communityId_userId: { communityId, userId: session.userId } },
-      select: { id: true },
-    });
-    if (!membership) {
+  const isMember = await requireMembership(communityId, session.userId);
+  if (!isMember) {
+    return NextResponse.json(
+      { error: 'Only community members can publish content.' },
+      { status: 403 }
+    );
+  }
+
+  let mediaUrl: string | null = null;
+
+  if (body.mediaB64 !== undefined && body.mediaB64 !== null) {
+    if (typeof body.mediaB64 !== 'string' || body.mediaB64.length === 0) {
+      return NextResponse.json({ error: 'mediaB64 must be a non-empty string.' }, { status: 400 });
+    }
+    const mediaContentType =
+      typeof body.mediaContentType === 'string' ? body.mediaContentType : '';
+    if (!mediaContentType) {
       return NextResponse.json(
-        { error: 'Only members can post in private communities.' },
-        { status: 403 }
+        { error: 'mediaContentType is required when mediaB64 is provided.' },
+        { status: 400 }
       );
+    }
+
+    try {
+      const result = await uploadPostMedia(body.mediaB64, mediaContentType, communityId);
+      mediaUrl = result.url;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Media upload failed.';
+      return NextResponse.json({ error: message }, { status: 422 });
     }
   }
 
@@ -69,12 +97,14 @@ export async function POST(req: NextRequest, { params }: Params) {
       authorId: session.userId,
       title,
       content,
+      mediaUrl,
     },
     select: {
       id: true,
       communityId: true,
       title: true,
       content: true,
+      mediaUrl: true,
       replies: true,
       views: true,
       createdAt: true,
@@ -110,11 +140,8 @@ export async function GET(req: NextRequest, { params }: Params) {
     if (!session) {
       return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
     }
-    const membership = await prisma.communityMember.findUnique({
-      where: { communityId_userId: { communityId, userId: session.userId } },
-      select: { id: true },
-    });
-    if (!membership) {
+    const isMember = await requireMembership(communityId, session.userId);
+    if (!isMember) {
       return NextResponse.json(
         { error: 'Only members can view posts in private communities.' },
         { status: 403 }
@@ -133,6 +160,7 @@ export async function GET(req: NextRequest, { params }: Params) {
         communityId: true,
         title: true,
         content: true,
+        mediaUrl: true,
         replies: true,
         views: true,
         createdAt: true,

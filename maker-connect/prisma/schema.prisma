@@ -250,6 +250,7 @@ model CommunityPost {
   author      User      @relation(fields: [authorId], references: [id])
   title       String
   content     String    @db.LongText
+  mediaUrl    String?   @db.VarChar(2048)
   replies     Int       @default(0)
   views       Int       @default(0)
   createdAt   DateTime  @default(now())
