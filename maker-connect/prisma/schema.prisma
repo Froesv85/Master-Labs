@@ -329,6 +329,7 @@ model ProjectExtractionLog {
   source         String   @default("manual")
   webhookId      String?  @unique
   piiRedactions  Int      @default(0)
+  piiTypes       String?  @db.LongText
   keywords       String?  @db.LongText
   embeddingId    String?
   latencyMs      Int?
