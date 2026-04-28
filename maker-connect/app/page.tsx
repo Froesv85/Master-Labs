@@ -53,7 +53,7 @@ export default function Home() {
             <span className="bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
               Makers
             </span>{' '}
-            do Brasil
+            
           </h1>
 
           <p className="max-w-2xl text-lg text-zinc-400 leading-relaxed mb-10">
@@ -153,7 +153,7 @@ export default function Home() {
           <div className="mx-auto max-w-7xl">
             <div className="mb-12 text-center">
               <span className="text-xs font-bold uppercase tracking-[0.3em] text-amber-500">Comunidade</span>
-              <h2 className="mt-2 text-3xl font-black text-white">Orkut dos Makers</h2>
+              <h2 className="mt-2 text-3xl font-black text-white">Arena dos Makers</h2>
               <p className="mt-3 text-zinc-500 max-w-xl mx-auto">Perfis, seguir makers, badges de conquista, equipes e comunidades temáticas.</p>
             </div>
 

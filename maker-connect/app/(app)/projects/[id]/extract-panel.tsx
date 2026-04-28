@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import CodeViewer from './code-viewer';
 
 type ExtractResponse = {
@@ -37,7 +37,7 @@ export default function ExtractPanel({
   initialInput: string;
   currentEmbeddingId: string | null;
 }) {
-  const [pollIntervalId, setPollIntervalId] = useState<NodeJS.Timeout | null>(null);
+  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const [input, setInput] = useState(initialInput);
   const [imageB64, setImageB64] = useState<string | null>(null);
@@ -46,6 +46,12 @@ export default function ExtractPanel({
   const [result, setResult] = useState<ExtractResponse['data'] | null>(null);
 
   const inputLength = useMemo(() => input.trim().length, [input]);
+
+  useEffect(() => {
+    return () => {
+      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+    };
+  }, []);
 
   async function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -116,14 +122,14 @@ export default function ExtractPanel({
       const webhookId = payload.data.webhookId;
       if (webhookId) {
         let attempts = 0;
-        const interval = setInterval(async () => {
+        pollIntervalRef.current = setInterval(async () => {
           attempts++;
           const done = await pollStatus(webhookId);
           if (done || attempts > 20) {
-            clearInterval(interval);
+            clearInterval(pollIntervalRef.current!);
+            pollIntervalRef.current = null;
           }
         }, 3000) as unknown as NodeJS.Timeout;
-        setPollIntervalId(interval);
       }
     } catch (submitError) {
       setError(
