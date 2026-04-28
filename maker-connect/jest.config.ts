@@ -14,13 +14,15 @@ const config: Config = {
     'lib/**/*.ts',
     'features/**/*.ts',
     '!app/api/projects/[id]/export/**',
-    '!app/api/projects/[id]/extract/**',
     '!features/social/projects/api.ts',
     '!lib/pdf-export-queue.ts',
     '!lib/pdf-service.ts',
     '!lib/prisma.ts',
     '!lib/s3-service.ts',
     '!lib/extraction-output-schema.ts',
+    '!lib/auth.ts',
+    '!lib/ollama.ts',
+    '!lib/pinecone.ts',
   ],
 };
 

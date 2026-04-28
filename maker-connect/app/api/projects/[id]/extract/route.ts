@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { prisma } from '@/lib/prisma';
+import { anonymizePii } from '@/lib/lgpd';
 
 type ExtractRequestBody = {
   input?: string;
@@ -27,28 +28,6 @@ function createWebhookId() {
   return `webhook_${Date.now()}_${crypto.randomUUID().slice(0, 8)}`;
 }
 
-function anonymizeSensitiveData(text: string) {
-  let redactions = 0;
-  const detectedTypes = new Set<string>();
-
-  const emailRegex = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;
-  const phoneRegex = /(?:\+?55\s?)?(?:\(?\d{2}\)?\s?)?(?:9\d{4}|\d{4})-?\d{4}/g;
-  const cpfRegex = /\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b/g;
-
-  const replaceAndCount = (content: string, regex: RegExp, token: string, type: string) =>
-    content.replace(regex, () => {
-      redactions += 1;
-      detectedTypes.add(type);
-      return token;
-    });
-
-  let sanitized = text;
-  sanitized = replaceAndCount(sanitized, emailRegex, '[EMAIL_REDACTED]', 'EMAIL');
-  sanitized = replaceAndCount(sanitized, phoneRegex, '[PHONE_REDACTED]', 'PHONE');
-  sanitized = replaceAndCount(sanitized, cpfRegex, '[CPF_REDACTED]', 'CPF');
-
-  return { sanitized, redactions, piiTypes: [...detectedTypes] };
-}
 
 function extractKeywords(text: string) {
   const stopWords = new Set([
@@ -150,7 +129,7 @@ export async function POST(
 
     const language = project.creator.language || 'pt-BR';
     const webhookId = createWebhookId();
-    const { sanitized, redactions, piiTypes } = anonymizeSensitiveData(input);
+    const { sanitized, redactions, piiTypes } = anonymizePii(input);
     const keywords = extractKeywords(sanitized);
     const embeddingId = createEmbeddingId(projectId);
 
