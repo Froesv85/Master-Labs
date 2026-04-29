@@ -6,6 +6,9 @@ jest.mock('@/lib/prisma', () => ({
       findUnique: jest.fn(),
       update: jest.fn(),
     },
+    lgpdAuditLog: {
+      create: jest.fn(),
+    },
   },
 }));
 
@@ -97,6 +100,48 @@ describe('POST /api/projects/[id]/extract/callback', () => {
         }),
       })
     );
+  });
+
+  it('anonymiza PII no output e grava audit log', async () => {
+    (prisma.projectExtractionLog.findUnique as jest.Mock).mockResolvedValue(mockLog);
+    (prisma.projectExtractionLog.update as jest.Mock).mockResolvedValue({});
+    (prisma.lgpdAuditLog.create as jest.Mock).mockResolvedValue({});
+
+    await POST(
+      makeRequest({
+        webhookId: 'wh_pii',
+        status: 'done',
+        output: { description: 'Contato: maker@example.com, CPF: 123.456.789-09' },
+      }),
+      { params }
+    );
+
+    const updateCall = (prisma.projectExtractionLog.update as jest.Mock).mock.calls[0][0];
+    expect(updateCall.data.output).not.toContain('maker@example.com');
+    expect(updateCall.data.output).toContain('[EMAIL_REDACTED]');
+    expect(updateCall.data.piiRedactions).toBeGreaterThan(0);
+
+    expect(prisma.lgpdAuditLog.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          action: 'extract',
+          projectId: 1,
+          redactions: expect.any(Number),
+        }),
+      })
+    );
+  });
+
+  it('não grava audit log quando status é failed', async () => {
+    (prisma.projectExtractionLog.findUnique as jest.Mock).mockResolvedValue(mockLog);
+    (prisma.projectExtractionLog.update as jest.Mock).mockResolvedValue({});
+
+    await POST(
+      makeRequest({ webhookId: 'wh_fail', status: 'failed', error: 'timeout' }),
+      { params }
+    );
+
+    expect(prisma.lgpdAuditLog.create).not.toHaveBeenCalled();
   });
 
   it('atualiza log para failed com mensagem de erro', async () => {

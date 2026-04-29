@@ -1,5 +1,7 @@
 ﻿import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { anonymizePii } from "@/lib/lgpd";
+import { createLgpdAuditLog } from "@/lib/lgpd-audit";
 
 type CallbackBody = {
   webhookId?: string;
@@ -50,14 +52,36 @@ export async function POST(
     return NextResponse.json({ error: "Extraction log not found." }, { status: 404 });
   }
 
+  const outputText = output ? JSON.stringify(output) : null;
+  let sanitizedOutput = outputText;
+  let piiRedactions = 0;
+  let detectedPiiTypes: string[] = [];
+
+  if (outputText && status === 'done') {
+    const piiResult = anonymizePii(outputText);
+    sanitizedOutput = piiResult.sanitized;
+    piiRedactions = piiResult.redactions;
+    detectedPiiTypes = piiResult.piiTypes;
+
+    await createLgpdAuditLog({
+      action: 'extract',
+      projectId,
+      piiTypes: piiResult.piiTypes,
+      redactions: piiResult.redactions,
+      context: `webhookId=${webhookId}`,
+    });
+  }
+
   await prisma.projectExtractionLog.update({
     where: { id: log.id },
     data: {
       status,
-      output: output ? JSON.stringify(output) : null,
+      output: sanitizedOutput,
       n8nExecutionId: n8nExecutionId ?? null,
       latencyMs: latencyMs ?? null,
       error: error ?? null,
+      piiRedactions,
+      piiTypes: detectedPiiTypes.length > 0 ? JSON.stringify(detectedPiiTypes) : null,
       updatedAt: new Date(),
     },
   });
