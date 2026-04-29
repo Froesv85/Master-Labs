@@ -344,6 +344,8 @@ model ProjectExtractionLog {
   keywords       String?  @db.LongText
   embeddingId    String?
   latencyMs      Int?
+  anonymizeMs    Int?
+  n8nTriggerMs   Int?
   output         String?  @db.LongText
   error          String?  @db.LongText
   n8nExecutionId String?

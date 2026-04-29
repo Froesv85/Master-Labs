@@ -147,7 +147,6 @@ function CreatePostModal({
     const reader = new FileReader();
     reader.onload = (ev) => {
       const dataUrl = ev.target?.result as string;
-      // dataUrl = "data:image/png;base64,<b64>"
       const b64 = dataUrl.split(',')[1];
       setMediaB64(b64);
       setPreviewUrl(dataUrl);
@@ -313,12 +312,14 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
   }
 
   async function handleMemberAction(userId: number, action: 'approve' | 'reject') {
-    await fetch(`/api/communities/${id}/members/${userId}`, {
+    const res = await fetch(`/api/communities/${id}/members/${userId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action }),
     });
-    setPendingMembers((prev) => prev.filter((m) => m.user.id !== userId));
+    if (res.ok) {
+      setPendingMembers((prev) => prev.filter((m) => m.user.id !== userId));
+    }
   }
 
   return (
@@ -504,6 +505,9 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
       {/* Members */}
       {tab === 'members' && (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {approvedMembers.length === 0 && (
+            <p className="col-span-full py-8 text-center text-zinc-500">Nenhum membro ainda.</p>
+          )}
           {approvedMembers.map((m) => {
             const roleCfg = ROLE_CONFIG[m.role] ?? ROLE_CONFIG.member;
             return (

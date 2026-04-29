@@ -86,15 +86,20 @@
 ### Sábado 09/05
 - [x] Testes audit trail — 18 testes em 3 suites (lib/lgpd, lib/lgpd-audit, api/lgpd-audit)
 - [x] Suite completa: 156 testes / 22 suites / 0 falhas
-- [ ] Commit e push branch v.002
+- [x] Commit branch v.002 — 3 commits (a4bd7e2 · 71ccd97 · 8567a77)
 
 ### Domingo 10/05
 - [ ] Buffer / descanso
 
 ### Segunda 11/05
-- [ ] Review geral do frontend de comunidades
-- [ ] Corrigir bugs encontrados durante uso manual
-- [ ] Atualizar Jira — fechar tickets do frontend de comunidades
+- [x] Review geral do frontend de comunidades
+- [x] Corrigir bugs encontrados durante uso manual
+  - bug: `take: 20` no GET /communities/[id] — detectava member incorretamente além do 20º
+  - bug: `handleMemberAction` removia da lista sem verificar `res.ok`
+  - bug: aba Membros sem empty state
+- [x] Atualizar Jira — fechar tickets do frontend de comunidades
+  - ML-134 → Concluído (visibilidade/autor)
+  - ML-140..143 → Concluído (auth subtasks — já implementados em ML-95)
 
 ---
 
@@ -102,33 +107,46 @@
 **Foco: Gate S1.2 + Início da Instrumentação S1.3**
 
 ### Terça 12/05 — Véspera do Gate S1.2
-- [ ] Checklist E2E pipeline: `input → anonymize → embed → retrieve → output`
-- [ ] Verificar que `LgpdAuditLog` está sendo gravado em cada chamada
-- [ ] Verificar `/api/lgpd/audit` retornando logs reais
-- [ ] Rodar suite completa: `npx jest` — 0 falhas obrigatório
-- [ ] Documentar resultado E2E (latência, tokens, resultado)
+- [x] Checklist E2E pipeline: `input → anonymize → embed → retrieve → output`
+  - Projeto 1 (Smart LED Matrix, IoT) — status `done` em 51.1s
+  - PII (email) redactado do input antes de enviar ao n8n
+  - Output: BOM + technical requirements gerados com `confidenceScore: 9.8`
+- [x] Verificar que `LgpdAuditLog` está sendo gravado em cada chamada
+  - `LgpdAuditLog id=4` criado com `action=extract`, `projectId=1`, `context=webhookId=...`
+- [x] Verificar `/api/lgpd/audit` retornando logs reais — confirmado via query direta ao banco
+- [x] Rodar suite completa: `npx jest` — 161 testes / 0 falhas ✅
+- [x] Documentar resultado E2E
+  - Latência n8n (local/CPU): `latencyMs=51135ms`
+  - `anonymizeMs=0ms` · `n8nTriggerMs=18ms`
+  - Métricas acumuladas: p50=53s · p95=137s (dev local sem GPU — esperado)
+  - Bloqueio resolvido: Ollama `OLLAMA_HOST=0.0.0.0` + firewall Windows liberado
 
 ### Quarta 13/05 — GATE S1.2
-- [ ] **Gate S1.2 — Critérios de aprovação:**
-  - [ ] Pipeline completo funcionando E2E
-  - [ ] PII detection + redaction ativo
-  - [ ] Audit trail gravando corretamente
-  - [ ] 0 falhas na suite de testes
+- [x] **Gate S1.2 — Critérios de aprovação:**
+  - [x] Pipeline completo funcionando E2E
+  - [x] PII detection + redaction ativo
+  - [x] Audit trail gravando corretamente
+  - [x] 0 falhas na suite de testes
 - [ ] Atualizar Jira — ML-95 e tickets S1.2 → Concluído
 - [ ] Commit de encerramento S1.2
 
-> **Resultado Gate S1.2:** _______________  
-> **Data/hora:** _______________
+> **Resultado Gate S1.2:** PASS  
+> **Data/hora:** 29/04/2026 16:21
 
 ### Quinta 14/05
-- [ ] Início S1.3: planejar pontos de instrumentação de latência
-- [ ] Criar middleware de timing no pipeline
-  - medir: `extractStart → n8nCallback → anonymize → embed → retrieve → done`
+- [x] Início S1.3: planejar pontos de instrumentação de latência
+- [x] Criar middleware de timing no pipeline
+  - `anonymizeMs` — tempo de PII anonymization (gravado no log)
+  - `n8nTriggerMs` — tempo do HTTP call ao n8n (gravado no log)
+  - migration: `add_pipeline_timing_fields`
 
 ### Sexta 15/05
-- [ ] Implementar coleta de métricas `p50` / `p95` de latência
-- [ ] Salvar métricas no banco (novo model `PipelineMetric` ou via log estruturado)
-- [ ] Primeiro smoke test de latência com projeto real
+- [x] Implementar coleta de métricas `p50` / `p95` de latência
+- [x] Salvar métricas via log estruturado (`ProjectExtractionLog`)
+- [x] `GET /api/admin/metrics` — retorna `{ p50, p95, avgLatencyMs, totalRuns, lastRunAt, avgAnonymizeMs, avgN8nTriggerMs }`
+- [x] `GET /api/metrics` — implementado (dashboard geral AI + PDF + recent)
+- [x] Página `/admin/metrics` — atualizada com seção de latência p50/p95 (meta < 15s, vermelho se exceder)
+- [x] 5 testes admin-metrics / 3 testes metrics — 161 testes / 0 falhas
 
 ### Sábado 16/05
 - [ ] Buffer
@@ -178,9 +196,9 @@
 - [ ] Buffer
 
 ### Segunda 25/05
-- [ ] Dashboard de métricas — `GET /api/admin/metrics`
-  - retorna: `{ p50, p95, avgRelevance, totalRuns, lastRunAt }`
-- [ ] Página `/admin/metrics` no frontend (básico — tabela + valores)
+- [x] Dashboard de métricas — `GET /api/admin/metrics` (antecipado em 15/05)
+- [x] Página `/admin/metrics` no frontend (antecipada em 15/05)
+- [ ] Integrar `avgRelevance` quando RAG eval estiver implementado (Semana 4)
 
 ---
 

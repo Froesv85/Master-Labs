@@ -129,7 +129,9 @@ export async function POST(
 
     const language = project.creator.language || 'pt-BR';
     const webhookId = createWebhookId();
+    const anonymizeStart = Date.now();
     const { sanitized, redactions, piiTypes } = anonymizePii(input);
+    const anonymizeMs = Date.now() - anonymizeStart;
     const keywords = extractKeywords(sanitized);
     const embeddingId = createEmbeddingId(projectId);
 
@@ -145,6 +147,7 @@ export async function POST(
         keywords: JSON.stringify(keywords),
         embeddingId,
         language,
+        anonymizeMs,
       },
       select: {
         id: true,
@@ -168,12 +171,14 @@ export async function POST(
     const n8nWebhookUrl = process.env.N8N_EXTRACTION_WEBHOOK_URL?.trim();
     const callbackBaseUrl = process.env.API_URL?.trim() || req.nextUrl.origin;
 
+    let n8nTriggerMs: number | null = null;
     try {
       if (!n8nWebhookUrl) {
         throw new Error('N8N_EXTRACTION_WEBHOOK_URL is not configured.');
       }
 
       console.log(`Triggering n8n webhook at ${n8nWebhookUrl} (Language: ${language})`);
+      const n8nCallStart = Date.now();
       const n8nRes = await fetch(n8nWebhookUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -191,13 +196,19 @@ export async function POST(
         }),
         signal: AbortSignal.timeout(10000),
       });
+      n8nTriggerMs = Date.now() - n8nCallStart;
 
       const responseText = await n8nRes.text();
       if (!n8nRes.ok) {
         throw new Error(`n8n webhook returned ${n8nRes.status}: ${responseText}`);
       }
 
-      console.log(`n8n webhook response: ${n8nRes.status} - ${responseText}`);
+      console.log(`n8n webhook response: ${n8nRes.status} - ${responseText} (${n8nTriggerMs}ms)`);
+
+      await prisma.projectExtractionLog.update({
+        where: { id: extractionLog.id },
+        data: { n8nTriggerMs },
+      });
     } catch (error) {
       const message = formatUnknownError(error);
       await prisma.projectExtractionLog.update({

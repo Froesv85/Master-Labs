@@ -13,7 +13,6 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       members: {
         include: { user: { select: { id: true, name: true } } },
         orderBy: { joinedAt: 'asc' },
-        take: 20,
       },
       posts: {
         include: { author: { select: { id: true, name: true } } },

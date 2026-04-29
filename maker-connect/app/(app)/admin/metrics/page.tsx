@@ -23,16 +23,34 @@ type MetricData = {
   }>;
 };
 
+type PipelineMetrics = {
+  p50: number;
+  p95: number;
+  avgLatencyMs: number;
+  avgAnonymizeMs: number | null;
+  avgN8nTriggerMs: number | null;
+  totalRuns: number;
+  sampleSize: number;
+  lastRunAt: string | null;
+};
+
 export default function AdminMetricsPage() {
   const [data, setData] = useState<MetricData | null>(null);
+  const [pipeline, setPipeline] = useState<PipelineMetrics | null>(null);
   const [loading, setLoading] = useState(true);
 
   async function fetchMetrics() {
     try {
-      const res = await fetch('/api/metrics');
-      if (res.ok) {
-        const payload = await res.json();
+      const [resGeneral, resPipeline] = await Promise.all([
+        fetch('/api/metrics'),
+        fetch('/api/admin/metrics'),
+      ]);
+      if (resGeneral.ok) {
+        const payload = await resGeneral.json();
         setData(payload.data);
+      }
+      if (resPipeline.ok) {
+        setPipeline(await resPipeline.json());
       }
     } catch (e) {
       console.error(e);
@@ -93,6 +111,25 @@ export default function AdminMetricsPage() {
           color="blue"
         />
       </div>
+
+      {/* PIPELINE LATENCY */}
+      {pipeline && (
+        <div className="mt-8 rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 shadow-xl">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg font-semibold">Latência do Pipeline (S1.3)</h2>
+            <span className="text-xs text-zinc-500">
+              {pipeline.sampleSize} amostras
+              {pipeline.lastRunAt && ` · última em ${new Date(pipeline.lastRunAt).toLocaleString('pt-BR')}`}
+            </span>
+          </div>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <LatencyCard label="p50" value={pipeline.p50} goal={15000} />
+            <LatencyCard label="p95" value={pipeline.p95} goal={15000} />
+            <LatencyCard label="Anonymize (avg)" value={pipeline.avgAnonymizeMs} />
+            <LatencyCard label="n8n Trigger (avg)" value={pipeline.avgN8nTriggerMs} />
+          </div>
+        </div>
+      )}
 
       <div className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-3">
         {/* LOG TABLE */}
@@ -181,6 +218,28 @@ function KPICard({ title, value, subtitle, color }: { title: string, value: stri
         <span className="text-3xl font-bold tracking-tight">{value}</span>
       </div>
       <p className="mt-1 text-xs opacity-60">{subtitle}</p>
+    </div>
+  );
+}
+
+function LatencyCard({ label, value, goal }: { label: string; value: number | null; goal?: number }) {
+  const ms = value ?? null;
+  const overGoal = goal !== undefined && ms !== null && ms > goal;
+  return (
+    <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
+      <p className="text-xs text-zinc-500 uppercase tracking-wider">{label}</p>
+      {ms === null ? (
+        <p className="mt-2 text-xl font-semibold text-zinc-600">—</p>
+      ) : (
+        <>
+          <p className={`mt-2 text-xl font-semibold ${overGoal ? 'text-rose-400' : 'text-emerald-400'}`}>
+            {ms >= 1000 ? `${(ms / 1000).toFixed(1)}s` : `${ms}ms`}
+          </p>
+          {goal && (
+            <p className="mt-1 text-[10px] text-zinc-500">meta &lt; {goal >= 1000 ? `${goal / 1000}s` : `${goal}ms`}</p>
+          )}
+        </>
+      )}
     </div>
   );
 }
