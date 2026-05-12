@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { use } from 'react';
+import { YoutubeEmbed } from '@/components/youtube-embed';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -21,6 +22,7 @@ type UserData = {
   profile: {
     bio: string | null;
     avatarUrl: string | null;
+    videoUrl: string | null;
     location: string | null;
     website: string | null;
     githubUrl: string | null;
@@ -72,12 +74,33 @@ const CATEGORY_LABEL: Record<string, string> = {
   autonomous: 'Autônomo', educational: 'Educacional', competition: 'Competição',
 };
 
-function Avatar({ name, size = 'lg' }: { name: string | null; size?: 'sm' | 'md' | 'lg' | 'xl' }) {
-  const initials = name ? name.split(' ').slice(0, 2).map((n) => n[0]).join('').toUpperCase() : '?';
+function Avatar({ name, avatarUrl, size = 'lg', onClick }: { name: string | null; avatarUrl?: string | null; size?: 'sm' | 'md' | 'lg' | 'xl'; onClick?: () => void }) {
   const cls = { sm: 'h-8 w-8 text-sm', md: 'h-10 w-10 text-base', lg: 'h-16 w-16 text-xl', xl: 'h-24 w-24 text-3xl' }[size];
+  if (avatarUrl) {
+    return (
+      <div className={`${cls} relative shrink-0 overflow-hidden rounded-full shadow-[0_0_16px_rgba(245,158,11,0.4)]`} onClick={onClick}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={avatarUrl} alt={name ?? 'Avatar'} className="h-full w-full object-cover" />
+        {onClick && (
+          <div className="absolute inset-0 flex cursor-pointer items-center justify-center rounded-full bg-black/40 opacity-0 transition hover:opacity-100">
+            <span className="text-xs font-bold text-white">Alterar</span>
+          </div>
+        )}
+      </div>
+    );
+  }
+  const initials = name ? name.split(' ').slice(0, 2).map((n) => n[0]).join('').toUpperCase() : '?';
   return (
-    <div className={`${cls} flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-amber-600 font-black text-black shadow-[0_0_16px_rgba(245,158,11,0.4)]`}>
+    <div
+      className={`${cls} relative flex shrink-0 cursor-pointer items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-amber-600 font-black text-black shadow-[0_0_16px_rgba(245,158,11,0.4)]`}
+      onClick={onClick}
+    >
       {initials}
+      {onClick && (
+        <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 transition hover:opacity-100">
+          <span className="text-[10px] font-bold text-white">Alterar</span>
+        </div>
+      )}
     </div>
   );
 }
@@ -89,9 +112,7 @@ function WinRateBadge({ wins, losses, draws }: { wins: number; losses: number; d
   return <span className={`text-sm font-bold ${color}`}>{rate}%</span>;
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
-
-const CURRENT_USER_ID = '1'; // substituir por session quando auth existir
+// ─── EditProfileModal ─────────────────────────────────────────────────────────
 
 type EditForm = {
   name: string;
@@ -99,7 +120,8 @@ type EditForm = {
   location: string;
   website: string;
   githubUrl: string;
-  expertiseRaw: string; // comma-separated
+  expertiseRaw: string;
+  videoUrl: string;
 };
 
 function EditProfileModal({
@@ -121,6 +143,7 @@ function EditProfileModal({
       try { return (JSON.parse(user.profile?.expertise ?? '[]') as string[]).join(', '); }
       catch { return ''; }
     })(),
+    videoUrl: user.profile?.videoUrl ?? '',
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -151,23 +174,32 @@ function EditProfileModal({
         }),
       });
       if (!res.ok) throw new Error('Erro ao salvar');
-      // re-fetch full user to get updated data
+
+      const currentVideoUrl = user.profile?.videoUrl ?? '';
+      if (form.videoUrl !== currentVideoUrl) {
+        const vRes = await fetch('/api/profile/video', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ videoUrl: form.videoUrl || null }),
+        });
+        if (!vRes.ok) {
+          const d = await vRes.json().catch(() => ({}));
+          throw new Error(d.error ?? 'URL de vídeo inválida');
+        }
+      }
+
       const fresh = await fetch(`/api/users/${user.id}`).then((r) => r.json());
       onSaved(fresh);
-    } catch {
-      setError('Não foi possível salvar. Tente novamente.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Não foi possível salvar. Tente novamente.');
       setSaving(false);
     }
   }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
-
-      {/* Modal */}
-      <div className="relative w-full max-w-lg rounded-2xl border border-amber-500/20 bg-[#0d1424] shadow-[0_0_60px_rgba(0,0,0,0.8)]">
-        {/* Header */}
+      <div className="relative w-full max-w-lg overflow-y-auto rounded-2xl border border-amber-500/20 bg-[#0d1424] shadow-[0_0_60px_rgba(0,0,0,0.8)]" style={{ maxHeight: '90vh' }}>
         <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
           <h2 className="text-base font-black text-white">Editar Perfil</h2>
           <button
@@ -178,13 +210,9 @@ function EditProfileModal({
           </button>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSave} className="space-y-4 p-6">
-          {/* Name */}
           <div>
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-zinc-400">
-              Nome
-            </label>
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-zinc-400">Nome</label>
             <input
               value={form.name}
               onChange={(e) => set('name', e.target.value)}
@@ -193,11 +221,8 @@ function EditProfileModal({
             />
           </div>
 
-          {/* Bio */}
           <div>
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-zinc-400">
-              Bio
-            </label>
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-zinc-400">Bio</label>
             <textarea
               rows={3}
               value={form.bio}
@@ -207,12 +232,9 @@ function EditProfileModal({
             />
           </div>
 
-          {/* Location + Website */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-zinc-400">
-                Localização
-              </label>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-zinc-400">Localização</label>
               <input
                 value={form.location}
                 onChange={(e) => set('location', e.target.value)}
@@ -221,9 +243,7 @@ function EditProfileModal({
               />
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-zinc-400">
-                Website
-              </label>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-zinc-400">Website</label>
               <input
                 value={form.website}
                 onChange={(e) => set('website', e.target.value)}
@@ -233,11 +253,8 @@ function EditProfileModal({
             </div>
           </div>
 
-          {/* GitHub */}
           <div>
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-zinc-400">
-              GitHub URL
-            </label>
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-zinc-400">GitHub URL</label>
             <input
               value={form.githubUrl}
               onChange={(e) => set('githubUrl', e.target.value)}
@@ -246,11 +263,9 @@ function EditProfileModal({
             />
           </div>
 
-          {/* Expertise */}
           <div>
             <label className="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-zinc-400">
-              Expertise{' '}
-              <span className="font-normal normal-case text-zinc-600">(separadas por vírgula)</span>
+              Expertise <span className="font-normal normal-case text-zinc-600">(separadas por vírgula)</span>
             </label>
             <input
               value={form.expertiseRaw}
@@ -260,13 +275,22 @@ function EditProfileModal({
             />
           </div>
 
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-zinc-400">
+              Vídeo do YouTube <span className="font-normal normal-case text-zinc-600">(opcional)</span>
+            </label>
+            <input
+              value={form.videoUrl}
+              onChange={(e) => set('videoUrl', e.target.value)}
+              placeholder="https://youtube.com/watch?v=..."
+              className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder-zinc-600 outline-none transition focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/30"
+            />
+          </div>
+
           {error && (
-            <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-xs text-red-400">
-              {error}
-            </p>
+            <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-xs text-red-400">{error}</p>
           )}
 
-          {/* Actions */}
           <div className="flex justify-end gap-3 pt-2">
             <button
               type="button"
@@ -289,14 +313,26 @@ function EditProfileModal({
   );
 }
 
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
 export default function ProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'projects' | 'robots' | 'teams' | 'communities'>('projects');
   const [editing, setEditing] = useState(false);
+  const [sessionUserId, setSessionUserId] = useState<number | null>(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
-  const isOwner = id === CURRENT_USER_ID;
+  const isOwner = sessionUserId !== null && user !== null && sessionUserId === user.id;
+
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then((r) => r.ok ? r.json() : null)
+      .then((s) => { if (s?.userId) setSessionUserId(s.userId); })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     fetch(`/api/users/${id}`)
@@ -304,6 +340,32 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
       .then((data) => { setUser(data); setLoading(false); })
       .catch(() => setLoading(false));
   }, [id]);
+
+  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAvatarUploading(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const dataUrl = reader.result as string;
+        const base64 = dataUrl.split(',')[1];
+        const res = await fetch('/api/profile/avatar', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ avatarB64: base64, contentType: file.type }),
+        });
+        if (res.ok) {
+          const fresh = await fetch(`/api/users/${id}`).then((r) => r.json());
+          setUser(fresh);
+        }
+        setAvatarUploading(false);
+      };
+      reader.readAsDataURL(file);
+    } catch {
+      setAvatarUploading(false);
+    }
+  }
 
   if (loading) {
     return (
@@ -330,17 +392,44 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
         onSaved={(updated) => { setUser(updated); setEditing(false); }}
       />
     )}
+    {/* Hidden avatar file input */}
+    <input
+      ref={avatarInputRef}
+      type="file"
+      accept="image/jpeg,image/png,image/webp"
+      className="hidden"
+      onChange={handleAvatarChange}
+    />
     <div className="space-y-6">
       {/* ── Profile Hero Card ────────────────────────────────────────── */}
       <div className="overflow-hidden rounded-xl border border-amber-500/20 bg-gradient-to-br from-slate-900 to-[#0f1829]">
-        {/* Banner strip */}
         <div className="h-2 w-full bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600" />
 
         <div className="p-6 sm:p-8">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
             {/* Avatar + level */}
             <div className="flex flex-col items-center gap-2">
-              <Avatar name={user.name} size="xl" />
+              <div className="relative">
+                <Avatar
+                  name={user.name}
+                  avatarUrl={user.profile?.avatarUrl}
+                  size="xl"
+                  onClick={isOwner ? () => avatarInputRef.current?.click() : undefined}
+                />
+                {avatarUploading && (
+                  <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/60">
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-amber-400 border-t-transparent" />
+                  </div>
+                )}
+              </div>
+              {isOwner && (
+                <button
+                  onClick={() => avatarInputRef.current?.click()}
+                  className="text-[10px] text-zinc-500 hover:text-amber-400 transition"
+                >
+                  Alterar foto
+                </button>
+              )}
               <span className={`rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider ${levelCfg.bg} ${levelCfg.color}`}>
                 {levelCfg.label}
               </span>
@@ -381,7 +470,6 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
                 )}
               </div>
 
-              {/* Expertise tags */}
               {expertise.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {expertise.map((tag) => (
@@ -393,7 +481,7 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
               )}
             </div>
 
-            {/* Stats panel — RoboCore style */}
+            {/* Stats panel */}
             <div className="flex shrink-0 flex-row gap-2 sm:flex-col">
               {[
                 { label: 'Reputação', value: user.profile?.reputation ?? 0, color: 'text-amber-400' },
@@ -410,6 +498,11 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
           </div>
         </div>
       </div>
+
+      {/* ── YouTube video ─────────────────────────────────────────────── */}
+      {user.profile?.videoUrl && (
+        <YoutubeEmbed url={user.profile.videoUrl} title={`Vídeo de ${user.name ?? 'Maker'}`} />
+      )}
 
       {/* ── Badges ───────────────────────────────────────────────────── */}
       {user.badges.length > 0 && (
