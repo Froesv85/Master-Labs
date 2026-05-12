@@ -22,7 +22,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
 }
 
 export async function POST(req: NextRequest, { params }: Params) {
-  const session = await getSession(req);
+  const session = await getSession();
   if (!session?.userId) {
     return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
   }

@@ -131,7 +131,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getSession(req);
+    const session = await getSession();
     const body = await req.json() as {
       title: string;
       description?: string;
