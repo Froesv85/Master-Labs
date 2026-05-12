@@ -289,28 +289,61 @@ model CommunityPost {
 }
 
 model Project {
-  id             Int                    @id @default(autoincrement())
-  title          String
-  description    String?
-  category       Category
-  creatorId      Int
-  creator        User                   @relation("creator", fields: [creatorId], references: [id])
-  parentId       Int?
-  parent         Project?               @relation("fork", fields: [parentId], references: [id])
-  children       Project[]              @relation("fork")
-  embeddingId    String?
-  content        String?                @db.LongText
-  votes          ProjectVote[]
-  difficulties   ProjectDifficulty[]
-  exports        ProjectExport[]
-  extractionLogs ProjectExtractionLog[]
-  lgpdAuditLogs  LgpdAuditLog[]
-  createdAt      DateTime               @default(now())
-  updatedAt      DateTime               @updatedAt
+  id                 Int                    @id @default(autoincrement())
+  title              String
+  description        String?
+  category           Category
+  creatorId          Int
+  creator            User                   @relation("creator", fields: [creatorId], references: [id])
+  parentId           Int?
+  parent             Project?               @relation("fork", fields: [parentId], references: [id])
+  children           Project[]              @relation("fork")
+  embeddingId        String?
+  content            String?                @db.LongText
+  coverImageUrl      String?                @db.VarChar(2048)
+  printerBrand       String?                @db.VarChar(100)
+  printerModel       String?                @db.VarChar(100)
+  printerNozzle      String?                @db.VarChar(20)
+  printerMaterial    String?                @db.VarChar(50)
+  printerLayerHeight String?                @db.VarChar(20)
+  votes              ProjectVote[]
+  difficulties       ProjectDifficulty[]
+  exports            ProjectExport[]
+  extractionLogs     ProjectExtractionLog[]
+  lgpdAuditLogs      LgpdAuditLog[]
+  images             ProjectImage[]
+  files              ProjectFile[]
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
 
   @@index([category])
   @@index([parentId])
   @@index([creatorId])
+}
+
+model ProjectImage {
+  id        Int      @id @default(autoincrement())
+  projectId Int
+  project   Project  @relation(fields: [projectId], references: [id])
+  imageUrl  String   @db.VarChar(2048)
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([projectId])
+  @@index([projectId, position])
+}
+
+model ProjectFile {
+  id         Int      @id @default(autoincrement())
+  projectId  Int
+  project    Project  @relation(fields: [projectId], references: [id])
+  fileName   String   @db.VarChar(255)
+  fileUrl    String   @db.VarChar(2048)
+  fileType   String   @db.VarChar(20)
+  fileSizeKb Int
+  createdAt  DateTime @default(now())
+
+  @@index([projectId])
 }
 
 model ProjectVote {
