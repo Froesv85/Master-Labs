@@ -76,7 +76,8 @@ model UserProfile {
   userId     Int        @unique
   user       User       @relation(fields: [userId], references: [id])
   bio        String?    @db.LongText
-  avatarUrl  String?
+  avatarUrl  String?    @db.VarChar(2048)
+  videoUrl   String?    @db.VarChar(512)
   location   String?
   website    String?
   githubUrl  String?
@@ -119,6 +120,7 @@ model Robot {
   description    String?                   @db.LongText
   category       RobotCategory
   imageUrl       String?
+  videoUrl       String?                   @db.VarChar(512)
   status         String                    @default("active")
   wins           Int                       @default(0)
   losses         Int                       @default(0)
@@ -127,11 +129,24 @@ model Robot {
   matches        RobotMatch[]
   awards         RobotAward[]
   participations RobotEventParticipation[]
+  images         RobotImage[]
   createdAt      DateTime                  @default(now())
   updatedAt      DateTime                  @updatedAt
 
   @@index([ownerId])
   @@index([category])
+}
+
+model RobotImage {
+  id        Int      @id @default(autoincrement())
+  robotId   Int
+  robot     Robot    @relation(fields: [robotId], references: [id])
+  imageUrl  String   @db.VarChar(2048)
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([robotId])
+  @@index([robotId, position])
 }
 
 model RobotMatch {
@@ -192,7 +207,8 @@ model Team {
   id          Int          @id @default(autoincrement())
   name        String
   description String?      @db.LongText
-  avatarUrl   String?
+  avatarUrl   String?      @db.VarChar(2048)
+  videoUrl    String?      @db.VarChar(512)
   ownerId     Int
   owner       User         @relation("team_owner", fields: [ownerId], references: [id])
   isPublic    Boolean      @default(true)
@@ -221,7 +237,9 @@ model Community {
   id          Int               @id @default(autoincrement())
   name        String
   description String?           @db.LongText
-  avatarUrl   String?
+  avatarUrl   String?           @db.VarChar(2048)
+  coverUrl    String?           @db.VarChar(2048)
+  videoUrl    String?           @db.VarChar(512)
   category    Category
   creatorId   Int
   creator     User              @relation("community_creator", fields: [creatorId], references: [id])
@@ -260,6 +278,7 @@ model CommunityPost {
   title       String
   content     String    @db.LongText
   mediaUrl    String?   @db.VarChar(2048)
+  videoUrl    String?   @db.VarChar(512)
   replies     Int       @default(0)
   views       Int       @default(0)
   createdAt   DateTime  @default(now())
