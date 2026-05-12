@@ -116,6 +116,8 @@ model Robot {
   id             Int                       @id @default(autoincrement())
   ownerId        Int
   owner          User                      @relation(fields: [ownerId], references: [id])
+  teamId         Int?
+  team           Team?                     @relation(fields: [teamId], references: [id])
   name           String
   description    String?                   @db.LongText
   category       RobotCategory
@@ -126,15 +128,33 @@ model Robot {
   losses         Int                       @default(0)
   draws          Int                       @default(0)
   eloScore       Int                       @default(1000)
+  weightKg       Float?
+  lengthCm       Float?
+  widthCm        Float?
+  heightCm       Float?
   matches        RobotMatch[]
   awards         RobotAward[]
   participations RobotEventParticipation[]
   images         RobotImage[]
+  components     RobotComponent[]
   createdAt      DateTime                  @default(now())
   updatedAt      DateTime                  @updatedAt
 
   @@index([ownerId])
   @@index([category])
+  @@index([teamId])
+}
+
+model RobotComponent {
+  id          Int      @id @default(autoincrement())
+  robotId     Int
+  robot       Robot    @relation(fields: [robotId], references: [id])
+  name        String
+  quantity    Int      @default(1)
+  description String?
+  createdAt   DateTime @default(now())
+
+  @@index([robotId])
 }
 
 model RobotImage {
@@ -213,6 +233,7 @@ model Team {
   owner       User         @relation("team_owner", fields: [ownerId], references: [id])
   isPublic    Boolean      @default(true)
   members     TeamMember[]
+  robots      Robot[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 

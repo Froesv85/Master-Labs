@@ -1,34 +1,123 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { use, useEffect, useState } from 'react';
 
+type RobotImage = { id: number; imageUrl: string; position: number };
+type RobotComponent = { id: number; name: string; quantity: number; description: string | null; createdAt: string };
 type Match = { id: number; opponentName: string; result: string; myScore: number | null; opponentScore: number | null; eventName: string | null; matchDate: string; notes: string | null };
 type Award = { id: number; title: string; placement: number | null; year: number; event: { name: string; location: string | null } | null };
 type Participation = { id: number; placement: number | null; event: { id: number; name: string; location: string | null; eventDate: string; category: string | null } };
+
 type Robot = {
-  id: number; name: string; description: string | null; category: string; status: string;
-  wins: number; losses: number; draws: number; eloScore: number;
+  id: number;
+  name: string;
+  description: string | null;
+  category: string;
+  status: string;
+  wins: number;
+  losses: number;
+  draws: number;
+  eloScore: number;
+  weightKg: number | null;
+  lengthCm: number | null;
+  widthCm: number | null;
+  heightCm: number | null;
   owner: { id: number; name: string | null };
+  team: { id: number; name: string } | null;
+  images: RobotImage[];
+  components: RobotComponent[];
   matches: Match[];
   awards: Award[];
   participations: Participation[];
 };
 
 const RESULT_CONFIG = {
-  win: { label: 'VITÓRIA', color: 'text-emerald-400', bg: 'bg-emerald-900/30 border-emerald-500/30' },
-  loss: { label: 'DERROTA', color: 'text-red-400', bg: 'bg-red-900/30 border-red-500/30' },
-  draw: { label: 'EMPATE', color: 'text-zinc-400', bg: 'bg-zinc-800/60 border-white/10' },
-  dnf: { label: 'DNF', color: 'text-orange-400', bg: 'bg-orange-900/30 border-orange-500/30' },
+  win:  { label: 'VITÓRIA', color: 'text-emerald-400', bg: 'bg-emerald-900/30 border-emerald-500/30' },
+  loss: { label: 'DERROTA', color: 'text-red-400',     bg: 'bg-red-900/30 border-red-500/30' },
+  draw: { label: 'EMPATE',  color: 'text-zinc-400',    bg: 'bg-zinc-800/60 border-white/10' },
+  dnf:  { label: 'DNF',     color: 'text-orange-400',  bg: 'bg-orange-900/30 border-orange-500/30' },
 };
 
-const PLACEMENT_ICON: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' };
+const PLACEMENT_LABEL: Record<number, string> = { 1: '1º', 2: '2º', 3: '3º' };
+
+const CATEGORY_LABELS: Record<string, string> = {
+  sumo: 'Sumô',
+  line_follower: 'Seguidor de Linha',
+  combat: 'Combate',
+  autonomous: 'Autônomo',
+  educational: 'Educacional',
+  competition: 'Competição',
+};
+
+function IconRobot({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <rect x="5" y="11" width="14" height="10" rx="2" />
+      <rect x="8" y="8" width="8" height="5" rx="1" />
+      <circle cx="9" cy="15" r="1" fill="currentColor" stroke="none" />
+      <circle cx="15" cy="15" r="1" fill="currentColor" stroke="none" />
+      <line x1="12" y1="8" x2="12" y2="5" />
+      <circle cx="12" cy="4" r="1.5" />
+      <line x1="5" y1="14" x2="2" y2="14" />
+      <line x1="19" y1="14" x2="22" y2="14" />
+    </svg>
+  );
+}
+
+function IconTeam({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <circle cx="9" cy="7" r="3" />
+      <circle cx="15" cy="7" r="3" />
+      <path d="M3 21c0-4 2.7-7 6-7" />
+      <path d="M21 21c0-4-2.7-7-6-7" />
+      <path d="M9 14c1 0 2 .2 3 .6 1-.4 2-.6 3-.6" />
+    </svg>
+  );
+}
+
+function IconRuler({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M2 17L17 2l5 5L7 22z" />
+      <line x1="7" y1="11" x2="9" y2="13" />
+      <line x1="11" y1="7" x2="13" y2="9" />
+      <line x1="4" y1="14" x2="6" y2="16" />
+    </svg>
+  );
+}
+
+function IconBox({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+      <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+      <line x1="12" y1="22.08" x2="12" y2="12" />
+    </svg>
+  );
+}
+
+function IconTrophy({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <polyline points="6 9 6 2 18 2 18 9" />
+      <path d="M6 5H2v3a4 4 0 0 0 4 4h0" />
+      <path d="M18 5h4v3a4 4 0 0 1-4 4h0" />
+      <path d="M12 19v3" />
+      <line x1="8" y1="22" x2="16" y2="22" />
+      <path d="M6 12a6 6 0 0 0 12 0V2H6v10z" />
+    </svg>
+  );
+}
 
 export default function RobotDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const [robot, setRobot] = useState<Robot | null>(null);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<'matches' | 'events' | 'awards'>('matches');
+  const [tab, setTab] = useState<'matches' | 'events' | 'awards' | 'components'>('matches');
+  const [activeImg, setActiveImg] = useState(0);
 
   useEffect(() => {
     fetch(`/api/robots/${id}`)
@@ -45,6 +134,9 @@ export default function RobotDetailPage({ params }: { params: Promise<{ id: stri
   const total = robot.wins + robot.losses + robot.draws;
   const winRate = total > 0 ? Math.round((robot.wins / total) * 100) : 0;
   const eloColor = robot.eloScore >= 1400 ? 'text-yellow-300' : robot.eloScore >= 1200 ? 'text-amber-400' : robot.eloScore >= 1100 ? 'text-cyan-400' : 'text-zinc-400';
+  const coverImage = robot.images[activeImg] ?? robot.images[0] ?? null;
+
+  const hasDimensions = robot.weightKg != null || robot.lengthCm != null || robot.widthCm != null || robot.heightCm != null;
 
   return (
     <div className="space-y-6">
@@ -55,56 +147,121 @@ export default function RobotDetailPage({ params }: { params: Promise<{ id: stri
         <span className="text-zinc-300">{robot.name}</span>
       </div>
 
-      {/* Hero Card */}
+      {/* Hero */}
       <div className="overflow-hidden rounded-xl border border-amber-500/20 bg-gradient-to-br from-slate-900 to-[#0f1829]">
         <div className="h-2 w-full bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600" />
         <div className="p-6 sm:p-8">
-          <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
-            {/* Icon */}
-            <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-2xl border border-amber-500/30 bg-amber-500/10 text-5xl shadow-[0_0_20px_rgba(245,158,11,0.15)]">
-              🤖
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+
+            {/* Photo gallery */}
+            <div className="flex-shrink-0 space-y-2 lg:w-72">
+              <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl border border-white/10 bg-zinc-900">
+                {coverImage ? (
+                  <Image src={coverImage.imageUrl} alt={robot.name} fill className="object-cover" />
+                ) : (
+                  <div className="flex h-full items-center justify-center">
+                    <IconRobot className="h-16 w-16 text-amber-500/30" />
+                  </div>
+                )}
+                <div className="absolute left-2 top-2">
+                  <span className="rounded-full border border-amber-500/30 bg-black/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-400 backdrop-blur-sm">
+                    {CATEGORY_LABELS[robot.category] ?? robot.category.replace('_', ' ')}
+                  </span>
+                </div>
+              </div>
+              {robot.images.length > 1 && (
+                <div className="flex gap-2 overflow-x-auto pb-1">
+                  {robot.images.map((img, i) => (
+                    <button
+                      key={img.id}
+                      onClick={() => setActiveImg(i)}
+                      className={`relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-lg border-2 transition-all ${
+                        activeImg === i ? 'border-amber-500' : 'border-white/10 opacity-60 hover:opacity-100'
+                      }`}
+                    >
+                      <Image src={img.imageUrl} alt="" fill className="object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* Info */}
-            <div className="flex-1 space-y-3">
+            {/* Info + Stats */}
+            <div className="flex flex-1 flex-col gap-4">
               <div>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3">
                   <h1 className="text-2xl font-black text-white sm:text-3xl">{robot.name}</h1>
                   <span className={`rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide ${
                     robot.status === 'active' ? 'bg-emerald-900/40 text-emerald-400' : 'bg-zinc-800 text-zinc-400'
                   }`}>
-                    {robot.status === 'active' ? '● ATIVO' : robot.status.toUpperCase()}
+                    {robot.status === 'active' ? 'ATIVO' : robot.status.toUpperCase()}
                   </span>
                 </div>
-                <Link href={`/profile/${robot.owner.id}`} className="text-sm text-zinc-400 hover:text-amber-400">
-                  Dono: {robot.owner.name}
-                </Link>
+                <div className="mt-1 flex flex-wrap items-center gap-3 text-sm text-zinc-400">
+                  <Link href={`/profile/${robot.owner.id}`} className="hover:text-amber-400">
+                    {robot.owner.name ?? 'Sem dono'}
+                  </Link>
+                  {robot.team && (
+                    <>
+                      <span className="text-zinc-600">·</span>
+                      <Link href={`/teams/${robot.team.id}`} className="flex items-center gap-1 hover:text-amber-400">
+                        <IconTeam className="h-3.5 w-3.5" />
+                        {robot.team.name}
+                      </Link>
+                    </>
+                  )}
+                </div>
               </div>
+
               {robot.description && (
                 <p className="max-w-xl text-sm leading-relaxed text-zinc-300">{robot.description}</p>
               )}
-              <span className="inline-block rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-bold uppercase tracking-wide text-amber-400">
-                {robot.category.replace('_', ' ')}
-              </span>
-            </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-4 gap-2 sm:grid-cols-2 sm:gap-3">
-              <div className="rounded-lg border border-white/10 bg-white/5 p-3 text-center">
-                <div className={`text-2xl font-black ${eloColor}`}>{robot.eloScore}</div>
-                <div className="text-[10px] uppercase tracking-wide text-zinc-500">ELO</div>
-              </div>
-              <div className="rounded-lg border border-white/10 bg-white/5 p-3 text-center">
-                <div className="text-2xl font-black text-amber-400">{winRate}%</div>
-                <div className="text-[10px] uppercase tracking-wide text-zinc-500">Win Rate</div>
-              </div>
-              <div className="rounded-lg border border-white/10 bg-white/5 p-3 text-center">
-                <div className="text-2xl font-black text-emerald-400">{robot.wins}</div>
-                <div className="text-[10px] uppercase tracking-wide text-zinc-500">Vitórias</div>
-              </div>
-              <div className="rounded-lg border border-white/10 bg-white/5 p-3 text-center">
-                <div className="text-2xl font-black text-yellow-400">{robot.awards.length}</div>
-                <div className="text-[10px] uppercase tracking-wide text-zinc-500">Prêmios</div>
+              {/* Dimensions / Weight row */}
+              {hasDimensions && (
+                <div className="flex flex-wrap gap-2">
+                  {robot.weightKg != null && (
+                    <span className="flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-zinc-300">
+                      <IconRuler className="h-3 w-3 text-zinc-500" />
+                      {robot.weightKg} kg
+                    </span>
+                  )}
+                  {robot.lengthCm != null && (
+                    <span className="flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-zinc-300">
+                      C: {robot.lengthCm} cm
+                    </span>
+                  )}
+                  {robot.widthCm != null && (
+                    <span className="flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-zinc-300">
+                      L: {robot.widthCm} cm
+                    </span>
+                  )}
+                  {robot.heightCm != null && (
+                    <span className="flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-zinc-300">
+                      A: {robot.heightCm} cm
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {/* Stats grid */}
+              <div className="grid grid-cols-4 gap-2 sm:gap-3">
+                <div className="rounded-lg border border-white/10 bg-white/5 p-3 text-center">
+                  <div className={`text-2xl font-black ${eloColor}`}>{robot.eloScore}</div>
+                  <div className="text-[10px] uppercase tracking-wide text-zinc-500">ELO</div>
+                </div>
+                <div className="rounded-lg border border-white/10 bg-white/5 p-3 text-center">
+                  <div className="text-2xl font-black text-amber-400">{winRate}%</div>
+                  <div className="text-[10px] uppercase tracking-wide text-zinc-500">Win Rate</div>
+                </div>
+                <div className="rounded-lg border border-white/10 bg-white/5 p-3 text-center">
+                  <div className="text-2xl font-black text-emerald-400">{robot.wins}</div>
+                  <div className="text-[10px] uppercase tracking-wide text-zinc-500">Vitórias</div>
+                </div>
+                <div className="rounded-lg border border-white/10 bg-white/5 p-3 text-center">
+                  <div className="text-2xl font-black text-yellow-400">{robot.awards.length}</div>
+                  <div className="text-[10px] uppercase tracking-wide text-zinc-500">Prêmios</div>
+                </div>
               </div>
             </div>
           </div>
@@ -114,11 +271,14 @@ export default function RobotDetailPage({ params }: { params: Promise<{ id: stri
       {/* Awards shelf */}
       {robot.awards.length > 0 && (
         <div className="rounded-xl border border-yellow-500/20 bg-yellow-900/10 p-5">
-          <h2 className="mb-4 text-xs font-bold uppercase tracking-widest text-yellow-400">Premiações</h2>
+          <h2 className="mb-4 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-yellow-400">
+            <IconTrophy className="h-4 w-4" />
+            Premiações
+          </h2>
           <div className="flex flex-wrap gap-3">
             {robot.awards.map((award) => (
               <div key={award.id} className="flex items-center gap-2 rounded-lg border border-yellow-500/20 bg-yellow-900/20 px-4 py-2">
-                <span className="text-xl">{award.placement ? PLACEMENT_ICON[award.placement] ?? '🏅' : '🏅'}</span>
+                <span className="text-sm font-black text-yellow-400">{award.placement ? PLACEMENT_LABEL[award.placement] ?? `${award.placement}º` : '#'}</span>
                 <div>
                   <p className="text-xs font-bold text-yellow-200">{award.title}</p>
                   {award.event && <p className="text-[11px] text-zinc-400">{award.event.name} · {award.year}</p>}
@@ -130,12 +290,49 @@ export default function RobotDetailPage({ params }: { params: Promise<{ id: stri
         </div>
       )}
 
+      {/* Dimensions detail card (shown separately below hero when present) */}
+      {hasDimensions && (
+        <div className="rounded-xl border border-white/10 bg-slate-900/60 p-5">
+          <h2 className="mb-4 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-zinc-400">
+            <IconRuler className="h-4 w-4" />
+            Dimensões e Peso
+          </h2>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {robot.weightKg != null && (
+              <div className="rounded-lg border border-white/10 bg-white/5 p-3 text-center">
+                <div className="text-xl font-black text-zinc-100">{robot.weightKg}</div>
+                <div className="text-[10px] uppercase tracking-wide text-zinc-500">Peso (kg)</div>
+              </div>
+            )}
+            {robot.lengthCm != null && (
+              <div className="rounded-lg border border-white/10 bg-white/5 p-3 text-center">
+                <div className="text-xl font-black text-zinc-100">{robot.lengthCm}</div>
+                <div className="text-[10px] uppercase tracking-wide text-zinc-500">Comprimento (cm)</div>
+              </div>
+            )}
+            {robot.widthCm != null && (
+              <div className="rounded-lg border border-white/10 bg-white/5 p-3 text-center">
+                <div className="text-xl font-black text-zinc-100">{robot.widthCm}</div>
+                <div className="text-[10px] uppercase tracking-wide text-zinc-500">Largura (cm)</div>
+              </div>
+            )}
+            {robot.heightCm != null && (
+              <div className="rounded-lg border border-white/10 bg-white/5 p-3 text-center">
+                <div className="text-xl font-black text-zinc-100">{robot.heightCm}</div>
+                <div className="text-[10px] uppercase tracking-wide text-zinc-500">Altura (cm)</div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Tab Nav */}
       <div className="flex gap-1 rounded-lg border border-white/10 bg-slate-900/60 p-1">
         {([
-          { key: 'matches', label: 'Partidas', count: robot.matches.length },
-          { key: 'events', label: 'Eventos', count: robot.participations.length },
-          { key: 'awards', label: 'Prêmios', count: robot.awards.length },
+          { key: 'matches',    label: 'Partidas',    count: robot.matches.length },
+          { key: 'events',     label: 'Eventos',     count: robot.participations.length },
+          { key: 'awards',     label: 'Prêmios',     count: robot.awards.length },
+          { key: 'components', label: 'Componentes', count: robot.components.length },
         ] as const).map(({ key, label, count }) => (
           <button
             key={key}
@@ -159,11 +356,9 @@ export default function RobotDetailPage({ params }: { params: Promise<{ id: stri
             const cfg = RESULT_CONFIG[match.result as keyof typeof RESULT_CONFIG] ?? RESULT_CONFIG.draw;
             return (
               <div key={match.id} className={`flex items-center gap-4 rounded-xl border p-4 ${cfg.bg}`}>
-                {/* Result badge */}
                 <div className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-lg text-xs font-black ${cfg.color} border ${cfg.bg}`}>
                   {cfg.label}
                 </div>
-                {/* Match info */}
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-zinc-100">{robot.name}</span>
@@ -192,8 +387,10 @@ export default function RobotDetailPage({ params }: { params: Promise<{ id: stri
           )}
           {robot.participations.map((p) => (
             <div key={p.id} className="flex items-center gap-4 rounded-xl border border-white/10 bg-slate-900/60 p-4">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-2xl">
-                {p.placement ? PLACEMENT_ICON[p.placement] ?? '🏁' : '🏁'}
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-amber-500/10">
+                <span className="text-sm font-black text-amber-400">
+                  {p.placement ? PLACEMENT_LABEL[p.placement] ?? `${p.placement}º` : '-'}
+                </span>
               </div>
               <div className="flex-1">
                 <h3 className="font-bold text-zinc-100">{p.event.name}</h3>
@@ -204,8 +401,7 @@ export default function RobotDetailPage({ params }: { params: Promise<{ id: stri
               </div>
               {p.placement && (
                 <div className="shrink-0 text-right">
-                  <span className="text-lg">{PLACEMENT_ICON[p.placement] ?? '🏅'}</span>
-                  <p className="text-xs text-zinc-400">{p.placement}º lugar</p>
+                  <p className="text-xs font-bold text-amber-400">{p.placement}º lugar</p>
                 </div>
               )}
             </div>
@@ -221,13 +417,46 @@ export default function RobotDetailPage({ params }: { params: Promise<{ id: stri
           )}
           {robot.awards.map((award) => (
             <div key={award.id} className="flex items-center gap-4 rounded-xl border border-yellow-500/20 bg-yellow-900/10 p-4">
-              <span className="text-3xl">{award.placement ? PLACEMENT_ICON[award.placement] ?? '🏅' : '🏅'}</span>
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-yellow-500/20 bg-yellow-900/20">
+                <span className="text-sm font-black text-yellow-400">
+                  {award.placement ? PLACEMENT_LABEL[award.placement] ?? `${award.placement}º` : '#'}
+                </span>
+              </div>
               <div>
                 <h3 className="font-bold text-yellow-200">{award.title}</h3>
                 {award.event && (
                   <p className="text-xs text-zinc-400">{award.event.name} {award.event.location ? `· ${award.event.location}` : ''}</p>
                 )}
                 <p className="text-xs text-zinc-500">{award.year}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Components */}
+      {tab === 'components' && (
+        <div className="space-y-3">
+          {robot.components.length === 0 && (
+            <p className="py-8 text-center text-zinc-500">Nenhum componente registrado.</p>
+          )}
+          {robot.components.map((comp) => (
+            <div key={comp.id} className="flex items-start gap-4 rounded-xl border border-white/10 bg-slate-900/60 p-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/5">
+                <IconBox className="h-5 w-5 text-zinc-400" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-zinc-100">{comp.name}</h3>
+                  {comp.quantity > 1 && (
+                    <span className="rounded-full border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-400">
+                      ×{comp.quantity}
+                    </span>
+                  )}
+                </div>
+                {comp.description && (
+                  <p className="mt-1 text-xs text-zinc-400">{comp.description}</p>
+                )}
               </div>
             </div>
           ))}

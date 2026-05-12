@@ -10,6 +10,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     where: { id: robotId },
     include: {
       owner: { select: { id: true, name: true } },
+      team: { select: { id: true, name: true } },
       matches: { orderBy: { matchDate: 'desc' } },
       awards: {
         include: { event: { select: { name: true, location: true } } },
@@ -19,6 +20,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
         include: { event: true },
         orderBy: { createdAt: 'desc' },
       },
+      images: { orderBy: { position: 'asc' } },
+      components: { orderBy: { createdAt: 'asc' } },
     },
   });
 
