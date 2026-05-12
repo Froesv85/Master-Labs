@@ -68,6 +68,7 @@ function JoinButton({
   onJoined: (newStatus: string) => void;
 }) {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   if (status === 'founder' || status === 'moderator') return null;
 
@@ -89,25 +90,34 @@ function JoinButton({
 
   async function handleJoin() {
     setLoading(true);
+    setError(null);
     try {
       const res = await fetch(`/api/communities/${communityId}/members`, { method: 'POST' });
-      if (res.ok) {
-        const body = await res.json();
-        onJoined(body.data.status);
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        setError(d.error ?? 'Erro ao entrar na comunidade');
+        return;
       }
+      const body = await res.json();
+      onJoined(body.data.status);
+    } catch {
+      setError('Erro ao conectar ao servidor');
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <button
-      onClick={handleJoin}
-      disabled={loading}
-      className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-bold text-black shadow-[0_0_14px_rgba(245,158,11,0.3)] transition hover:bg-amber-400 disabled:opacity-50"
-    >
-      {loading ? '...' : isPublic ? 'Entrar' : 'Solicitar adesão'}
-    </button>
+    <div className="flex flex-col items-end gap-1.5">
+      <button
+        onClick={handleJoin}
+        disabled={loading}
+        className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-bold text-black shadow-[0_0_14px_rgba(245,158,11,0.3)] transition hover:bg-amber-400 disabled:opacity-50"
+      >
+        {loading ? '...' : isPublic ? 'Entrar' : 'Solicitar adesão'}
+      </button>
+      {error && <p className="text-xs text-red-400">{error}</p>}
+    </div>
   );
 }
 
@@ -160,7 +170,7 @@ function CreatePostModal({
     setPreviewUrl(null);
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     if (title.trim().length < 3) { setError('Título deve ter ao menos 3 caracteres.'); return; }
     if (content.trim().length < 10) { setError('Conteúdo deve ter ao menos 10 caracteres.'); return; }
@@ -246,10 +256,12 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'posts' | 'members' | 'pending'>('posts');
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  const [currentUserName, setCurrentUserName] = useState<string | null>(null);
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [pendingMembers, setPendingMembers] = useState<Member[]>([]);
   const [pendingLoading, setPendingLoading] = useState(false);
   const [pendingFetched, setPendingFetched] = useState(false);
+  const [processingUserId, setProcessingUserId] = useState<number | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -257,10 +269,26 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
       fetch('/api/auth/me').then((r) => r.ok ? r.json() : null),
     ]).then(([communityData, sessionData]) => {
       setCommunity(communityData);
-      if (sessionData?.userId) setCurrentUserId(sessionData.userId);
+      if (sessionData?.userId) {
+        setCurrentUserId(sessionData.userId);
+        setCurrentUserName(sessionData.name ?? null);
+      }
       setLoading(false);
     }).catch(() => setLoading(false));
   }, [id]);
+
+  useEffect(() => {
+    if (!community || !currentUserId || pendingFetched) return;
+    const myMember = community.members.find((m) => m.user.id === currentUserId);
+    if (!myMember || myMember.status !== 'approved') return;
+    if (myMember.role !== 'founder' && myMember.role !== 'moderator') return;
+    setPendingLoading(true);
+    fetch(`/api/communities/${id}/members?status=pending`)
+      .then((r) => r.json())
+      .then((body) => { setPendingMembers(body.data ?? []); setPendingFetched(true); })
+      .catch(() => {})
+      .finally(() => setPendingLoading(false));
+  }, [community, currentUserId, id, pendingFetched]);
 
   if (loading) return <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-2 border-amber-500 border-t-transparent" /></div>;
   if (!community) return <div className="py-16 text-center text-zinc-500">Comunidade não encontrada.</div>;
@@ -287,7 +315,7 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
         role: 'member',
         status: newStatus,
         joinedAt: new Date().toISOString(),
-        user: { id: currentUserId!, name: null },
+        user: { id: currentUserId!, name: currentUserName },
       };
       return { ...prev, members: [...prev.members, fakeMember] };
     });
@@ -312,13 +340,18 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
   }
 
   async function handleMemberAction(userId: number, action: 'approve' | 'reject') {
-    const res = await fetch(`/api/communities/${id}/members/${userId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action }),
-    });
-    if (res.ok) {
-      setPendingMembers((prev) => prev.filter((m) => m.user.id !== userId));
+    setProcessingUserId(userId);
+    try {
+      const res = await fetch(`/api/communities/${id}/members/${userId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      });
+      if (res.ok) {
+        setPendingMembers((prev) => prev.filter((m) => m.user.id !== userId));
+      }
+    } finally {
+      setProcessingUserId(null);
     }
   }
 
@@ -429,12 +462,12 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
             <p className="py-8 text-center text-zinc-500">Nenhum post ainda.</p>
           )}
           {community.posts.map((post) => (
-            <div key={post.id} className="group rounded-xl border border-white/10 bg-slate-900/60 p-5 transition-all hover:border-amber-500/20 hover:bg-slate-800/60">
+            <div key={post.id} className="rounded-xl border border-white/10 bg-slate-900/60 p-5 transition-all hover:border-amber-500/20 hover:bg-slate-800/60">
               <div className="flex items-start gap-3">
                 <Avatar name={post.author.name} size="md" />
                 <div className="flex-1 min-w-0">
                   <div className="mb-1 flex items-start justify-between gap-2">
-                    <h3 className="font-bold text-zinc-100 group-hover:text-amber-300">{post.title}</h3>
+                    <h3 className="font-bold text-zinc-100">{post.title}</h3>
                     <span className="shrink-0 text-xs text-zinc-500">{relativeTime(post.createdAt)}</span>
                   </div>
                   <p className="mb-3 text-xs leading-relaxed text-zinc-400 line-clamp-2">{post.content}</p>
@@ -486,13 +519,15 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
               <div className="flex shrink-0 gap-2">
                 <button
                   onClick={() => handleMemberAction(m.user.id, 'approve')}
-                  className="rounded-lg bg-teal-600 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-teal-500"
+                  disabled={processingUserId === m.user.id}
+                  className="rounded-lg bg-teal-600 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-teal-500 disabled:opacity-50"
                 >
-                  Aprovar
+                  {processingUserId === m.user.id ? '...' : 'Aprovar'}
                 </button>
                 <button
                   onClick={() => handleMemberAction(m.user.id, 'reject')}
-                  className="rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-1.5 text-xs font-bold text-red-400 transition hover:bg-red-500/20"
+                  disabled={processingUserId === m.user.id}
+                  className="rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-1.5 text-xs font-bold text-red-400 transition hover:bg-red-500/20 disabled:opacity-50"
                 >
                   Rejeitar
                 </button>

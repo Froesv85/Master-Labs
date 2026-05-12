@@ -26,7 +26,7 @@ function CreateCommunityModal({ onClose, onCreated }: { onClose: () => void; onC
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!name.trim()) { setError('Nome obrigatório'); return; }
     setSaving(true); setError(null);
@@ -83,14 +83,15 @@ function CreateCommunityModal({ onClose, onCreated }: { onClose: () => void; onC
 export default function CommunitiesPage() {
   const [communities, setCommunities] = useState<Community[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [filter, setFilter] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
 
   useEffect(() => {
     fetch('/api/communities')
-      .then((r) => r.json())
+      .then((r) => { if (!r.ok) throw new Error(); return r.json(); })
       .then((data) => { setCommunities(data); setLoading(false); })
-      .catch(() => setLoading(false));
+      .catch(() => { setError(true); setLoading(false); });
   }, []);
 
   const filtered = filter ? communities.filter((c) => c.category === filter) : communities;
@@ -148,8 +149,18 @@ export default function CommunitiesPage() {
         <div className="flex h-40 items-center justify-center">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-amber-500 border-t-transparent" />
         </div>
+      ) : error ? (
+        <div className="flex h-40 flex-col items-center justify-center gap-3 rounded-xl border border-red-500/20 bg-red-500/5">
+          <p className="text-sm text-red-400">Não foi possível carregar as comunidades.</p>
+          <button
+            onClick={() => { setError(false); setLoading(true); fetch('/api/communities').then((r) => r.json()).then((data) => { setCommunities(data); setLoading(false); }).catch(() => { setError(true); setLoading(false); }); }}
+            className="rounded-lg border border-red-500/30 px-4 py-1.5 text-xs font-bold text-red-400 transition hover:bg-red-500/10"
+          >
+            Tentar novamente
+          </button>
+        </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {filtered.map((c) => {
             const cfg = CATEGORY_CONFIG[c.category] ?? { label: c.category, emoji: '🌐', color: 'border-white/10 hover:border-amber-500/30', accent: 'bg-slate-800 text-zinc-300' };
             return (
