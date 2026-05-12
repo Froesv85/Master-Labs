@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { uploadPostMedia } from '@/lib/community-media';
+import { isValidYoutubeUrl } from '@/lib/youtube';
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -68,8 +69,16 @@ export async function POST(req: NextRequest, { params }: Params) {
   }
 
   let mediaUrl: string | null = null;
+  let videoUrl: string | null = null;
 
-  if (body.mediaB64 !== undefined && body.mediaB64 !== null) {
+  const hasMedia = body.mediaB64 !== undefined && body.mediaB64 !== null;
+  const hasVideo = typeof body.videoUrl === 'string' && body.videoUrl.length > 0;
+
+  if (hasMedia && hasVideo) {
+    return NextResponse.json({ error: 'Post pode ter imagem ou vídeo, não ambos.' }, { status: 400 });
+  }
+
+  if (hasMedia) {
     if (typeof body.mediaB64 !== 'string' || body.mediaB64.length === 0) {
       return NextResponse.json({ error: 'mediaB64 must be a non-empty string.' }, { status: 400 });
     }
@@ -81,7 +90,6 @@ export async function POST(req: NextRequest, { params }: Params) {
         { status: 400 }
       );
     }
-
     try {
       const result = await uploadPostMedia(body.mediaB64, mediaContentType, communityId);
       mediaUrl = result.url;
@@ -91,6 +99,13 @@ export async function POST(req: NextRequest, { params }: Params) {
     }
   }
 
+  if (hasVideo) {
+    if (!isValidYoutubeUrl(body.videoUrl)) {
+      return NextResponse.json({ error: 'URL de vídeo inválida. Informe um link do YouTube.' }, { status: 400 });
+    }
+    videoUrl = body.videoUrl;
+  }
+
   const post = await prisma.communityPost.create({
     data: {
       communityId,
@@ -98,6 +113,7 @@ export async function POST(req: NextRequest, { params }: Params) {
       title,
       content,
       mediaUrl,
+      videoUrl,
     },
     select: {
       id: true,
@@ -105,6 +121,7 @@ export async function POST(req: NextRequest, { params }: Params) {
       title: true,
       content: true,
       mediaUrl: true,
+      videoUrl: true,
       replies: true,
       views: true,
       createdAt: true,
@@ -161,6 +178,7 @@ export async function GET(req: NextRequest, { params }: Params) {
         title: true,
         content: true,
         mediaUrl: true,
+        videoUrl: true,
         replies: true,
         views: true,
         createdAt: true,
