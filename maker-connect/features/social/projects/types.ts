@@ -8,9 +8,14 @@ export type ProjectItem = {
   description: string | null;
   category: 'Printing3D' | 'Robotics' | 'IoT' | 'Woodworking';
   votes: number;
+  fileCount: number;
   creatorId: number;
   creatorName: string | null;
   parentId: number | null;
+  coverImageUrl: string | null;
+  printerBrand: string | null;
+  printerModel: string | null;
+  printerMaterial: string | null;
   createdAt: string;
   updatedAt: string;
 };
