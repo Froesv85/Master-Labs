@@ -162,6 +162,121 @@ usuário aciona extração
 
 ---
 
+## Cronograma do Projeto
+
+O cronograma completo está disponível em formato Excel para uso no relatório:
+
+**[docs/cronograma-makerconnect-2026.xlsx](docs/cronograma-makerconnect-2026.xlsx)** — 2 abas: Cronograma (4 fases, 16 semanas, 67 entregas) + Gates e Métricas
+
+Para regenerar: `cd maker-connect && node ../scripts/gerar-cronograma.mjs`
+
+| Fase | Período | Foco | Status |
+|------|---------|------|--------|
+| Fase 1 — Foundation + Pipeline IA | Abr – Jun 2026 | Auth, feed social, RAG, LGPD, comunidades, robôs | Concluída |
+| Fase 2 — MVP Completo | Jun – Jul 2026 | PDF export assíncrono (BullMQ), E2E flows, infra GPU | Em andamento |
+| Fase 3 — Qualidade e Docs | Jul – Set 2026 | Cobertura > 80%, ADRs, C4 diagram, slides da banca | Pendente |
+| Fase 4 — Banca e Entrega | Set – Nov 2026 | Ensaios, cleanup final, defesa TCC | Pendente |
+
+**Gates de validação:**
+
+| Gate | Data | Resultado |
+|------|------|-----------|
+| S1.1 | 28/04/2026 | PASS — pipeline E2E em ~49s |
+| S1.2 | 13/05/2026 | PASS — audit trail LGPD + 161 testes |
+| S1.3 | 27/05/2026 | Partial — relevance 98% ✓ / latência 137s s/ GPU |
+| S1.4 | 25/06/2026 (previsto) | Pendente — PDF export + latência < 15s |
+
+---
+
+## Telas do Sistema
+
+Screenshots capturadas em 04/06/2026 via Playwright (1440×900). Para atualizar: `cd maker-connect && node ../scripts/screenshot-all.mjs`
+
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <img src="docs/screenshots/2026-06-04/01-landing.png" alt="Página inicial" />
+      <br><b>01 — Página Inicial</b>
+    </td>
+    <td align="center" width="50%">
+      <img src="docs/screenshots/2026-06-04/02-login.png" alt="Login" />
+      <br><b>02 — Login</b>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="50%">
+      <img src="docs/screenshots/2026-06-04/03-feed.png" alt="Feed de projetos" />
+      <br><b>03 — Feed de Projetos</b>
+    </td>
+    <td align="center" width="50%">
+      <img src="docs/screenshots/2026-06-04/04-feed-robotica.png" alt="Feed filtrado por Robótica" />
+      <br><b>04 — Feed — Filtro Robótica</b>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="50%">
+      <img src="docs/screenshots/2026-06-04/05-projeto-detalhe.png" alt="Detalhe do projeto" />
+      <br><b>05 — Detalhe do Projeto</b>
+    </td>
+    <td align="center" width="50%">
+      <img src="docs/screenshots/2026-06-04/06-robos-lista.png" alt="Lista de robôs" />
+      <br><b>06 — Lista de Robôs (Ranking ELO)</b>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="50%">
+      <img src="docs/screenshots/2026-06-04/07-robo-detalhe.png" alt="Detalhe do robô" />
+      <br><b>07 — Detalhe do Robô</b>
+    </td>
+    <td align="center" width="50%">
+      <img src="docs/screenshots/2026-06-04/08-comunidades-lista.png" alt="Comunidades" />
+      <br><b>08 — Comunidades</b>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="50%">
+      <img src="docs/screenshots/2026-06-04/09-comunidade-detalhe.png" alt="Detalhe da comunidade" />
+      <br><b>09 — Detalhe da Comunidade</b>
+    </td>
+    <td align="center" width="50%">
+      <img src="docs/screenshots/2026-06-04/10-perfil-proprio.png" alt="Perfil próprio" />
+      <br><b>10 — Perfil do Usuário</b>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="50%">
+      <img src="docs/screenshots/2026-06-04/11-perfil-publico.png" alt="Perfil público" />
+      <br><b>11 — Perfil Público</b>
+    </td>
+    <td align="center" width="50%">
+      <img src="docs/screenshots/2026-06-04/12-admin-metricas.png" alt="Dashboard de métricas" />
+      <br><b>12 — Dashboard de Métricas IA</b>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="50%">
+      <img src="docs/screenshots/2026-06-04/13-robo-cadastro-modal.png" alt="Modal cadastro de robô" />
+      <br><b>13 — Cadastro de Robô</b>
+    </td>
+    <td align="center" width="50%">
+      <img src="docs/screenshots/2026-06-04/14-comunidade-criar-modal.png" alt="Modal criar comunidade" />
+      <br><b>14 — Criar Comunidade</b>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="50%">
+      <img src="docs/screenshots/2026-06-04/15-N8N.png" alt="Workflow n8n" />
+      <br><b>15 — Workflow n8n (Orquestração IA)</b>
+    </td>
+    <td align="center" width="50%">
+      <img src="docs/screenshots/2026-06-04/16-Jira.png" alt="Board Jira" />
+      <br><b>16 — Board Jira (Gestão do Projeto)</b>
+    </td>
+  </tr>
+</table>
+
+---
+
 ## Como Executar
 
 ### 1. Pré-requisitos
