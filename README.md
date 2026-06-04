@@ -1,7 +1,8 @@
 # MakerConnect — PAC Extensionista
 
 > **Universidade Católica de Santa Catarina — Jaraguá do Sul**  
-> Curso: Engenharia de Software | Fase: 7ª  
+> Curso: Engenharia de Software | Fase: 7ª
+> Professor: Andrei Carniel 
 > Acadêmico: Vinicius Froes  
 > Projeto de Aprendizagem Colaborativa — PAC Extensionista
 
