@@ -1,2 +1,0 @@
-JiraKey,Suggested Status,Comment
-ML-57,In Progress,"[2026-04-19] Comparativo local executado com qwen2.5:7b-instruct e llama3.1:8b. T1 concluido no pacote Phase 2: qwen2.5 manteve relevancia 100% com p50 29.729s; llama3.1 melhorou p50 para 26.380s, mas ainda acima da meta de 15s. Mantem ML-57 em In Progress enquanto T2/T3 tratam prompt pack e retrieval tuning com evidencia nova."

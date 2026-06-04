@@ -1,6 +1,0 @@
-Work Item ID,JiraKey,Issue Type,Current Status,Suggested Status,Comment
-,ML-23,Story,In Progress,Done,"Workflow n8n RAG 100% estabilizado no MakerBrain. Implementado callback em background via Webhook para a API e exibicao dinamica dos resultados processados (BOM detalhado + Technical Requirements) na UI de detalhes do projeto sem timeout, com fallback para rate-limits (Google Gemini Cloud) no n8n. Ref: docs/n8n-workflow-v3-rag.json."
-,ML-37,Sub-task,In Progress,Done,"Endpoint POST /api/projects/[id]/extract trigando n8n via webhook e persistindo log em status: queued. O n8n consegue agora engatilhar com o id do webhook extraido do payload perfeitamente."
-,ML-36,Sub-task,In Progress,Done,"Integracao Vector DB (Pinecone REST API) via chamada http nativa e geracao de embeddings com `gemini-2.5-flash` operacional no workflow v3."
-,ML-35,Sub-task,In Progress,Done,"Simulacao de redacao de PII conectada ao webhook. Contabilizacao implementada no banco (piiRedactions) com suporte a contagem via frontend."
-,ML-16,Epic,In Progress,In Progress,"Core RAG finalizado com sucesso e operando e2e com backend. O Epic aguarda finalizacoes das metricas de latencia e relevancia (H2) para encerramento total."

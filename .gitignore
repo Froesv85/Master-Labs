@@ -47,6 +47,11 @@ yarn-error.log*
 # claude code local settings
 .claude/
 
+# pastas de documentação, scripts e configurações — apenas locais
+docs/
+scripts/
+.github/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

@@ -1,2 +1,0 @@
-Work Item ID,JiraKey,Issue Type,Current Status,Suggested Status,Comment
-,ML-56,Sub-task,In Progress,In Progress,"Rerun estendido (6 min) executado: 2 done / 3 queued / 0 failed (logs 84-88). Workflow atualizado ativo (n8nExecutionId 107 e 111 nas concluidas), porem criterio 100% done nao atingido. Evidencias: docs/d10-t2-estabilidade-fluxo-2026-04-17.md e docs/d10-t2-smoke-extended-result.json"

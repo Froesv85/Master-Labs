@@ -1,5 +1,0 @@
-JiraKey,Suggested Status,Comment
-ML-57,In Progress,"[2026-04-22][RECOVERY-D3] Corte de escopo aplicado para P0. Baseline tecnico revalidado em lote controlado e trilha principal mantida estavel para avancar em validacao estendida no D+2. Proximo passo: consolidar artefato unico de benchmark e manter gate de qualidade como bloqueio para liberacao de concorrencia."
-ML-74,In Progress,"[2026-04-22][RECOVERY-D3] Fluxo assincrono de exportacao testado ponta a ponta com foco em rastreabilidade de status e jobId. Proximo passo: rodada estendida de smoke com consolidacao de latencia e contagem done/failed para fechamento D+3."
-ML-66,Done,"[2026-04-22][RECOVERY-D3] Item mantido como encerrado no contexto de recuperacao, sem nova frente de tuning exploratorio. Decisao operacional: foco exclusivo em entrega P0 demonstravel ate o fechamento do D+3."
-"<SUBSTITUIR-ISSUE-DE-DOCS>",In Progress,"[2026-04-22][RECOVERY-D3] Documentacao operacional atualizada com plano D+3 e checkpoints diarios. Proximo passo: publicar status D+2 e fechamento D+3 com vinculo direto aos artefatos de evidencia."
