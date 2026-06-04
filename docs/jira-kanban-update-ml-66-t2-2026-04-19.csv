@@ -1,2 +1,0 @@
-JiraKey,Suggested Status,Comment
-ML-66,In Progress,"[2026-04-19][T2] Prompt v3 e harness de validacao executados em 10 casos. Resultado: parse 100%, schema 90%, p50 27.390s, p95 37.478s, relevancia 72.5%. Proximo passo: T3 retrieval/context pruning para subir relevancia e schema sem regressao de latencia. Evidencia em maker-connect/docs/ml-66-prompt-v3-validation-10cases-2026-04-19.{json,md}."

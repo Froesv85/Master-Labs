@@ -1,2 +1,0 @@
-Work Item ID,JiraKey,Issue Type,Current Status,Suggested Status,Comment
-,ML-57,Sub-task,In Progress,Done,"D10-T1 concluida com benchmark final executado (amostra 10/10 done). KPI: p50 238937ms, p95 385570ms, parse 100%, relevancia 48,55%. Evidencia: docs/d10-benchmark-final-2026-04-17.md"

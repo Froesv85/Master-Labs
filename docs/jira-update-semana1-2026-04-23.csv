@@ -1,9 +1,0 @@
-IssueKey,Status,Comment
-ML-56,Done,"[2026-04-23] WEEKLY REVIEW - Sprint 0 Final: Gate de Estabilidade APROVADO com métricas acima do target. Parse 100%, Schema 100%, Relevância 92.5-95% vs 85% target. Backend webhook fix merged (f210b2b). PDF export async P0-B implementado com job tracking (jobId). Pronto para S1B Kickoff. Próximo: Finalize README maker-connect + iniciar S1B Feed UI."
-ML-66,Done,"[2026-04-23] WEEKLY REVIEW - Tuning Round 1 completado. Relevância atingiu 92.5% (superou 85% target). Resultado consolidado em benchmark. Pronto para próxima fase."
-ML-67,Done,"[2026-04-23] WEEKLY REVIEW - Schema validation completado com 100% de sucesso. Validação operacional entregue. Pronto para produção."
-ML-68,Done,"[2026-04-23] WEEKLY REVIEW - Parse rate validado em 100%. Extração de documentação confirmada sem falhas. Integrado ao pipeline final."
-ML-69,Done,"[2026-04-23] WEEKLY REVIEW - Tuning exploratório concluído com conclusão NO-GO para tuning puro. Avanço para arquitetura assíncrona aprovado. PDF export queue implementado."
-ML-70,Done,"[2026-04-23] WEEKLY REVIEW - Validação de benchmark consolidada. Métricas P50/P95 documentadas. Pronto para integração S1B."
-ML-71,Done,"[2026-04-23] WEEKLY REVIEW - Smoke test estendido executado. Artefatos de resultado consolidados. Zero falhas críticas identificadas."
-ML-72,Done,"[2026-04-23] WEEKLY REVIEW - Progressive concurrency test completado. Carga simulada validada. Performance sob baseline confirmada."

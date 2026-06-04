@@ -1,3 +1,0 @@
-Work Item ID,JiraKey,Issue Type,Current Status,Suggested Status,Comment
-,ML-58,Sub-task,In Progress,Done,"D5-T4 concluida com evidencia LGPD/PII em runtime: 3 redacoes (email, telefone, cpf) e persistencia de conteudo sanitizado. Ver: docs/d5-evidencias-execucao-2026-04-17.md"
-,ML-53,Story,In Progress,Done,"Gate D5 concluido: subtarefas D5-T1, D5-T2, D5-T3 e D5-T4 finalizadas com evidencias registradas em docs (E2E, falhas controladas, metricas parciais e LGPD)."

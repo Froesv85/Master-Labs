@@ -1,2 +1,0 @@
-Work Item ID,JiraKey,Issue Type,Current Status,Suggested Status,Comment
-,ML-56,Sub-task,In Progress,In Progress,"Smoke D10-T2 executado apos pacote de correcoes: 3 done / 2 queued / 0 failed (logs 74-78). Fluxo principal parcialmente estavel, com intermitencia de callback no tempo de coleta. Evidencia: docs/d10-t2-estabilidade-fluxo-2026-04-17.md"

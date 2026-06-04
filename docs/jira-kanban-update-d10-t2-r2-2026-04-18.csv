@@ -1,2 +1,0 @@
-JiraKey,Suggested Status,Comment
-ML-56,In Progress,"Rerun estendido r2 (artefato canonico) validado em maker-connect/docs/d10-t2-smoke-extended-result-r2.json: total=5, done=4, queued=1, failed=0, allDone=false. Logs 89-93 com item 91 persistente em queued sem callback. Criterio de fechamento (100% done sem stuck) nao atendido. ML-56 permanece em In Progress; rerun final de benchmark D10 permanece bloqueado ate estabilidade completa."

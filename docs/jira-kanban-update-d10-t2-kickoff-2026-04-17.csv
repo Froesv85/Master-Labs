@@ -1,2 +1,0 @@
-Work Item ID,JiraKey,Issue Type,Current Status,Suggested Status,Comment
-,ML-56,Sub-task,To Do,In Progress,"D10-T2 iniciada para estabilidade do fluxo principal (extract -> n8n -> callback) e preparacao de pacote de correcoes para relevancia/latencia antes do rerun final."

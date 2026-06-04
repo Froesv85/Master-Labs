@@ -1,2 +1,0 @@
-JiraKey,Suggested Status,Comment
-ML-66,In Progress,"[2026-04-19][T5-KICKOFF] Proxima tarefa iniciada: latency recovery focado em C6 (com C10 como controle), mantendo os ganhos do microciclo v3. Baseline atual do microciclo v3: parse 100%, schema 100%, relevancia media 87.5%, p50 36605ms (C6=75%, C10=100%). Objetivo T5: reduzir p50 sem perder relevancia >=85% e parse/schema >=95%. Plano e criterios: docs/ml-69-t5-latency-recovery-c6-2026-04-19.md."

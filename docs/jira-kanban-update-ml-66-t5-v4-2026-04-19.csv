@@ -1,2 +1,0 @@
-JiraKey,Suggested Status,Comment
-ML-66,In Progress,"[2026-04-19][T5-v4] Harness v4 implementado para latency recovery em C6/C10 com budget adaptativo de geracao e normalizacao estrutural pos-parse. Resultado: parse 100%, schema 100%, relevancia 87.5%, p50/p95 31030ms. Delta vs v3: -5575ms em p50/p95, contexto medio 218 -> 176 chars, sem perda de relevancia. Evidencias: maker-connect/scripts/validate-retrieval-microcycle-c6-c10-v4.mjs e maker-connect/docs/ml-69-microcycle-c6-c10-v4-2026-04-19.{json,md}."
