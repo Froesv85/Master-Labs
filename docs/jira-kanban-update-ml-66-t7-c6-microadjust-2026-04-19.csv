@@ -1,0 +1,2 @@
+JiraKey,Suggested Status,Comment
+ML-66,In Progress,"[2026-04-19][T7] Microajuste de latencia em C6 aplicado dentro do lote de 10 casos. Resultado do batch: parse 100%, schema 100%, relevancia media 95%, p50 36622ms, p95 40688ms. C6 isolado: baseline 42510ms -> otimizado 40688ms (-1822ms). Leitura: o ajuste melhorou C6 isoladamente, mas o lote inteiro ainda ficou mais lento que o baseline curado ML-68; nao fecha como ganho de performance em escala. Evidencia em maker-connect/docs/ml-71-c6-microadjust-10cases-2026-04-19.{json,md}."

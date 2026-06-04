@@ -1,0 +1,2 @@
+JiraKey,Suggested Status,Comment
+ML-66,In Progress,"[2026-04-19] T1 comparativo concluido com qwen2.5:7b-instruct e llama3.1:8b. Base pronta para T2/T3: prompt pack maker IoT e retrieval/context budget tuning. Ver docs/ml-66-67-tuning-package-2026-04-19.md e docs/ml-57-benchmark-comparativo-2026-04-19.md."

@@ -1,0 +1,83 @@
+{
+  "runAt": "2026-04-29T21:16:14.869Z",
+  "totalProjects": 10,
+  "completed": 10,
+  "avgRelevance": 98,
+  "p50Relevance": 99,
+  "p95Relevance": 100,
+  "p50LatencyMs": 58654,
+  "p95LatencyMs": 73286,
+  "pass": true,
+  "results": [
+    {
+      "id": "H01",
+      "title": "LoRaWAN Asset Tracker",
+      "status": "done",
+      "score": 100,
+      "latencyMs": 61404
+    },
+    {
+      "id": "H02",
+      "title": "Controlador de Estufa Automatizado",
+      "status": "done",
+      "score": 99,
+      "latencyMs": 49291
+    },
+    {
+      "id": "H03",
+      "title": "Monitor de Qualidade do Ar",
+      "status": "done",
+      "score": 99,
+      "latencyMs": 69565
+    },
+    {
+      "id": "H04",
+      "title": "Fechadura Inteligente com RFID",
+      "status": "done",
+      "score": 97,
+      "latencyMs": 58654
+    },
+    {
+      "id": "H05",
+      "title": "Monitor de Energia Residencial",
+      "status": "done",
+      "score": 93,
+      "latencyMs": 73286
+    },
+    {
+      "id": "H06",
+      "title": "Controlador de Aquário Inteligente",
+      "status": "done",
+      "score": 99,
+      "latencyMs": 72804
+    },
+    {
+      "id": "H07",
+      "title": "Sensor de Nível de Caixa D'água",
+      "status": "done",
+      "score": 99,
+      "latencyMs": 50955
+    },
+    {
+      "id": "H08",
+      "title": "Gateway Industrial Modbus para MQTT",
+      "status": "done",
+      "score": 99,
+      "latencyMs": 54936
+    },
+    {
+      "id": "H09",
+      "title": "Robô de Inspeção com Câmera",
+      "status": "done",
+      "score": 99,
+      "latencyMs": 56003
+    },
+    {
+      "id": "H10",
+      "title": "Detector de Fumaça com Evacuação",
+      "status": "done",
+      "score": 99,
+      "latencyMs": 66606
+    }
+  ]
+}

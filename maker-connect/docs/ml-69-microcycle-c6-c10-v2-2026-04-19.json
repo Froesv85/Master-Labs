@@ -1,0 +1,54 @@
+{
+  "generatedAt": "2026-04-19T16:42:46.545Z",
+  "model": "qwen2.5:7b-instruct",
+  "endpoint": "http://localhost:11434",
+  "retrievalExperiment": "microcycle_c6_c10_forced_keywords",
+  "summary": {
+    "sampleSize": 2,
+    "parseValidRatePercent": 0,
+    "schemaValidRatePercent": 0,
+    "p50LatencyMs": 24590,
+    "p95LatencyMs": 24590,
+    "relevanceProxyAvgPercent": 0,
+    "avgContextChars": 199
+  },
+  "gateSummary": {
+    "parseGate95": false,
+    "schemaGate95": false,
+    "relevanceGate85": false
+  },
+  "perSample": [
+    {
+      "id": "C6",
+      "title": "Telemetria com wifi instavel",
+      "domain": "telemetry-sensing",
+      "latencyMs": 24591,
+      "parseValid": false,
+      "schemaValid": false,
+      "relevanceProxyPercent": 0,
+      "contextChars": 193,
+      "evidenceIds": [
+        "E14",
+        "E11"
+      ],
+      "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Reconecto Exponencial ESP32\",\n      \"detail\": \"Implementar reconexão exponencial para o ESP32.\",\n      \"priority\": \"medium\"\n    },\n    {\n      \"id\": \"TR",
+      "error": null
+    },
+    {
+      "id": "C10",
+      "title": "Pipeline com anonimiza PII",
+      "domain": "maintenance-governance",
+      "latencyMs": 24590,
+      "parseValid": false,
+      "schemaValid": false,
+      "relevanceProxyPercent": 0,
+      "contextChars": 205,
+      "evidenceIds": [
+        "E41",
+        "E43"
+      ],
+      "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Anonimiza PII\",\n      \"detail\": \"Anonimizar identificadores antes da inferência e manter trilha auditável por execução.\",\n      \"priority\": \"medium\"\n   ",
+      "error": null
+    }
+  ]
+}

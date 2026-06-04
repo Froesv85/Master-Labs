@@ -1,0 +1,111 @@
+{
+  "generatedAt": "2026-04-19T14:58:27.544Z",
+  "model": "qwen2.5:7b-instruct",
+  "endpoint": "http://localhost:11434",
+  "promptVersion": "v3",
+  "sampleSize": 10,
+  "summary": {
+    "parseValidRatePercent": 100,
+    "schemaValidRatePercent": 90,
+    "p50LatencyMs": 27390,
+    "p95LatencyMs": 37478,
+    "relevanceProxyAvgPercent": 72.5
+  },
+  "passFail": {
+    "parseGate95": true,
+    "schemaGate95": false,
+    "relevanceGate85": false
+  },
+  "perSample": [
+    {
+      "id": "C1",
+      "title": "Estacao meteo ESP32",
+      "latencyMs": 37478,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 100,
+      "rawResponsePreview": "{\"schemaVersion\":\"mc_extract_v2\",\"technicalRequirements\":[{\"id\":\"TR-1\",\"name\":\"Comunicacao MQTT\",\"detail\":\"Implementar publicacao de dados via MQTT com broker local.\",\"priority\":\"high\"},{\"id\":\"TR-2\",\"name\":\"Consumo de energia baixo\",\"detail\":\"Optimizar o consumo de energia para p"
+    },
+    {
+      "id": "C2",
+      "title": "Irrigacao automatica",
+      "latencyMs": 14800,
+      "parseValid": true,
+      "schemaValid": false,
+      "relevanceProxyPercent": 50,
+      "rawResponsePreview": "{\"schemaVersion\":\"mc_extract_v2\",\"technicalRequirements\":[{\"id\":\"TR-1\",\"name\":\"Leitura Periodica de Umidade do Solo\",\"detail\":\"Implementar leitura periódica dos sensores de umidade do solo.\",\"priority\":\"high\"},{\"id\":\"TR-2\",\"name\":\"Histerese na Leitura de Umidade\",\"detail\":\"Implem"
+    },
+    {
+      "id": "C3",
+      "title": "Monitoramento de vibracao",
+      "latencyMs": 21370,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 100,
+      "rawResponsePreview": "{\"schemaVersion\":\"mc_extract_v2\",\"technicalRequirements\":[{\"id\":\"TR-1\",\"name\":\"Monitoramento de Vibracao\",\"detail\":\"Implementar leitura de dados do MPU6050 para monitorar vibracao\",\"priority\":\"high\"},{\"id\":\"TR-2\",\"name\":\"Alerta de Excesso de Vibracao\",\"detail\":\"Configurar um limi"
+    },
+    {
+      "id": "C4",
+      "title": "Casa inteligente com fallback local",
+      "latencyMs": 21262,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 100,
+      "rawResponsePreview": "{\"schemaVersion\":\"mc_extract_v2\",\"technicalRequirements\":[{\"id\":\"TR-1\",\"name\":\"Conexão com API HTTP\",\"detail\":\"Implementar comunicação com API externa para controle remoto.\",\"priority\":\"high\"},{\"id\":\"TR-2\",\"name\":\"Detecção de presença PIR\",\"detail\":\"Configurar sensor PIR para aci"
+    },
+    {
+      "id": "C5",
+      "title": "Controle de motor com ponte H",
+      "latencyMs": 24497,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 100,
+      "rawResponsePreview": "{\"schemaVersion\":\"mc_extract_v2\",\"technicalRequirements\":[{\"id\":\"TR-1\",\"name\":\"Controle de Velocidade do Motor DC\",\"detail\":\"Implementar controle PWM para ajuste da velocidade do motor.\",\"priority\":\"medium\"},{\"id\":\"TR-2\",\"name\":\"Limites de Corrente\",\"detail\":\"Configurar limites d"
+    },
+    {
+      "id": "C6",
+      "title": "Telemetria com wifi instavel",
+      "latencyMs": 28336,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 75,
+      "rawResponsePreview": "{\"schemaVersion\":\"mc_extract_v2\",\"technicalRequirements\":[{\"id\":\"TR-1\",\"name\":\"Reconecto automático\",\"detail\":\"Implementar um mecanismo para reconectar o ESP32 em caso de perda de conexão com a rede Wi-Fi.\",\"priority\":\"high\"},{\"id\":\"TR-2\",\"name\":\"Cache local\",\"detail\":\"Desenvolve"
+    },
+    {
+      "id": "C7",
+      "title": "Monitor de bateria",
+      "latencyMs": 27390,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 75,
+      "rawResponsePreview": "{\"schemaVersion\":\"mc_extract_v2\",\"technicalRequirements\":[{\"id\":\"TR-1\",\"name\":\"Monitoramento de tensão da bateria\",\"detail\":\"Implementar um sensor para monitorar a tensão da bateria Li-Ion em tempo real.\",\"priority\":\"high\"},{\"id\":\"TR-2\",\"name\":\"Alerta de subtenção\",\"detail\":\"Dese"
+    },
+    {
+      "id": "C8",
+      "title": "Log de manutencao maker",
+      "latencyMs": 30689,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 75,
+      "rawResponsePreview": "{\n  \"schemaVersion\": \"mc_extract_v2\",\n  \"technicalRequirements\": [\n    {\n      \"id\": \"TR-1\",\n      \"name\": \"Verificação de Corrente\",\n      \"detail\": \"Ajuste do sensor de corrente para operação dentro dos limites permitidos.\",\n      \"priority\": \"medium\"\n    },\n    {\n      \"id\": \""
+    },
+    {
+      "id": "C9",
+      "title": "Sensores analogicos com calibracao",
+      "latencyMs": 23215,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 25,
+      "rawResponsePreview": "{\"schemaVersion\":\"mc_extract_v2\",\"technicalRequirements\":[{\"id\":\"TR-1\",\"name\":\"Leitura de Sensores Analógicos\",\"detail\":\"Implementar leitura de sensores analógicos com filtro de ruído.\",\"priority\":\"medium\"},{\"id\":\"TR-2\",\"name\":\"Calibração em Dois Pontos\",\"detail\":\"Desenvolver alg"
+    },
+    {
+      "id": "C10",
+      "title": "Pipeline com anonimiza PII",
+      "latencyMs": 32455,
+      "parseValid": true,
+      "schemaValid": true,
+      "relevanceProxyPercent": 25,
+      "rawResponsePreview": "{\n    \"schemaVersion\": \"mc_extract_v2\",\n    \"technicalRequirements\": [\n        {\n            \"id\": \"TR-1\",\n            \"name\": \"Identificação de Dados Pessoais\",\n            \"detail\": \"Detectar e marcar todos os dados pessoais no texto.\",\n            \"priority\": \"high\"\n        },"
+    }
+  ]
+}

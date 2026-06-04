@@ -1,0 +1,115 @@
+{
+  "generatedAt": "2026-04-19T14:33:44.078Z",
+  "model": "qwen2.5:7b-instruct",
+  "endpoint": "http://localhost:11434",
+  "sampleSize": 4,
+  "minParseSchemaThresholdPercent": 95,
+  "baseline": {
+    "total": 4,
+    "parseValidRatePercent": 100,
+    "schemaValidRatePercent": 100,
+    "p50LatencyMs": 20548,
+    "p95LatencyMs": 22109,
+    "relevanceProxyAvgPercent": 87.5
+  },
+  "v2": {
+    "total": 4,
+    "parseValidRatePercent": 100,
+    "schemaValidRatePercent": 100,
+    "p50LatencyMs": 29729,
+    "p95LatencyMs": 29804,
+    "relevanceProxyAvgPercent": 100
+  },
+  "v2BestNumPredict": 560,
+  "v2Rounds": [
+    {
+      "numPredict": 560,
+      "accepted": true,
+      "summary": {
+        "total": 4,
+        "parseValidRatePercent": 100,
+        "schemaValidRatePercent": 100,
+        "p50LatencyMs": 29729,
+        "p95LatencyMs": 29804,
+        "relevanceProxyAvgPercent": 100
+      }
+    }
+  ],
+  "delta": {
+    "parseValidRatePercent": 0,
+    "schemaValidRatePercent": 0,
+    "p50LatencyMs": 9181,
+    "p95LatencyMs": 7695,
+    "relevanceProxyAvgPercent": 12.5
+  },
+  "perSample": {
+    "baseline": [
+      {
+        "id": "S1",
+        "latencyMs": 22109,
+        "parseValid": true,
+        "schemaValid": true,
+        "relevanceProxyPercent": 75,
+        "rawResponsePreview": "{\"technicalRequirements\":[{\"name\":\"GPIO\",\"detail\":\"Configuração dos pinos GPIO para comunicação com o sensor DHT22 e display OLED.\"},{\"name\":\"Wi-Fi\",\"detail\":\"Conexão Wi-Fi robusta utilizando as funcionalidades do ESP32 para estabelecer conexão segura com a rede.\"},{\"name\":\"Modos de economia de ener"
+      },
+      {
+        "id": "S2",
+        "latencyMs": 20548,
+        "parseValid": true,
+        "schemaValid": true,
+        "relevanceProxyPercent": 100,
+        "rawResponsePreview": "{\"technicalRequirements\":[{\"name\":\"Leitura periodica do sensor de umidade de solo\",\"detail\":\"Realizar leituras regulares para monitorar a umidade do solo\"},{\"name\":\"Histerese para evitar liga/desliga rápido\",\"detail\":\"Implementar uma histerese para minimizar o acionamento frequente da bomba de irrig"
+      },
+      {
+        "id": "S3",
+        "latencyMs": 14273,
+        "parseValid": true,
+        "schemaValid": true,
+        "relevanceProxyPercent": 100,
+        "rawResponsePreview": "{\"technicalRequirements\":[{\"name\":\"Monitoramento de Vibração\",\"detail\":\"Utilizar acelerômetro MPU6050 para medir vibrações\"},{\"name\":\"Envio de Alerta\",\"detail\":\"Enviar alerta quando o RMS passar do limite definido\"},{\"name\":\"Timestamp com RTC\",\"detail\":\"Incluir timestamp no registro usando Real-Time"
+      },
+      {
+        "id": "S4",
+        "latencyMs": 12627,
+        "parseValid": true,
+        "schemaValid": true,
+        "relevanceProxyPercent": 75,
+        "rawResponsePreview": "{\"technicalRequirements\":[{\"name\":\"Datasheet ESP8266\",\"detail\":\"GPIO, Wi-Fi e modos de economia de energia.\"},{\"name\":\"Boas práticas MQTT\",\"detail\":\"QoS, reconnect e keepalive.\"},{\"name\":\"Integração com API HTTP\",\"detail\":\"Comunicação remota para controle da iluminação.\"},{\"name\":\"Fallback local\",\"d"
+      }
+    ],
+    "v2": [
+      {
+        "id": "S1",
+        "latencyMs": 29729,
+        "parseValid": true,
+        "schemaValid": true,
+        "relevanceProxyPercent": 100,
+        "rawResponsePreview": "{\n    \"schemaVersion\": \"mc_extract_v2\",\n    \"technicalRequirements\": [\n        {\n            \"id\": \"TR-1\",\n            \"name\": \"Leitura de DHT22\",\n            \"detail\": \"Implementar leitura de temperatura e umidade\",\n            \"priority\": \"high\"\n        },\n        {\n            \"id\": \"TR-2\",\n     "
+      },
+      {
+        "id": "S2",
+        "latencyMs": 25458,
+        "parseValid": true,
+        "schemaValid": true,
+        "relevanceProxyPercent": 100,
+        "rawResponsePreview": "{\n    \"schemaVersion\": \"mc_extract_v2\",\n    \"technicalRequirements\": [\n        {\n            \"id\": \"TR-1\",\n            \"name\": \"Leitura periódica do sensor de umidade\",\n            \"detail\": \"Realizar leituras a cada 30 minutos.\",\n            \"priority\": \"medium\"\n        },\n        {\n            \"id"
+      },
+      {
+        "id": "S3",
+        "latencyMs": 17667,
+        "parseValid": true,
+        "schemaValid": true,
+        "relevanceProxyPercent": 100,
+        "rawResponsePreview": "{\"schemaVersion\":\"mc_extract_v2\",\"technicalRequirements\":[{\"id\":\"TR-1\",\"name\":\"RMS limite\",\"detail\":\"Configurar limiar RMS\",\"priority\":\"medium\"},{\"id\":\"TR-2\",\"name\":\"Timestamp RTC\",\"detail\":\"Registrar timestamp em RTC\",\"priority\":\"high\"},{\"id\":\"TR-3\",\"name\":\"Alerta vibracao\",\"detail\":\"Enviar alerta "
+      },
+      {
+        "id": "S4",
+        "latencyMs": 29804,
+        "parseValid": true,
+        "schemaValid": true,
+        "relevanceProxyPercent": 100,
+        "rawResponsePreview": "{\n    \"schemaVersion\": \"mc_extract_v2\",\n    \"technicalRequirements\": [\n        {\n            \"id\": \"TR-1\",\n            \"name\": \"Conexão WiFi\",\n            \"detail\": \"Configuração de rede para ESP8266\",\n            \"priority\": \"medium\"\n        },\n        {\n            \"id\": \"TR-2\",\n            \"name\""
+      }
+    ]
+  }
+}

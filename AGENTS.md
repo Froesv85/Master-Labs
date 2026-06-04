@@ -1,6 +1,6 @@
-# AGENTS.md — Rede Social Maker (MVP)
+# AGENTS.md — MakerConnect: Governanca IoT com IA
 
-Este arquivo define agentes especialistas para execução coordenada do projeto.
+Este arquivo define agentes especialistas para execucao coordenada da MakerConnect, com foco em governanca de projetos IoT e documentacao automatizada.
 
 ## 1) `PM-Lead`
 **Missão:** transformar visão em backlog executável.
@@ -18,6 +18,7 @@ Este arquivo define agentes especialistas para execução coordenada do projeto.
 - Define fronteiras entre `API`, `n8n`, `Worker`, `Web`.
 - Escolhe padrões de upload e jobs assíncronos.
 - Garante segurança, rastreabilidade e escalabilidade inicial.
+- Garante aderencia ao pipeline funcional de IA (extracao -> pre-processamento -> modelo -> pos-processamento).
 
 **Decisões-base do projeto**
 - Backend orientado a API + fila + orquestração n8n.
@@ -30,6 +31,7 @@ Este arquivo define agentes especialistas para execução coordenada do projeto.
 - Mantém fluxo RAG (embeddings, busca vetorial, grounding técnico).
 - Executa pipeline de CV/NLP para extração de dados de esquemáticos.
 - Define guardrails de ética/LGPD antes de chamadas para LLM externa.
+- Prioriza uso de evidencias tecnicas reais (datasheets/componentes) para reduzir alucinacoes.
 
 ## 4) `Backend-Platform`
 **Missão:** implementar domínio e integrações.
@@ -37,6 +39,7 @@ Este arquivo define agentes especialistas para execução coordenada do projeto.
 - Fluxos críticos: `fork`, `upvote`, `project_exports`.
 - Integrações críticas: webhooks com n8n, storage e vetor DB.
 - Observabilidade mínima: logs, healthcheck, retries.
+- Garantir trilha de governanca por projeto (lineage de fork, logs tecnicos, status de exportacao).
 
 ## 5) `Frontend-Experience`
 **Missão:** entregar UX técnico-visual (GitHub + Instagram).
@@ -50,6 +53,7 @@ Este arquivo define agentes especialistas para execução coordenada do projeto.
 - Integração com dados enriquecidos por RAG/CV vindos do n8n.
 - Controle de estado: `queued`, `processing`, `done`, `failed`.
 - Versionamento de exportações por projeto.
+- Garantir saídas auditaveis com evidencias de validacao documental.
 
 ## 7) `Delivery-Manager`
 **Missão:** operar o plano diário e risco.
@@ -57,13 +61,14 @@ Este arquivo define agentes especialistas para execução coordenada do projeto.
 - Reporta bloqueios com impacto e mitigação.
 - Garante demo de meio e fim de sprint.
 - Garante evidências de métricas IA para o Demo Day.
+- Cobra indicadores de reprodutibilidade e reducao de esforco documental.
 
 ---
 
 ## Protocolo de trabalho entre agentes
 1. `PM-Lead` abre escopo + CA.
 2. `Architect-FullStack` valida impacto técnico.
-3. `AI-Orchestrator` define fluxo n8n (RAG + CV/NLP + guardrails LGPD).
+3. `AI-Orchestrator` define fluxo n8n (RAG + CV/NLP + guardrails LGPD + logs de validacao).
 4. `Backend-Platform` e `Frontend-Experience` quebram em subtarefas.
 5. `PDF-Automation` integra dados IA na documentação exportável.
 6. `Delivery-Manager` monitora progresso, risco e métricas IA.

@@ -1,0 +1,2 @@
+JiraKey,Suggested Status,Comment
+ML-66,In Progress,"[2026-04-19][T3] Retrieval/context pruning executado em 10 casos com comparativo broad vs pruned. Resultado: parse 100% em ambos, schema 80% -> 90%, p50 30068ms -> 28187ms, p95 37823ms -> 36423ms, contexto medio 572 -> 241 chars e relevancia 70% -> 72.5%. Evidencia em maker-connect/docs/ml-67-retrieval-pruning-validation-10cases-2026-04-19.{json,md}. Proximo passo: T4 benchmark final para fechar decisao de ML-66/ML-67."

@@ -1,0 +1,2 @@
+JiraKey,Suggested Status,Comment
+ML-57,In Progress,"[2026-04-19][T4] Benchmark final pos T1-T3 consolidado. Melhor configuracao atual: parse 100%, schema 90%, p50 28187ms, p95 36423ms, relevancia 72.5%. Decisao GO/NO-GO: GO apenas para parse; NO-GO para schema/relevancia/latencia frente aos gates alvo. Mantem ML-57 em In Progress para novo ciclo de retrieval scoring por dominio + curation de evidencias. Evidencia: docs/ml-57-benchmark-final-pos-t1-t3-2026-04-19.md e maker-connect/docs/ml-67-retrieval-pruning-validation-10cases-2026-04-19.{json,md}."

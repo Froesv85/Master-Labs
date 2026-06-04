@@ -1,0 +1,125 @@
+{
+  "name": "MakerConnect RAG Pipeline v3.5 (ML-66 Prompt v2 + Schema v2)",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "extraction",
+        "httpMethod": "POST",
+        "responseMode": "onReceived"
+      },
+      "id": "webhook_trigger",
+      "name": "Webhook Trigger1",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extrair dados do webhook e normalizar payload\nconst triggerItem = $input.first().json;\nconst payload = triggerItem.body ?? triggerItem;\nconst { webhookId, projectId, projectTitle, input, keywords, piiRedactions, embeddingId, callbackUrl, language } = payload;\n\nconst safeInput = typeof input === 'string' ? input.trim() : '';\nconst safeKeywords = Array.isArray(keywords) ? keywords.filter(Boolean).slice(0, 12) : [];\nconst embeddingPrompt = (safeKeywords.length > 0 ? safeKeywords.join(', ') : safeInput).slice(0, 600);\n\nreturn [{\n  json: {\n    webhookId,\n    projectId,\n    projectTitle,\n    embeddingId,\n    callbackUrl,\n    language: language || 'pt-BR',\n    input: safeInput,\n    keywords: safeKeywords,\n    embeddingPrompt,\n    piiRedactions: piiRedactions || 0,\n    startedAt: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "process_input",
+      "name": "Process Input1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [400, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:11434/api/embeddings",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { model: 'nomic-embed-text', prompt: $json.embeddingPrompt || $json.input } }}"
+      },
+      "id": "ollama_embeddings",
+      "name": "Ollama Embeddings1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://maker-knowledge-v86bxu0.svc.aped-4627-b74a.pinecone.io/query",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "pineconeApi",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "vector",
+              "value": "={{ $node[\"Ollama Embeddings1\"].json.embedding }}"
+            },
+            {
+              "name": "topK",
+              "value": "3"
+            },
+            {
+              "name": "includeMetadata",
+              "value": "true"
+            }
+          ]
+        }
+      },
+      "id": "pinecone_search_http",
+      "name": "Pinecone Search",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [800, 300],
+      "credentials": {
+        "pineconeApi": {
+          "id": "QYwRilEyoiEv0CKM",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:11434/api/generate",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { model: 'qwen2.5:7b-instruct', prompt: `Voce e o MakerBrain v2.\nResponda APENAS JSON valido, sem markdown e sem texto extra.\nIdioma: ${$node[\"Process Input1\"].json.language}.\nProjeto: ${$node[\"Process Input1\"].json.projectTitle}.\nEntrada: ${($node[\"Process Input1\"].json.input || '').slice(0, 900)}\n\nEvidencias tecnicas (top 3):\n${($node[\"Pinecone Search\"].json.results || $node[\"Pinecone Search\"].json.matches || []).slice(0,3).map(d => (d.metadata?.text || '').slice(0, 320)).join('\\n---\\n')}\n\nSchema unico obrigatorio:\n{\"schemaVersion\":\"mc_extract_v2\",\"technicalRequirements\":[{\"id\":\"TR-1\",\"name\":\"string\",\"detail\":\"string\",\"priority\":\"high|medium|low\"}],\"suggestedBOM\":[{\"item\":\"string\",\"quantity\":\"string\",\"notes\":\"string\"}],\"suggestedCode\":\"string\",\"confidenceScore\":0}\n\nRegras:\n1) schemaVersion deve ser exatamente mc_extract_v2\n2) confidenceScore entre 0 e 100\n3) technicalRequirements e suggestedBOM com maximo 6 itens\n4) Se nao houver informacao, mantenha a chave e use string vazia\n5) Nao incluir chaves fora do schema`, stream: false, format: 'json', options: { temperature: 0.1, num_predict: 300 } } }}"
+      },
+      "id": "ollama_rag",
+      "name": "Ollama RAG1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1000, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Preparar payload final para callback\nconst inputData = $node[\"Process Input1\"].json;\nconst aiResponse = $node[\"Ollama RAG1\"].json;\nconst vectorNodes = $node[\"Pinecone Search\"].json;\nconst vectorResults = vectorNodes.matches || vectorNodes.results || [];\n\nconst totalLatencyMs = Date.now() - new Date(inputData.startedAt).getTime();\nconst rawText = aiResponse.response || JSON.stringify(aiResponse);\n\nlet parsedOutput;\nlet parseError = null;\ntry {\n  const cleanText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();\n  parsedOutput = JSON.parse(cleanText);\n} catch (e) {\n  parseError = 'Failed to parse JSON';\n  parsedOutput = {};\n}\n\nconst ensureString = (v, f='') => typeof v === 'string' ? v.trim() : (typeof v === 'number' || typeof v === 'boolean' ? String(v) : f);\nconst clamp = (n, min, max) => Math.max(min, Math.min(max, n));\nconst normalizePriority = (p) => ['high','medium','low'].includes(String(p)) ? String(p) : 'medium';\nconst normalizeConfidence = (v) => { const n = Number(v); if (!Number.isFinite(n)) return 0; const s = n <= 1 ? n * 100 : n; return clamp(Math.round(s * 100)/100, 0, 100); }\n\nconst reqsRaw = Array.isArray(parsedOutput.technicalRequirements) ? parsedOutput.technicalRequirements : [];\nconst reqs = reqsRaw.slice(0,6).map((r, i) => ({\n  id: ensureString(r?.id, `TR-${i+1}`),\n  name: ensureString(r?.name || r?.title || r?.requirement, `Requirement ${i+1}`),\n  detail: ensureString(r?.detail || r?.description || r?.notes, ''),\n  priority: normalizePriority(r?.priority)\n}));\n\nconst bomRaw = Array.isArray(parsedOutput.suggestedBOM) ? parsedOutput.suggestedBOM : [];\nconst bom = bomRaw.slice(0,6).map((b) => ({\n  item: ensureString(b?.item || b?.component || b?.name, ''),\n  quantity: ensureString(b?.quantity, '1'),\n  notes: ensureString(b?.notes || b?.detail || b?.description, '')\n}));\n\nconst normalizedOutput = {\n  schemaVersion: 'mc_extract_v2',\n  technicalRequirements: reqs,\n  suggestedBOM: bom,\n  suggestedCode: ensureString(parsedOutput.suggestedCode, ''),\n  confidenceScore: normalizeConfidence(parsedOutput.confidenceScore),\n  parseError,\n  groundingCount: vectorResults.length,\n  embeddingId: inputData.embeddingId\n};\n\nreturn [{\n  json: {\n    callbackUrl: inputData.callbackUrl,\n    payload: {\n      webhookId: inputData.webhookId,\n      status: 'done',\n      n8nExecutionId: $execution.id,\n      latencyMs: totalLatencyMs,\n      output: normalizedOutput\n    }\n  }\n}];"
+      },
+      "id": "prep_callback",
+      "name": "Prep Callback1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1200, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.callbackUrl }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.payload) }}"
+      },
+      "id": "callback_api",
+      "name": "Callback to API1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1400, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger1": { "main": [[{ "node": "Process Input1", "type": "main", "index": 0 }]] },
+    "Process Input1": { "main": [[{ "node": "Ollama Embeddings1", "type": "main", "index": 0 }]] },
+    "Ollama Embeddings1": { "main": [[{ "node": "Pinecone Search", "type": "main", "index": 0 }]] },
+    "Pinecone Search": { "main": [[{ "node": "Ollama RAG1", "type": "main", "index": 0 }]] },
+    "Ollama RAG1": { "main": [[{ "node": "Prep Callback1", "type": "main", "index": 0 }]] },
+    "Prep Callback1": { "main": [[{ "node": "Callback to API1", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": {}
+}

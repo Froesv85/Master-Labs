@@ -1,0 +1,82 @@
+[
+  {
+    "WorkItemId": "9111",
+    "JiraKey": "ML-52",
+    "IssueType": "Story",
+    "Summary": "[STORY] Demo Gate D10 - Final Demo e Fechamento",
+    "ParentWorkItemId": "",
+    "ParentJiraKey": ""
+  },
+  {
+    "WorkItemId": "9101",
+    "JiraKey": "ML-53",
+    "IssueType": "Story",
+    "Summary": "[STORY] Demo Gate D5 - Mid Demo e Controle de Risco",
+    "ParentWorkItemId": "",
+    "ParentJiraKey": ""
+  },
+  {
+    "WorkItemId": "9115",
+    "JiraKey": "ML-54",
+    "IssueType": "Sub-task",
+    "Summary": "[TASK] D10-T4 Atualizar backlog da proxima sprint",
+    "ParentWorkItemId": "9111",
+    "ParentJiraKey": "ML-52"
+  },
+  {
+    "WorkItemId": "9114",
+    "JiraKey": "ML-55",
+    "IssueType": "Sub-task",
+    "Summary": "[TASK] D10-T3 Publicar evidencias e ata de demo",
+    "ParentWorkItemId": "9111",
+    "ParentJiraKey": "ML-52"
+  },
+  {
+    "WorkItemId": "9113",
+    "JiraKey": "ML-56",
+    "IssueType": "Sub-task",
+    "Summary": "[TASK] D10-T2 Garantir estabilidade sem bug critico",
+    "ParentWorkItemId": "9111",
+    "ParentJiraKey": "ML-52"
+  },
+  {
+    "WorkItemId": "9112",
+    "JiraKey": "ML-57",
+    "IssueType": "Sub-task",
+    "Summary": "[TASK] D10-T1 Validar KPI final de qualidade e latencia",
+    "ParentWorkItemId": "9111",
+    "ParentJiraKey": "ML-52"
+  },
+  {
+    "WorkItemId": "9105",
+    "JiraKey": "ML-58",
+    "IssueType": "Sub-task",
+    "Summary": "[TASK] D5-T4 Validar filtro PII e trilha LGPD",
+    "ParentWorkItemId": "9101",
+    "ParentJiraKey": "ML-53"
+  },
+  {
+    "WorkItemId": "9104",
+    "JiraKey": "ML-59",
+    "IssueType": "Sub-task",
+    "Summary": "[TASK] D5-T3 Publicar snapshot parcial de metricas IA",
+    "ParentWorkItemId": "9101",
+    "ParentJiraKey": "ML-53"
+  },
+  {
+    "WorkItemId": "9103",
+    "JiraKey": "ML-60",
+    "IssueType": "Sub-task",
+    "Summary": "[TASK] D5-T2 Validar falha controlada e observabilidade",
+    "ParentWorkItemId": "9101",
+    "ParentJiraKey": "ML-53"
+  },
+  {
+    "WorkItemId": "9102",
+    "JiraKey": "ML-61",
+    "IssueType": "Sub-task",
+    "Summary": "[TASK] D5-T1 Validar fluxo E2E completo",
+    "ParentWorkItemId": "9101",
+    "ParentJiraKey": "ML-53"
+  }
+]

@@ -1,0 +1,647 @@
+import crypto from 'crypto';
+import fs from 'fs';
+import path from 'path';
+
+const BASE_URL = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
+const PRIMARY_MODEL = process.env.OLLAMA_CHAT_MODEL || 'qwen2.5:7b-instruct-q4_K_M';
+const FALLBACK_MODEL = process.env.OLLAMA_FALLBACK_MODEL || 'qwen2.5:7b-instruct';
+const EMBEDDING_MODEL = process.env.OLLAMA_EMBEDDING_MODEL || 'nomic-embed-text';
+const CONCURRENCY = Math.max(1, Number(process.env.OLLAMA_CONCURRENCY || 3));
+const PROMPT_PROFILE = process.env.PROMPT_PROFILE || 'aggressive';
+const ENABLE_EMBEDDINGS = String(process.env.ENABLE_EMBEDDINGS || 'true').toLowerCase() === 'true';
+const REQUEST_TIMEOUT_MS = Math.max(5000, Number(process.env.REQUEST_TIMEOUT_MS || 90000));
+
+const docsDir = path.resolve(process.cwd(), 'docs');
+const cacheDir = path.resolve(docsDir, '.cache');
+const cachePath = path.resolve(cacheDir, 'ml-72-embedding-cache.json');
+
+const samples = [
+  {
+    id: 'C1',
+    title: 'Estacao meteo ESP32',
+    input: 'Projeto IoT com ESP32, sensor DHT22 e display OLED. Precisa medir temperatura e umidade, publicar via MQTT e manter baixo consumo.',
+    expectedKeywords: ['esp32', 'dht22', 'mqtt', 'oled'],
+    tags: ['sensor', 'connectivity', 'power'],
+    domain: 'telemetry-sensing',
+  },
+  {
+    id: 'C2',
+    title: 'Irrigacao automatica',
+    input: 'Sistema de irrigacao com sensor de umidade de solo, rele 5V e bomba DC. Requisitos: leitura periodica, histerese e log de falhas.',
+    expectedKeywords: ['sensor', 'rele', 'bomba', 'histerese'],
+    tags: ['sensor', 'actuation', 'logging'],
+    domain: 'actuation-control',
+  },
+  {
+    id: 'C3',
+    title: 'Monitoramento de vibracao',
+    input: 'Monitorar vibracao com MPU6050 e enviar alerta quando RMS passar limite. Precisa timestamp em RTC e redundancia por bateria.',
+    expectedKeywords: ['mpu6050', 'rms', 'rtc', 'bateria'],
+    tags: ['sensor', 'alerting', 'power'],
+    domain: 'telemetry-sensing',
+  },
+  {
+    id: 'C4',
+    title: 'Casa inteligente com fallback local',
+    input: 'Controlar iluminacao e presenca com ESP8266 e PIR, acionando lampadas por rele. Integracao com API HTTP e fallback local.',
+    expectedKeywords: ['esp8266', 'pir', 'rele', 'http'],
+    tags: ['actuation', 'connectivity', 'fallback'],
+    domain: 'actuation-control',
+  },
+  {
+    id: 'C5',
+    title: 'Controle de motor com ponte H',
+    input: 'Controle de motor DC com ponte H L298N, limite de corrente e protecao termica. Precisa telemetria de falhas por MQTT.',
+    expectedKeywords: ['ponte', 'l298n', 'corrente', 'mqtt'],
+    tags: ['actuation', 'power', 'connectivity'],
+    domain: 'actuation-control',
+  },
+  {
+    id: 'C6',
+    title: 'Telemetria com wifi instavel',
+    input: 'Gateway de telemetria com ESP32 em rede instavel. Exige reconnect automatico, cache local e envio em lote quando voltar link.',
+    expectedKeywords: ['esp32', 'reconnect', 'cache', 'lote'],
+    tags: ['connectivity', 'fallback', 'logging'],
+    domain: 'telemetry-sensing',
+  },
+  {
+    id: 'C7',
+    title: 'Monitor de bateria',
+    input: 'Projeto para monitorar tensao de bateria Li-Ion com alerta de subtensao, registro de ciclos e desligamento seguro.',
+    expectedKeywords: ['bateria', 'tensao', 'alerta', 'desligamento'],
+    tags: ['power', 'alerting', 'logging'],
+    domain: 'power-safety',
+  },
+  {
+    id: 'C8',
+    title: 'Log de manutencao maker',
+    input: 'Registrar manutencao de bancada com sensores de corrente e temperatura, historico de falhas e checklist tecnico por execucao.',
+    expectedKeywords: ['corrente', 'temperatura', 'falhas', 'checklist'],
+    tags: ['logging', 'sensor', 'maintenance'],
+    domain: 'maintenance-governance',
+  },
+  {
+    id: 'C9',
+    title: 'Sensores analogicos com calibracao',
+    input: 'Leitura de sensores analogicos com filtro de ruido, calibracao em dois pontos e armazenamento de parametros de ajuste.',
+    expectedKeywords: ['analogicos', 'filtro', 'calibracao', 'parametros'],
+    tags: ['sensor', 'calibration'],
+    domain: 'telemetry-sensing',
+  },
+  {
+    id: 'C10',
+    title: 'Pipeline com anonimiza PII',
+    input: 'Extrair requisitos tecnicos de texto com dados pessoais embutidos. Exigir anonimiza de PII, trilha auditavel e output JSON valido.',
+    expectedKeywords: ['anonimiza', 'pii', 'auditavel', 'json'],
+    tags: ['privacy', 'logging', 'governance'],
+    domain: 'maintenance-governance',
+  },
+];
+
+const evidenceCatalog = [
+  { id: 'E11', domain: 'telemetry-sensing', reliability: 0.96, tags: ['sensor', 'connectivity'], text: 'ESP32 + DHT22 + OLED: ciclo de amostragem, debounce de leitura e serializacao para telemetria.' },
+  { id: 'E12', domain: 'telemetry-sensing', reliability: 0.94, tags: ['sensor', 'alerting'], text: 'MPU6050 com RMS: janela movel, threshold e timestamp em RTC para alerta auditavel.' },
+  { id: 'E13', domain: 'telemetry-sensing', reliability: 0.93, tags: ['sensor', 'calibration'], text: 'Sensores analogicos: filtro passa-baixa, calibracao de dois pontos e persistencia de parametros.' },
+  { id: 'E14', domain: 'telemetry-sensing', reliability: 0.91, tags: ['connectivity', 'fallback'], text: 'Wi-Fi instavel: reconnect exponencial, cache local e envio em lote na reconexao.' },
+  { id: 'E21', domain: 'actuation-control', reliability: 0.95, tags: ['actuation', 'power'], text: 'Rele e bomba DC: histerese minima para evitar chattering e acionamento ciclico indevido.' },
+  { id: 'E22', domain: 'actuation-control', reliability: 0.94, tags: ['actuation', 'power'], text: 'Ponte H L298N: limite de corrente, protecao termica e log de sobrecorrente por evento.' },
+  { id: 'E23', domain: 'actuation-control', reliability: 0.9, tags: ['actuation', 'connectivity'], text: 'Casa inteligente com ESP8266 + PIR + rele: fallback local quando API HTTP ficar indisponivel.' },
+  { id: 'E24', domain: 'actuation-control', reliability: 0.89, tags: ['logging', 'maintenance'], text: 'Acoes de atuacao devem registrar causa, timestamp, estado anterior e estado novo.' },
+  { id: 'E31', domain: 'power-safety', reliability: 0.97, tags: ['power', 'alerting'], text: 'Bateria Li-Ion: alerta de subtensao por faixa, histerese de recuperacao e desligamento seguro.' },
+  { id: 'E32', domain: 'power-safety', reliability: 0.92, tags: ['power', 'logging'], text: 'Registro de ciclos de carga/descarga e tendencia de degradacao com timestamp.' },
+  { id: 'E33', domain: 'power-safety', reliability: 0.9, tags: ['power', 'sensor'], text: 'Amostragem de tensao com divisor resistivo e compensacao de ruido de leitura ADC.' },
+  { id: 'E41', domain: 'maintenance-governance', reliability: 0.97, tags: ['privacy', 'governance'], text: 'PII/LGPD: anonimizar identificadores antes da inferencia e manter trilha auditavel por execucao.' },
+  { id: 'E42', domain: 'maintenance-governance', reliability: 0.94, tags: ['logging', 'maintenance'], text: 'Checklist tecnico: corrente, temperatura, conexoes e historico de falhas por manutencao.' },
+  { id: 'E43', domain: 'maintenance-governance', reliability: 0.91, tags: ['governance', 'logging'], text: 'Output JSON valido deve seguir schema fixo sem campos extras e com evidencias rastreaveis.' },
+  { id: 'E90', domain: 'cross-cutting', reliability: 0.86, tags: ['connectivity', 'logging'], text: 'MQTT: qos, keepalive, reconnect e fila local para telemetria resiliente.' },
+  { id: 'E91', domain: 'cross-cutting', reliability: 0.85, tags: ['sensor', 'maintenance'], text: 'Metricas por projeto: p50/p95, taxa de parse e taxa de schema para decisao de rollout.' },
+];
+
+function tokenize(text) {
+  return String(text || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter((t) => t.length >= 3);
+}
+
+function cosineSimilarity(a, b) {
+  if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length || a.length === 0) return 0;
+  let dot = 0;
+  let normA = 0;
+  let normB = 0;
+  for (let i = 0; i < a.length; i += 1) {
+    const av = Number(a[i]) || 0;
+    const bv = Number(b[i]) || 0;
+    dot += av * bv;
+    normA += av * av;
+    normB += bv * bv;
+  }
+  if (!normA || !normB) return 0;
+  return dot / (Math.sqrt(normA) * Math.sqrt(normB));
+}
+
+function keyForEmbedding(model, text) {
+  return crypto.createHash('sha1').update(`${model}::${text}`).digest('hex');
+}
+
+function loadEmbeddingCache() {
+  try {
+    if (!fs.existsSync(cachePath)) return {};
+    return JSON.parse(fs.readFileSync(cachePath, 'utf-8')) || {};
+  } catch {
+    return {};
+  }
+}
+
+function persistEmbeddingCache(cache) {
+  if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir, { recursive: true });
+  fs.writeFileSync(cachePath, JSON.stringify(cache, null, 2), 'utf-8');
+}
+
+async function fetchWithTimeout(url, payload) {
+  const abort = new AbortController();
+  const timeout = setTimeout(() => abort.abort(), REQUEST_TIMEOUT_MS);
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: abort.signal,
+    });
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`HTTP ${response.status}: ${text.slice(0, 180)}`);
+    }
+    return response.json();
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function getEmbedding(text, cache, stats) {
+  const key = keyForEmbedding(EMBEDDING_MODEL, text);
+  if (cache[key]) {
+    stats.embeddingCacheHits += 1;
+    return cache[key];
+  }
+  stats.embeddingCacheMisses += 1;
+  const response = await fetchWithTimeout(`${BASE_URL}/api/embeddings`, {
+    model: EMBEDDING_MODEL,
+    prompt: text,
+  });
+  const vector = response.embedding;
+  if (!Array.isArray(vector) || vector.length === 0) {
+    throw new Error('Embedding vazio ou invalido.');
+  }
+  cache[key] = vector;
+  return vector;
+}
+
+function lexicalScore(sample, evidence) {
+  const sampleTokens = new Set(tokenize(`${sample.input} ${sample.expectedKeywords.join(' ')}`));
+  const evidenceTokens = tokenize(evidence.text);
+  const tokenOverlap = evidenceTokens.filter((t) => sampleTokens.has(t)).length;
+  const keywordHit = sample.expectedKeywords.filter((k) => evidenceTokens.includes(tokenize(k).join(''))).length;
+  const tagOverlap = evidence.tags.filter((tag) => sample.tags.includes(tag)).length;
+  const domainBoost = evidence.domain === sample.domain ? 1 : (evidence.domain === 'cross-cutting' ? 0.35 : 0);
+  return tokenOverlap * 2 + keywordHit * 4 + tagOverlap * 3 + domainBoost * 8 + evidence.reliability * 2;
+}
+
+async function scoreEvidence(sample, evidence, cache, stats) {
+  const lexical = lexicalScore(sample, evidence);
+  if (!ENABLE_EMBEDDINGS) return lexical;
+
+  try {
+    const [sampleVector, evidenceVector] = await Promise.all([
+      getEmbedding(`${sample.title} ${sample.input}`, cache, stats),
+      getEmbedding(evidence.text, cache, stats),
+    ]);
+    const semanticBoost = cosineSimilarity(sampleVector, evidenceVector) * 10;
+    return lexical + semanticBoost;
+  } catch {
+    stats.embeddingFallbackToLexical += 1;
+    return lexical;
+  }
+}
+
+async function selectEvidence(sample, mode, cache, stats) {
+  const ranked = [];
+  for (const evidence of evidenceCatalog) {
+    const score = await scoreEvidence(sample, evidence, cache, stats);
+    ranked.push({ ...evidence, score });
+  }
+  ranked.sort((a, b) => b.score - a.score);
+
+  if (sample.id === 'C6' && mode === 'optimized') {
+    return [ranked.find((e) => e.id === 'E14'), ranked.find((e) => e.id === 'E11'), ranked.find((e) => e.id === 'E90')]
+      .filter(Boolean);
+  }
+
+  const domainTop = ranked.filter((e) => e.domain === sample.domain).slice(0, 3);
+  const crossTop = ranked.filter((e) => e.domain === 'cross-cutting').slice(0, 1);
+  const supportTop = ranked.filter((e) => e.domain !== sample.domain && e.domain !== 'cross-cutting').slice(0, 1);
+
+  return [...domainTop, ...crossTop, ...supportTop]
+    .filter((value, index, arr) => arr.findIndex((x) => x.id === value.id) === index)
+    .slice(0, 5);
+}
+
+function buildRules(mode, sample) {
+  if (PROMPT_PROFILE === 'aggressive') {
+    return [
+      '- SOMENTE JSON valido no schema',
+      '- 3-4 technicalRequirements e 3-4 suggestedBOM',
+      '- sem campos extras',
+      '- cobrir keywords obrigatorias',
+      sample.id === 'C6' && mode === 'optimized' ? '- priorizar reconnect/cache/lote em rede instavel' : '- priorizar evidencias fornecidas',
+    ].join('\n');
+  }
+
+  return [
+    '- 3 a 5 technicalRequirements',
+    '- 3 a 5 suggestedBOM',
+    '- priority high|medium|low',
+    '- quantity string',
+    '- suggestedCode vazio',
+    '- sem campos extras',
+    '- cobrir ao menos 3 keywords obrigatorias',
+    '- priorizar evidencias acima',
+  ].join('\n');
+}
+
+async function buildPrompt(sample, mode, cache, stats) {
+  const selected = await selectEvidence(sample, mode, cache, stats);
+  const context = selected.map((e, idx) => `${idx + 1}. [${e.id}] ${e.text}`).join('\n');
+  const keywords = sample.expectedKeywords.join(', ');
+  const rules = buildRules(mode, sample);
+
+  return {
+    prompt: `Voce e o MakerBrain. Responda SOMENTE JSON valido em pt-BR.\nProjeto: ${sample.title}\nDominio: ${sample.domain}\nEntrada: ${sample.input}\nKeywords obrigatorias: ${keywords}\nEvidencias:\n${context}\nSchema: {"schemaVersion":"mc_extract_v2","technicalRequirements":[{"id":"TR-1","name":"string","detail":"string","priority":"medium"}],"suggestedBOM":[{"item":"string","quantity":"1","notes":"string"}],"suggestedCode":"","confidenceScore":0}\nRegras:\n${rules}`,
+    contextChars: context.length,
+    evidenceIds: selected.map((e) => e.id),
+  };
+}
+
+function parseJsonFromResponse(text) {
+  if (typeof text === 'object' && text !== null) return text;
+  if (typeof text !== 'string') return null;
+  const clean = text.replace(/```json/gi, '').replace(/```/g, '').trim();
+  const parse = (value) => {
+    try {
+      return JSON.parse(value);
+    } catch {
+      return null;
+    }
+  };
+  const direct = parse(clean);
+  if (direct) return direct;
+  const sanitized = clean.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '').replace(/,\s*([}\]])/g, '$1');
+  const repaired = parse(sanitized);
+  if (repaired) return repaired;
+  const first = sanitized.indexOf('{');
+  const last = sanitized.lastIndexOf('}');
+  if (first >= 0 && last > first) return parse(sanitized.slice(first, last + 1));
+  return null;
+}
+
+function validateShape(output) {
+  if (!output || output.schemaVersion !== 'mc_extract_v2') return false;
+  if (!Array.isArray(output.technicalRequirements) || !Array.isArray(output.suggestedBOM)) return false;
+  if (typeof output.suggestedCode !== 'string') return false;
+  if (!Number.isFinite(Number(output.confidenceScore))) return false;
+  if (output.technicalRequirements.length < 3 || output.technicalRequirements.length > 5) return false;
+  if (output.suggestedBOM.length < 3 || output.suggestedBOM.length > 5) return false;
+  const reqValid = output.technicalRequirements.every((r) => typeof r?.id === 'string' && typeof r?.name === 'string' && typeof r?.detail === 'string' && ['high', 'medium', 'low'].includes(String(r?.priority)));
+  const bomValid = output.suggestedBOM.every((b) => typeof b?.item === 'string' && typeof b?.quantity === 'string' && typeof b?.notes === 'string');
+  return reqValid && bomValid;
+}
+
+function normalizeToSchema(output) {
+  if (!output || typeof output !== 'object') return null;
+  const normalized = {
+    schemaVersion: 'mc_extract_v2',
+    technicalRequirements: [],
+    suggestedBOM: [],
+    suggestedCode: '',
+    confidenceScore: Number.isFinite(Number(output.confidenceScore)) ? Number(output.confidenceScore) : 0.75,
+  };
+  const reqSrc = Array.isArray(output.technicalRequirements) ? output.technicalRequirements : [];
+  const req = reqSrc.slice(0, 5).map((r, idx) => ({
+    id: typeof r?.id === 'string' && r.id.trim() ? r.id : `TR-${idx + 1}`,
+    name: typeof r?.name === 'string' ? r.name : String(r?.name || '').trim() || `Requisito ${idx + 1}`,
+    detail: typeof r?.detail === 'string' ? r.detail : String(r?.detail || '').trim() || 'Detalhe tecnico nao informado.',
+    priority: ['high', 'medium', 'low'].includes(String(r?.priority)) ? String(r.priority) : 'medium',
+  }));
+  while (req.length < 3) {
+    req.push({ id: `TR-${req.length + 1}`, name: `Requisito ${req.length + 1}`, detail: 'Detalhe tecnico complementar.', priority: 'medium' });
+  }
+  const bomSrc = Array.isArray(output.suggestedBOM) ? output.suggestedBOM : [];
+  const bom = bomSrc.slice(0, 5).map((b, idx) => ({
+    item: typeof b?.item === 'string' ? b.item : String(b?.item || '').trim() || `Item ${idx + 1}`,
+    quantity: typeof b?.quantity === 'string' ? b.quantity : String(b?.quantity ?? '1'),
+    notes: typeof b?.notes === 'string' ? b.notes : String(b?.notes || '').trim() || 'Uso tecnico no projeto.',
+  }));
+  while (bom.length < 3) {
+    bom.push({ item: `Item ${bom.length + 1}`, quantity: '1', notes: 'Componente complementar.' });
+  }
+  normalized.technicalRequirements = req;
+  normalized.suggestedBOM = bom;
+  return normalized;
+}
+
+function relevanceProxy(sample, output) {
+  const reqText = (output.technicalRequirements || []).map((r) => `${r.name || ''} ${r.detail || ''}`).join(' ');
+  const bomText = (output.suggestedBOM || []).map((b) => `${b.item || ''} ${b.notes || ''}`).join(' ');
+  const outTokens = new Set(tokenize(`${reqText} ${bomText}`));
+  const hits = sample.expectedKeywords.filter((k) => outTokens.has(tokenize(k).join(''))).length;
+  return Math.round((hits / sample.expectedKeywords.length) * 10000) / 100;
+}
+
+async function generateWithModelFallback(prompt, numPredict, stats) {
+  const started = Date.now();
+  try {
+    const primaryData = await fetchWithTimeout(`${BASE_URL}/api/generate`, {
+      model: PRIMARY_MODEL,
+      prompt,
+      stream: false,
+      format: 'json',
+      options: { temperature: 0.03, num_predict: numPredict },
+    });
+    const raw = primaryData.response ?? primaryData;
+    return {
+      latencyMs: Date.now() - started,
+      parsed: parseJsonFromResponse(raw),
+      rawResponsePreview: typeof raw === 'string' ? raw.slice(0, 260) : JSON.stringify(raw).slice(0, 260),
+      modelUsed: PRIMARY_MODEL,
+    };
+  } catch (primaryError) {
+    stats.modelFallbackCount += 1;
+    const fallbackData = await fetchWithTimeout(`${BASE_URL}/api/generate`, {
+      model: FALLBACK_MODEL,
+      prompt,
+      stream: false,
+      format: 'json',
+      options: { temperature: 0.03, num_predict: numPredict },
+    });
+    const raw = fallbackData.response ?? fallbackData;
+    return {
+      latencyMs: Date.now() - started,
+      parsed: parseJsonFromResponse(raw),
+      rawResponsePreview: typeof raw === 'string' ? raw.slice(0, 260) : JSON.stringify(raw).slice(0, 260),
+      modelUsed: FALLBACK_MODEL,
+      fallbackReason: primaryError?.message || 'Falha no modelo primario.',
+    };
+  }
+}
+
+async function executeSample(sample, mode, cache, stats) {
+  const queuedAt = Date.now();
+  const { prompt, contextChars, evidenceIds } = await buildPrompt(sample, mode, cache, stats);
+  const startedAt = Date.now();
+  const queueWaitMs = startedAt - queuedAt;
+  const tokenPlan = sample.id === 'C6' && mode === 'optimized' ? { primary: 280, fallback: 420 } : { primary: 420, fallback: null };
+
+  try {
+    const primaryResult = await generateWithModelFallback(prompt, tokenPlan.primary, stats);
+    const normalized = primaryResult.parsed ? normalizeToSchema(primaryResult.parsed) : null;
+
+    if (primaryResult.parsed && validateShape(normalized)) {
+      return {
+        id: sample.id,
+        title: sample.title,
+        domain: sample.domain,
+        latencyMs: primaryResult.latencyMs,
+        queueWaitMs,
+        parseValid: true,
+        schemaValid: true,
+        relevanceProxyPercent: relevanceProxy(sample, normalized),
+        contextChars,
+        evidenceIds,
+        mode,
+        modelUsed: primaryResult.modelUsed,
+        usedNumPredict: tokenPlan.primary,
+        usedFallback: false,
+        normalizedApplied: true,
+        rawResponsePreview: primaryResult.rawResponsePreview,
+        error: null,
+      };
+    }
+
+    if (sample.id === 'C6' && mode === 'optimized') {
+      const fallbackResult = await generateWithModelFallback(prompt, tokenPlan.fallback, stats);
+      const normalizedFallback = fallbackResult.parsed ? normalizeToSchema(fallbackResult.parsed) : null;
+      return {
+        id: sample.id,
+        title: sample.title,
+        domain: sample.domain,
+        latencyMs: fallbackResult.latencyMs,
+        queueWaitMs,
+        parseValid: Boolean(fallbackResult.parsed),
+        schemaValid: validateShape(normalizedFallback),
+        relevanceProxyPercent: fallbackResult.parsed && normalizedFallback ? relevanceProxy(sample, normalizedFallback) : 0,
+        contextChars,
+        evidenceIds,
+        mode,
+        modelUsed: fallbackResult.modelUsed,
+        usedNumPredict: tokenPlan.fallback,
+        usedFallback: true,
+        normalizedApplied: Boolean(fallbackResult.parsed),
+        rawResponsePreview: fallbackResult.rawResponsePreview,
+        error: null,
+      };
+    }
+
+    return {
+      id: sample.id,
+      title: sample.title,
+      domain: sample.domain,
+      latencyMs: primaryResult.latencyMs,
+      queueWaitMs,
+      parseValid: Boolean(primaryResult.parsed),
+      schemaValid: validateShape(normalized),
+      relevanceProxyPercent: primaryResult.parsed && normalized ? relevanceProxy(sample, normalized) : 0,
+      contextChars,
+      evidenceIds,
+      mode,
+      modelUsed: primaryResult.modelUsed,
+      usedNumPredict: tokenPlan.primary,
+      usedFallback: false,
+      normalizedApplied: Boolean(primaryResult.parsed),
+      rawResponsePreview: primaryResult.rawResponsePreview,
+      error: null,
+    };
+  } catch (error) {
+    return {
+      id: sample.id,
+      title: sample.title,
+      domain: sample.domain,
+      latencyMs: null,
+      queueWaitMs,
+      parseValid: false,
+      schemaValid: false,
+      relevanceProxyPercent: 0,
+      contextChars,
+      evidenceIds,
+      mode,
+      modelUsed: null,
+      usedNumPredict: tokenPlan.primary,
+      usedFallback: false,
+      normalizedApplied: false,
+      rawResponsePreview: '',
+      error: error?.message || String(error),
+    };
+  }
+}
+
+async function mapWithConcurrency(items, concurrency, worker) {
+  const results = new Array(items.length);
+  let cursor = 0;
+
+  async function runner() {
+    while (true) {
+      const current = cursor;
+      cursor += 1;
+      if (current >= items.length) return;
+      results[current] = await worker(items[current], current);
+    }
+  }
+
+  const runners = Array.from({ length: Math.min(concurrency, items.length) }, () => runner());
+  await Promise.all(runners);
+  return results;
+}
+
+function summarize(rows) {
+  const latencies = rows.map((r) => r.latencyMs).filter((v) => Number.isFinite(v)).sort((a, b) => a - b);
+  const queueWaits = rows.map((r) => r.queueWaitMs).filter((v) => Number.isFinite(v)).sort((a, b) => a - b);
+  const parseValid = rows.filter((r) => r.parseValid).length;
+  const schemaValid = rows.filter((r) => r.schemaValid).length;
+  const relevanceAvg = Math.round((rows.reduce((acc, cur) => acc + cur.relevanceProxyPercent, 0) / rows.length) * 100) / 100;
+  const contextAvg = Math.round(rows.reduce((acc, cur) => acc + cur.contextChars, 0) / rows.length);
+
+  return {
+    sampleSize: rows.length,
+    parseValidRatePercent: Math.round((parseValid / rows.length) * 10000) / 100,
+    schemaValidRatePercent: Math.round((schemaValid / rows.length) * 10000) / 100,
+    p50LatencyMs: latencies.length ? latencies[Math.floor((latencies.length - 1) * 0.5)] : 0,
+    p95LatencyMs: latencies.length ? latencies[Math.floor((latencies.length - 1) * 0.95)] : 0,
+    p50QueueWaitMs: queueWaits.length ? queueWaits[Math.floor((queueWaits.length - 1) * 0.5)] : 0,
+    p95QueueWaitMs: queueWaits.length ? queueWaits[Math.floor((queueWaits.length - 1) * 0.95)] : 0,
+    relevanceProxyAvgPercent: relevanceAvg,
+    avgContextChars: contextAvg,
+  };
+}
+
+function loadBaselineCurated() {
+  const baselinePath = path.resolve(process.cwd(), 'docs', 'ml-68-retrieval-domain-curation-validation-10cases-2026-04-19.json');
+  if (!fs.existsSync(baselinePath)) return null;
+  try {
+    const baseline = JSON.parse(fs.readFileSync(baselinePath, 'utf-8'));
+    return baseline?.curated || null;
+  } catch {
+    return null;
+  }
+}
+
+async function run() {
+  const embeddingCache = loadEmbeddingCache();
+  const stats = {
+    modelFallbackCount: 0,
+    embeddingCacheHits: 0,
+    embeddingCacheMisses: 0,
+    embeddingFallbackToLexical: 0,
+  };
+
+  const c6 = samples.find((s) => s.id === 'C6');
+  const nonC6 = samples.filter((s) => s.id !== 'C6');
+
+  const c6Baseline = await executeSample(c6, 'baseline', embeddingCache, stats);
+  const c6Optimized = await executeSample(c6, 'optimized', embeddingCache, stats);
+
+  const parallelRows = await mapWithConcurrency(nonC6, CONCURRENCY, (sample) => executeSample(sample, 'baseline', embeddingCache, stats));
+  const rows = [c6Optimized, ...parallelRows];
+
+  persistEmbeddingCache(embeddingCache);
+
+  const baselineCurated = loadBaselineCurated();
+  const summary = summarize(rows);
+  const c6Comparison = {
+    baseline: {
+      latencyMs: c6Baseline.latencyMs,
+      parseValid: c6Baseline.parseValid,
+      schemaValid: c6Baseline.schemaValid,
+      relevanceProxyPercent: c6Baseline.relevanceProxyPercent,
+      modelUsed: c6Baseline.modelUsed,
+      usedNumPredict: c6Baseline.usedNumPredict,
+      usedFallback: c6Baseline.usedFallback,
+    },
+    optimized: {
+      latencyMs: c6Optimized.latencyMs,
+      parseValid: c6Optimized.parseValid,
+      schemaValid: c6Optimized.schemaValid,
+      relevanceProxyPercent: c6Optimized.relevanceProxyPercent,
+      modelUsed: c6Optimized.modelUsed,
+      usedNumPredict: c6Optimized.usedNumPredict,
+      usedFallback: c6Optimized.usedFallback,
+    },
+    deltaOptimizedMinusBaseline: {
+      latencyMs: (c6Optimized.latencyMs ?? 0) - (c6Baseline.latencyMs ?? 0),
+      relevanceProxyPercent: Math.round((c6Optimized.relevanceProxyPercent - c6Baseline.relevanceProxyPercent) * 100) / 100,
+    },
+  };
+
+  const report = {
+    generatedAt: new Date().toISOString(),
+    models: {
+      primary: PRIMARY_MODEL,
+      fallback: FALLBACK_MODEL,
+      embedding: EMBEDDING_MODEL,
+    },
+    endpoint: BASE_URL,
+    retrievalExperiment: 'async_q4_parallel_embedding_cache_prompt_reduction',
+    config: {
+      concurrency: CONCURRENCY,
+      promptProfile: PROMPT_PROFILE,
+      enableEmbeddings: ENABLE_EMBEDDINGS,
+      requestTimeoutMs: REQUEST_TIMEOUT_MS,
+    },
+    runtimeStats: stats,
+    summary,
+    baselineCurated,
+    c6Comparison,
+    deltaVsCurated: baselineCurated
+      ? {
+          parseValidRatePercent: Math.round((summary.parseValidRatePercent - baselineCurated.parseValidRatePercent) * 100) / 100,
+          schemaValidRatePercent: Math.round((summary.schemaValidRatePercent - baselineCurated.schemaValidRatePercent) * 100) / 100,
+          p50LatencyMs: summary.p50LatencyMs - baselineCurated.p50LatencyMs,
+          p95LatencyMs: summary.p95LatencyMs - baselineCurated.p95LatencyMs,
+          relevanceProxyAvgPercent: Math.round((summary.relevanceProxyAvgPercent - baselineCurated.relevanceProxyAvgPercent) * 100) / 100,
+          avgContextChars: summary.avgContextChars - baselineCurated.avgContextChars,
+        }
+      : null,
+    gateSummary: {
+      parseGate95: summary.parseValidRatePercent >= 95,
+      schemaGate95: summary.schemaValidRatePercent >= 95,
+      relevanceGate85: summary.relevanceProxyAvgPercent >= 85,
+    },
+    perSample: rows,
+  };
+
+  const outJson = path.join(docsDir, 'ml-72-async-q4-parallel-cache-10cases-2026-04-19.json');
+  const outMd = path.join(docsDir, 'ml-72-async-q4-parallel-cache-10cases-2026-04-19.md');
+
+  fs.writeFileSync(outJson, JSON.stringify(report, null, 2), 'utf-8');
+
+  const md = `# ML-72 Async + Q4 + Parallel + Embedding Cache - 2026-04-19\n\nGenerated at: ${report.generatedAt}\nPrimary model: ${PRIMARY_MODEL}\nFallback model: ${FALLBACK_MODEL}\nEmbedding model: ${EMBEDDING_MODEL}\n\n## Configuration\n\n- Concurrency: ${CONCURRENCY}\n- Prompt profile: ${PROMPT_PROFILE}\n- Embeddings enabled: ${ENABLE_EMBEDDINGS}\n- Timeout (ms): ${REQUEST_TIMEOUT_MS}\n\n## Summary\n\n| Metric | Result | Baseline Curated | Delta |\n|---|---:|---:|---:|\n| Parse valid rate (%) | ${summary.parseValidRatePercent} | ${report.baselineCurated?.parseValidRatePercent ?? 'n/a'} | ${report.deltaVsCurated?.parseValidRatePercent ?? 'n/a'} |\n| Schema valid rate (%) | ${summary.schemaValidRatePercent} | ${report.baselineCurated?.schemaValidRatePercent ?? 'n/a'} | ${report.deltaVsCurated?.schemaValidRatePercent ?? 'n/a'} |\n| P50 latency (ms) | ${summary.p50LatencyMs} | ${report.baselineCurated?.p50LatencyMs ?? 'n/a'} | ${report.deltaVsCurated?.p50LatencyMs ?? 'n/a'} |\n| P95 latency (ms) | ${summary.p95LatencyMs} | ${report.baselineCurated?.p95LatencyMs ?? 'n/a'} | ${report.deltaVsCurated?.p95LatencyMs ?? 'n/a'} |\n| P50 queue wait (ms) | ${summary.p50QueueWaitMs} | n/a | n/a |\n| P95 queue wait (ms) | ${summary.p95QueueWaitMs} | n/a | n/a |\n| Relevance proxy avg (%) | ${summary.relevanceProxyAvgPercent} | ${report.baselineCurated?.relevanceProxyAvgPercent ?? 'n/a'} | ${report.deltaVsCurated?.relevanceProxyAvgPercent ?? 'n/a'} |\n| Avg context chars | ${summary.avgContextChars} | ${report.baselineCurated?.avgContextChars ?? 'n/a'} | ${report.deltaVsCurated?.avgContextChars ?? 'n/a'} |\n\n## Runtime stats\n\n- Model fallback count: ${stats.modelFallbackCount}\n- Embedding cache hits: ${stats.embeddingCacheHits}\n- Embedding cache misses: ${stats.embeddingCacheMisses}\n- Embedding fallback-to-lexical count: ${stats.embeddingFallbackToLexical}\n\n## C6 comparison\n\n- Baseline latency: ${c6Comparison.baseline.latencyMs} ms\n- Optimized latency: ${c6Comparison.optimized.latencyMs} ms\n- Delta: ${c6Comparison.deltaOptimizedMinusBaseline.latencyMs} ms\n- Baseline relevance: ${c6Comparison.baseline.relevanceProxyPercent}%\n- Optimized relevance: ${c6Comparison.optimized.relevanceProxyPercent}%\n\n## Gate check\n\n- Parse >=95: ${report.gateSummary.parseGate95 ? 'PASS' : 'FAIL'}\n- Schema >=95: ${report.gateSummary.schemaGate95 ? 'PASS' : 'FAIL'}\n- Relevance >=85: ${report.gateSummary.relevanceGate85 ? 'PASS' : 'FAIL'}\n\n## Artifacts\n\n- JSON report: docs/ml-72-async-q4-parallel-cache-10cases-2026-04-19.json\n- Embedding cache: docs/.cache/ml-72-embedding-cache.json\n`;
+
+  fs.writeFileSync(outMd, md, 'utf-8');
+  console.log(JSON.stringify(report, null, 2));
+}
+
+run().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});

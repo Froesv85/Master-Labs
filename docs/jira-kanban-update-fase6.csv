@@ -1,0 +1,8 @@
+Work Item ID,JiraKey,Issue Type,Current Status,Suggested Status,Comment
+,ML-28,Sub-task,In Progress,Done,"Job Queue implantada na infraestrutura MVP via execucao asincrona Promisse. O log do processamento persiste no DB na tabela ProjectExport de 'queued/processing' ate 'done/failed'."
+,ML-27,Sub-task,In Progress,Done,"A solucao do template de PDF integrou os arrays de Requisitos Tecnicos e a lista de hardware (BOM) injetando o rodapé auditavel oficial na interface, com bypass via 'jspdf'."
+,ML-19,Story,In Progress,Done,"Worker habilitado com sucesso. Foi incorporado um servidor corporativo S3 local (MinIO) subindo pelo docker-compose que centraliza todos os arquivos exportaveis blindando os storage disks da Vercel."
+,ML-26,Sub-task,In Progress,Done,"Endpoint GET list operante na rota /api/projects/:id/export. Ele prove a url externa dos bucket nodes pro front-end consumir perfeitamente a leitura passiva no loop de checkagem."
+,ML-25,Sub-task,In Progress,Done,"Painel export-panel.tsx anexado na project page consumindo REST API de check e informando dinamicamente (poll UI) os stages da maquina para o lead com o link final da Amazon (S3 local)."
+,ML-18,Story,In Progress,Done,"Historico monitorado com sucesso pela aplicacao e isolante termicamente da arquitetura do banco. Os links externos para a sub-rede docker de s3 sao abertamente disponiveis com public read permissions checkadas onboard."
+,ML-14,Epic,In Progress,Done,"Completamos com altissimo nivel tecnico o Epic. A exportação agrupa todo a infraestrutura de dados da plataforma numa folha impressa (Hardware PDF) consolidando a premissa de Governança para os Projetos IoT e fechando as funcionalidades vitais do MakerConnect."

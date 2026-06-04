@@ -1,0 +1,45 @@
+{
+  "startedAt": "2026-04-18T02:30:17.554Z",
+  "total": 5,
+  "done": 2,
+  "queued": 3,
+  "failed": 0,
+  "allDone": false,
+  "rows": [
+    {
+      "id": 84,
+      "webhookId": "webhook_1776479417631_9165ffca",
+      "status": "done",
+      "latencyMs": 358943,
+      "n8nExecutionId": "107"
+    },
+    {
+      "id": 85,
+      "webhookId": "webhook_1776479417713_9eea43b0",
+      "status": "queued",
+      "latencyMs": null,
+      "n8nExecutionId": null
+    },
+    {
+      "id": 86,
+      "webhookId": "webhook_1776479417787_5fcc0645",
+      "status": "queued",
+      "latencyMs": null,
+      "n8nExecutionId": null
+    },
+    {
+      "id": 87,
+      "webhookId": "webhook_1776479417857_245f5155",
+      "status": "queued",
+      "latencyMs": null,
+      "n8nExecutionId": null
+    },
+    {
+      "id": 88,
+      "webhookId": "webhook_1776479417949_7dbfa2c3",
+      "status": "done",
+      "latencyMs": 299595,
+      "n8nExecutionId": "111"
+    }
+  ]
+}

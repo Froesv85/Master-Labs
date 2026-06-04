@@ -1,0 +1,554 @@
+﻿[
+    {
+        "WorkItemId":  "5601",
+        "JiraKey":  "ML-75",
+        "IssueType":  "Epic",
+        "Summary":  "[EPIC] E6 Governanca minima e observabilidade",
+        "ParentWorkItemId":  "",
+        "ParentJiraKey":  ""
+    },
+    {
+        "WorkItemId":  "5501",
+        "JiraKey":  "ML-76",
+        "IssueType":  "Epic",
+        "Summary":  "[EPIC] E5 Comunidades Publicas e Privadas",
+        "ParentWorkItemId":  "",
+        "ParentJiraKey":  ""
+    },
+    {
+        "WorkItemId":  "5401",
+        "JiraKey":  "ML-77",
+        "IssueType":  "Epic",
+        "Summary":  "[EPIC] E4 Equipes",
+        "ParentWorkItemId":  "",
+        "ParentJiraKey":  ""
+    },
+    {
+        "WorkItemId":  "5301",
+        "JiraKey":  "ML-78",
+        "IssueType":  "Epic",
+        "Summary":  "[EPIC] E3 Robos, Partidas e Ranking",
+        "ParentWorkItemId":  "",
+        "ParentJiraKey":  ""
+    },
+    {
+        "WorkItemId":  "5201",
+        "JiraKey":  "ML-79",
+        "IssueType":  "Epic",
+        "Summary":  "[EPIC] E2 Feed Social de Projetos",
+        "ParentWorkItemId":  "",
+        "ParentJiraKey":  ""
+    },
+    {
+        "WorkItemId":  "5101",
+        "JiraKey":  "ML-80",
+        "IssueType":  "Epic",
+        "Summary":  "[EPIC] E1 Identidade e Perfil Maker",
+        "ParentWorkItemId":  "",
+        "ParentJiraKey":  ""
+    },
+    {
+        "WorkItemId":  "5603",
+        "JiraKey":  "ML-81",
+        "IssueType":  "Story",
+        "Summary":  "[STORY] E6-S2 Saude operacional",
+        "ParentWorkItemId":  "5601",
+        "ParentJiraKey":  "ML-75"
+    },
+    {
+        "WorkItemId":  "5602",
+        "JiraKey":  "ML-82",
+        "IssueType":  "Story",
+        "Summary":  "[STORY] E6-S1 Auditoria basica",
+        "ParentWorkItemId":  "5601",
+        "ParentJiraKey":  "ML-75"
+    },
+    {
+        "WorkItemId":  "5504",
+        "JiraKey":  "ML-83",
+        "IssueType":  "Story",
+        "Summary":  "[STORY] E5-S3 Conteudo em comunidade",
+        "ParentWorkItemId":  "5501",
+        "ParentJiraKey":  "ML-76"
+    },
+    {
+        "WorkItemId":  "5503",
+        "JiraKey":  "ML-84",
+        "IssueType":  "Story",
+        "Summary":  "[STORY] E5-S2 Fluxo de adesao",
+        "ParentWorkItemId":  "5501",
+        "ParentJiraKey":  "ML-76"
+    },
+    {
+        "WorkItemId":  "5502",
+        "JiraKey":  "ML-85",
+        "IssueType":  "Story",
+        "Summary":  "[STORY] E5-S1 Criacao de comunidade",
+        "ParentWorkItemId":  "5501",
+        "ParentJiraKey":  "ML-76"
+    },
+    {
+        "WorkItemId":  "5403",
+        "JiraKey":  "ML-86",
+        "IssueType":  "Story",
+        "Summary":  "[STORY] E4-S2 Permissoes basicas por papel",
+        "ParentWorkItemId":  "5401",
+        "ParentJiraKey":  "ML-77"
+    },
+    {
+        "WorkItemId":  "5402",
+        "JiraKey":  "ML-87",
+        "IssueType":  "Story",
+        "Summary":  "[STORY] E4-S1 Criacao e gestao de equipe",
+        "ParentWorkItemId":  "5401",
+        "ParentJiraKey":  "ML-77"
+    },
+    {
+        "WorkItemId":  "5304",
+        "JiraKey":  "ML-88",
+        "IssueType":  "Story",
+        "Summary":  "[STORY] E3-S3 Estatisticas e ranking",
+        "ParentWorkItemId":  "5301",
+        "ParentJiraKey":  "ML-78"
+    },
+    {
+        "WorkItemId":  "5303",
+        "JiraKey":  "ML-89",
+        "IssueType":  "Story",
+        "Summary":  "[STORY] E3-S2 Registro de partidas",
+        "ParentWorkItemId":  "5301",
+        "ParentJiraKey":  "ML-78"
+    },
+    {
+        "WorkItemId":  "5302",
+        "JiraKey":  "ML-90",
+        "IssueType":  "Story",
+        "Summary":  "[STORY] E3-S1 Cadastro de robo",
+        "ParentWorkItemId":  "5301",
+        "ParentJiraKey":  "ML-78"
+    },
+    {
+        "WorkItemId":  "5204",
+        "JiraKey":  "ML-91",
+        "IssueType":  "Story",
+        "Summary":  "[STORY] E2-S3 Feed com filtro",
+        "ParentWorkItemId":  "5201",
+        "ParentJiraKey":  "ML-79"
+    },
+    {
+        "WorkItemId":  "5203",
+        "JiraKey":  "ML-92",
+        "IssueType":  "Story",
+        "Summary":  "[STORY] E2-S2 Interacao social",
+        "ParentWorkItemId":  "5201",
+        "ParentJiraKey":  "ML-79"
+    },
+    {
+        "WorkItemId":  "5202",
+        "JiraKey":  "ML-93",
+        "IssueType":  "Story",
+        "Summary":  "[STORY] E2-S1 Publicacao de post",
+        "ParentWorkItemId":  "5201",
+        "ParentJiraKey":  "ML-79"
+    },
+    {
+        "WorkItemId":  "5103",
+        "JiraKey":  "ML-94",
+        "IssueType":  "Story",
+        "Summary":  "[STORY] E1-S2 Perfil com stack tecnico",
+        "ParentWorkItemId":  "5101",
+        "ParentJiraKey":  "ML-80"
+    },
+    {
+        "WorkItemId":  "5102",
+        "JiraKey":  "ML-95",
+        "IssueType":  "Story",
+        "Summary":  "[STORY] E1-S1 Cadastro e autenticacao",
+        "ParentWorkItemId":  "5101",
+        "ParentJiraKey":  "ML-80"
+    },
+    {
+        "WorkItemId":  "5609",
+        "JiraKey":  "ML-96",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E6-S2-T3 Dashboard basico de falhas",
+        "ParentWorkItemId":  "5603",
+        "ParentJiraKey":  "ML-81"
+    },
+    {
+        "WorkItemId":  "5608",
+        "JiraKey":  "ML-97",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E6-S2-T2 Log estruturado",
+        "ParentWorkItemId":  "5603",
+        "ParentJiraKey":  "ML-81"
+    },
+    {
+        "WorkItemId":  "5607",
+        "JiraKey":  "ML-98",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E6-S2-T1 Healthcheck de API",
+        "ParentWorkItemId":  "5603",
+        "ParentJiraKey":  "ML-81"
+    },
+    {
+        "WorkItemId":  "5606",
+        "JiraKey":  "ML-99",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E6-S1-T3 Consulta basica de eventos",
+        "ParentWorkItemId":  "5602",
+        "ParentJiraKey":  "ML-82"
+    },
+    {
+        "WorkItemId":  "5605",
+        "JiraKey":  "ML-100",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E6-S1-T2 Log aprovacao/rejeicao comunidade",
+        "ParentWorkItemId":  "5602",
+        "ParentJiraKey":  "ML-82"
+    },
+    {
+        "WorkItemId":  "5604",
+        "JiraKey":  "ML-101",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E6-S1-T1 Log alteracao de partida",
+        "ParentWorkItemId":  "5602",
+        "ParentJiraKey":  "ML-82"
+    },
+    {
+        "WorkItemId":  "5513",
+        "JiraKey":  "ML-102",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E5-S3-T3 Listagem de posts por comunidade",
+        "ParentWorkItemId":  "5504",
+        "ParentJiraKey":  "ML-83"
+    },
+    {
+        "WorkItemId":  "5512",
+        "JiraKey":  "ML-103",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E5-S3-T2 Restricao por aprovacao",
+        "ParentWorkItemId":  "5504",
+        "ParentJiraKey":  "ML-83"
+    },
+    {
+        "WorkItemId":  "5511",
+        "JiraKey":  "ML-104",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E5-S3-T1 Endpoint de post da comunidade",
+        "ParentWorkItemId":  "5504",
+        "ParentJiraKey":  "ML-83"
+    },
+    {
+        "WorkItemId":  "5510",
+        "JiraKey":  "ML-105",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E5-S2-T3 Garantir status membership",
+        "ParentWorkItemId":  "5503",
+        "ParentJiraKey":  "ML-84"
+    },
+    {
+        "WorkItemId":  "5509",
+        "JiraKey":  "ML-106",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E5-S2-T2 Endpoint aprovacao/rejeicao",
+        "ParentWorkItemId":  "5503",
+        "ParentJiraKey":  "ML-84"
+    },
+    {
+        "WorkItemId":  "5508",
+        "JiraKey":  "ML-107",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E5-S2-T1 Endpoint join",
+        "ParentWorkItemId":  "5503",
+        "ParentJiraKey":  "ML-84"
+    },
+    {
+        "WorkItemId":  "5507",
+        "JiraKey":  "ML-108",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E5-S1-T3 Persistir regras da comunidade",
+        "ParentWorkItemId":  "5502",
+        "ParentJiraKey":  "ML-85"
+    },
+    {
+        "WorkItemId":  "5506",
+        "JiraKey":  "ML-109",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E5-S1-T2 Endpoint criacao public/private",
+        "ParentWorkItemId":  "5502",
+        "ParentJiraKey":  "ML-85"
+    },
+    {
+        "WorkItemId":  "5505",
+        "JiraKey":  "ML-110",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E5-S1-T1 Criar tabelas communities e members",
+        "ParentWorkItemId":  "5502",
+        "ParentJiraKey":  "ML-85"
+    },
+    {
+        "WorkItemId":  "5409",
+        "JiraKey":  "ML-111",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E4-S2-T3 Testes de permissao",
+        "ParentWorkItemId":  "5403",
+        "ParentJiraKey":  "ML-86"
+    },
+    {
+        "WorkItemId":  "5408",
+        "JiraKey":  "ML-112",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E4-S2-T2 Middleware de autorizacao",
+        "ParentWorkItemId":  "5403",
+        "ParentJiraKey":  "ML-86"
+    },
+    {
+        "WorkItemId":  "5407",
+        "JiraKey":  "ML-113",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E4-S2-T1 Definir papeis captain e member",
+        "ParentWorkItemId":  "5403",
+        "ParentJiraKey":  "ML-86"
+    },
+    {
+        "WorkItemId":  "5406",
+        "JiraKey":  "ML-114",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E4-S1-T3 Endpoint convite e aceitacao",
+        "ParentWorkItemId":  "5402",
+        "ParentJiraKey":  "ML-87"
+    },
+    {
+        "WorkItemId":  "5405",
+        "JiraKey":  "ML-115",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E4-S1-T2 Endpoint criacao de equipe",
+        "ParentWorkItemId":  "5402",
+        "ParentJiraKey":  "ML-87"
+    },
+    {
+        "WorkItemId":  "5404",
+        "JiraKey":  "ML-116",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E4-S1-T1 Criar tabelas teams e team_members",
+        "ParentWorkItemId":  "5402",
+        "ParentJiraKey":  "ML-87"
+    },
+    {
+        "WorkItemId":  "5314",
+        "JiraKey":  "ML-117",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E3-S3-T4 Job de recomputo",
+        "ParentWorkItemId":  "5304",
+        "ParentJiraKey":  "ML-88"
+    },
+    {
+        "WorkItemId":  "5313",
+        "JiraKey":  "ML-118",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E3-S3-T3 Endpoint leaderboard usuarios",
+        "ParentWorkItemId":  "5304",
+        "ParentJiraKey":  "ML-88"
+    },
+    {
+        "WorkItemId":  "5312",
+        "JiraKey":  "ML-119",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E3-S3-T2 Endpoint leaderboard robos",
+        "ParentWorkItemId":  "5304",
+        "ParentJiraKey":  "ML-88"
+    },
+    {
+        "WorkItemId":  "5311",
+        "JiraKey":  "ML-120",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E3-S3-T1 Endpoint stats por robo",
+        "ParentWorkItemId":  "5304",
+        "ParentJiraKey":  "ML-88"
+    },
+    {
+        "WorkItemId":  "5310",
+        "JiraKey":  "ML-121",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E3-S2-T3 Regras de integridade",
+        "ParentWorkItemId":  "5303",
+        "ParentJiraKey":  "ML-89"
+    },
+    {
+        "WorkItemId":  "5309",
+        "JiraKey":  "ML-122",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E3-S2-T2 Endpoint POST de partidas",
+        "ParentWorkItemId":  "5303",
+        "ParentJiraKey":  "ML-89"
+    },
+    {
+        "WorkItemId":  "5308",
+        "JiraKey":  "ML-123",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E3-S2-T1 Criar tabela robot_matches",
+        "ParentWorkItemId":  "5303",
+        "ParentJiraKey":  "ML-89"
+    },
+    {
+        "WorkItemId":  "5307",
+        "JiraKey":  "ML-124",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E3-S1-T3 Validar ownership",
+        "ParentWorkItemId":  "5302",
+        "ParentJiraKey":  "ML-90"
+    },
+    {
+        "WorkItemId":  "5306",
+        "JiraKey":  "ML-125",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E3-S1-T2 Endpoint POST e GET de robo",
+        "ParentWorkItemId":  "5302",
+        "ParentJiraKey":  "ML-90"
+    },
+    {
+        "WorkItemId":  "5305",
+        "JiraKey":  "ML-126",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E3-S1-T1 Criar tabela robots",
+        "ParentWorkItemId":  "5302",
+        "ParentJiraKey":  "ML-90"
+    },
+    {
+        "WorkItemId":  "5214",
+        "JiraKey":  "ML-127",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E2-S3-T3 Componente de feed",
+        "ParentWorkItemId":  "5204",
+        "ParentJiraKey":  "ML-91"
+    },
+    {
+        "WorkItemId":  "5213",
+        "JiraKey":  "ML-128",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E2-S3-T2 Filtro por categoria e visibilidade",
+        "ParentWorkItemId":  "5204",
+        "ParentJiraKey":  "ML-91"
+    },
+    {
+        "WorkItemId":  "5212",
+        "JiraKey":  "ML-129",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E2-S3-T1 Endpoint GET feed",
+        "ParentWorkItemId":  "5204",
+        "ParentJiraKey":  "ML-91"
+    },
+    {
+        "WorkItemId":  "5211",
+        "JiraKey":  "ML-130",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E2-S2-T4 Endpoint remover reacao",
+        "ParentWorkItemId":  "5203",
+        "ParentJiraKey":  "ML-92"
+    },
+    {
+        "WorkItemId":  "5210",
+        "JiraKey":  "ML-131",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E2-S2-T3 Endpoint de reacao",
+        "ParentWorkItemId":  "5203",
+        "ParentJiraKey":  "ML-92"
+    },
+    {
+        "WorkItemId":  "5209",
+        "JiraKey":  "ML-132",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E2-S2-T2 Endpoint de comentario",
+        "ParentWorkItemId":  "5203",
+        "ParentJiraKey":  "ML-92"
+    },
+    {
+        "WorkItemId":  "5208",
+        "JiraKey":  "ML-133",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E2-S2-T1 Criar tabelas comments e reactions",
+        "ParentWorkItemId":  "5203",
+        "ParentJiraKey":  "ML-92"
+    },
+    {
+        "WorkItemId":  "5207",
+        "JiraKey":  "ML-134",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E2-S1-T3 Validar visibilidade e autor",
+        "ParentWorkItemId":  "5202",
+        "ParentJiraKey":  "ML-93"
+    },
+    {
+        "WorkItemId":  "5206",
+        "JiraKey":  "ML-135",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E2-S1-T2 Endpoint POST de post",
+        "ParentWorkItemId":  "5202",
+        "ParentJiraKey":  "ML-93"
+    },
+    {
+        "WorkItemId":  "5205",
+        "JiraKey":  "ML-136",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E2-S1-T1 Criar tabela posts",
+        "ParentWorkItemId":  "5202",
+        "ParentJiraKey":  "ML-93"
+    },
+    {
+        "WorkItemId":  "5110",
+        "JiraKey":  "ML-137",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E1-S2-T3 Tela de perfil",
+        "ParentWorkItemId":  "5103",
+        "ParentJiraKey":  "ML-94"
+    },
+    {
+        "WorkItemId":  "5109",
+        "JiraKey":  "ML-138",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E1-S2-T2 Endpoint PATCH de perfil",
+        "ParentWorkItemId":  "5103",
+        "ParentJiraKey":  "ML-94"
+    },
+    {
+        "WorkItemId":  "5108",
+        "JiraKey":  "ML-139",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E1-S2-T1 Endpoint GET de perfil",
+        "ParentWorkItemId":  "5103",
+        "ParentJiraKey":  "ML-94"
+    },
+    {
+        "WorkItemId":  "5107",
+        "JiraKey":  "ML-140",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E1-S1-T4 Testes de credenciais",
+        "ParentWorkItemId":  "5102",
+        "ParentJiraKey":  "ML-95"
+    },
+    {
+        "WorkItemId":  "5106",
+        "JiraKey":  "ML-141",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E1-S1-T3 Implementar endpoint de login",
+        "ParentWorkItemId":  "5102",
+        "ParentJiraKey":  "ML-95"
+    },
+    {
+        "WorkItemId":  "5105",
+        "JiraKey":  "ML-142",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E1-S1-T2 Implementar endpoint de registro",
+        "ParentWorkItemId":  "5102",
+        "ParentJiraKey":  "ML-95"
+    },
+    {
+        "WorkItemId":  "5104",
+        "JiraKey":  "ML-143",
+        "IssueType":  "Sub-task",
+        "Summary":  "[TASK] E1-S1-T1 Criar tabela users e indice unico",
+        "ParentWorkItemId":  "5102",
+        "ParentJiraKey":  "ML-95"
+    }
+]

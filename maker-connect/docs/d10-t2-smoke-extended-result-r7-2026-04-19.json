@@ -1,0 +1,60 @@
+{
+  "generatedAt": "2026-04-19T11:05:24.8885520-03:00",
+  "lotLabel": "r7",
+  "observePolicy": {
+    "maxRequestRetries": 3,
+    "requestTimeoutSeconds": 20,
+    "pollIntervalSeconds": 8,
+    "maxObserveSeconds": 120
+  },
+  "sampleSizeRequested": 5,
+  "triggeredCount": 5,
+  "triggerFailureCount": 0,
+  "pollFailureCount": 0,
+  "missing": 0,
+  "total": 5,
+  "done": 1,
+  "queued": 4,
+  "processing": 0,
+  "failed": 0,
+  "allDone": false,
+  "finalStatus": "partial",
+  "triggerFailures": [],
+  "observations": [
+    {
+      "id": 190,
+      "status": "queued",
+      "latencyMs": null,
+      "n8nExecutionId": null,
+      "updatedAt": "2026-04-19T14:03:19.313Z"
+    },
+    {
+      "id": 191,
+      "status": "queued",
+      "latencyMs": null,
+      "n8nExecutionId": null,
+      "updatedAt": "2026-04-19T14:03:20.687Z"
+    },
+    {
+      "id": 192,
+      "status": "done",
+      "latencyMs": 74467,
+      "n8nExecutionId": "215",
+      "updatedAt": "2026-04-19T14:04:37.013Z"
+    },
+    {
+      "id": 193,
+      "status": "queued",
+      "latencyMs": null,
+      "n8nExecutionId": null,
+      "updatedAt": "2026-04-19T14:03:21.692Z"
+    },
+    {
+      "id": 194,
+      "status": "queued",
+      "latencyMs": null,
+      "n8nExecutionId": null,
+      "updatedAt": "2026-04-19T14:03:22.16Z"
+    }
+  ]
+}

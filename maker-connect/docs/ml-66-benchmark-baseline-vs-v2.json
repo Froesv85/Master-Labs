@@ -1,0 +1,91 @@
+{
+  "generatedAt": "2026-04-19T01:54:26.681Z",
+  "model": "qwen2.5:7b-instruct",
+  "endpoint": "http://localhost:11434",
+  "sampleSize": 4,
+  "baseline": {
+    "total": 4,
+    "parseValidRatePercent": 100,
+    "schemaValidRatePercent": 100,
+    "p50LatencyMs": 21941,
+    "p95LatencyMs": 22795,
+    "relevanceProxyAvgPercent": 100
+  },
+  "v2": {
+    "total": 4,
+    "parseValidRatePercent": 25,
+    "schemaValidRatePercent": 25,
+    "p50LatencyMs": 25880,
+    "p95LatencyMs": 28770,
+    "relevanceProxyAvgPercent": 25
+  },
+  "delta": {
+    "parseValidRatePercent": -75,
+    "schemaValidRatePercent": -75,
+    "p50LatencyMs": 3939,
+    "p95LatencyMs": 5975,
+    "relevanceProxyAvgPercent": -75
+  },
+  "perSample": {
+    "baseline": [
+      {
+        "id": "S1",
+        "latencyMs": 21941,
+        "parseValid": true,
+        "schemaValid": true,
+        "relevanceProxyPercent": 100
+      },
+      {
+        "id": "S2",
+        "latencyMs": 18916,
+        "parseValid": true,
+        "schemaValid": true,
+        "relevanceProxyPercent": 100
+      },
+      {
+        "id": "S3",
+        "latencyMs": 22795,
+        "parseValid": true,
+        "schemaValid": true,
+        "relevanceProxyPercent": 100
+      },
+      {
+        "id": "S4",
+        "latencyMs": 11513,
+        "parseValid": true,
+        "schemaValid": true,
+        "relevanceProxyPercent": 100
+      }
+    ],
+    "v2": [
+      {
+        "id": "S1",
+        "latencyMs": 28770,
+        "parseValid": false,
+        "schemaValid": false,
+        "relevanceProxyPercent": 0
+      },
+      {
+        "id": "S2",
+        "latencyMs": 25619,
+        "parseValid": true,
+        "schemaValid": true,
+        "relevanceProxyPercent": 100
+      },
+      {
+        "id": "S3",
+        "latencyMs": 24729,
+        "parseValid": false,
+        "schemaValid": false,
+        "relevanceProxyPercent": 0
+      },
+      {
+        "id": "S4",
+        "latencyMs": 25880,
+        "parseValid": false,
+        "schemaValid": false,
+        "relevanceProxyPercent": 0
+      }
+    ]
+  }
+}

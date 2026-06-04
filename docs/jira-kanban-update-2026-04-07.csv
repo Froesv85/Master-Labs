@@ -1,0 +1,8 @@
+Work Item ID,JiraKey,Issue Type,Current Status,Suggested Status,Comment
+3002,ML-21,Story,In Progress,Done,"Feed de inovacoes concluido com filtros por categoria, busca textual, ordenacao newest/oldest/top, cards com acoes Ver/Fork/Upvote e integracao com a API."
+3005,ML-20,Story,In Progress,Done,"Log de dificuldades implementado com persistencia em banco, endpoints GET/POST e timeline na pagina do projeto."
+3003,ML-32,Sub-task,In Progress,Done,"Endpoint GET /api/projects pronto com category, q, sort, page e pageSize, incluindo contagem de votos e ordenacao deterministica."
+3004,ML-31,Sub-task,In Progress,Done,"UI do feed consumindo o endpoint com filtros, busca, paginacao, cards e estados de loading/erro."
+3006,ML-30,Sub-task,In Progress,Done,"Fork com parentId implementado via POST /api/projects/[id]/fork e fluxo integrado ao card do feed."
+1001,ML-17,Epic,In Progress,In Progress,"Base tecnica da fase S0.1 em andamento; hoje foram fechados feed, profile social e interacoes principais do MVP social."
+3001,ML-15,Epic,In Progress,In Progress,"Epic social avançou fortemente: feed, fork, upvote e profile ja conectados. Permanecem pendentes log de dificuldades e eventuais polimentos."

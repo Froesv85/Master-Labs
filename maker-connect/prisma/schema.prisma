@@ -1,0 +1,449 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Category {
+  Printing3D @map("3D_Printing")
+  Robotics
+  IoT
+  Woodworking
+}
+
+enum MakerLevel {
+  apprentice
+  journeyman
+  master
+  grandmaster
+}
+
+enum RobotCategory {
+  sumo
+  line_follower
+  combat
+  autonomous
+  educational
+  competition
+}
+
+enum TeamRole {
+  owner
+  admin
+  member
+}
+
+enum CommunityRole {
+  founder
+  moderator
+  member
+}
+
+enum MembershipStatus {
+  pending
+  approved
+  rejected
+}
+
+model User {
+  id              Int               @id @default(autoincrement())
+  email           String            @unique
+  name            String?
+  password        String?
+  language        String            @default("pt-BR")
+  projects        Project[]         @relation("creator")
+  votes           ProjectVote[]
+  profile         UserProfile?
+  badges          UserBadge[]
+  robots          Robot[]
+  following       UserFollow[]      @relation("follower")
+  followers       UserFollow[]      @relation("following")
+  ownedTeams      Team[]            @relation("team_owner")
+  teamMemberships TeamMember[]
+  communities     CommunityMember[]
+  communityPosts  CommunityPost[]
+  createdCommunities Community[]    @relation("community_creator")
+  lgpdAuditLogs  LgpdAuditLog[]
+
+  @@index([email])
+}
+
+model UserProfile {
+  id         Int        @id @default(autoincrement())
+  userId     Int        @unique
+  user       User       @relation(fields: [userId], references: [id])
+  bio        String?    @db.LongText
+  avatarUrl  String?    @db.VarChar(2048)
+  videoUrl   String?    @db.VarChar(512)
+  location   String?
+  website    String?
+  githubUrl  String?
+  makerLevel MakerLevel @default(apprentice)
+  reputation Int        @default(0)
+  expertise  String?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+}
+
+model UserFollow {
+  id          Int      @id @default(autoincrement())
+  followerId  Int
+  followingId Int
+  follower    User     @relation("follower", fields: [followerId], references: [id])
+  following   User     @relation("following", fields: [followingId], references: [id])
+  createdAt   DateTime @default(now())
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+}
+
+model UserBadge {
+  id       Int      @id @default(autoincrement())
+  userId   Int
+  user     User     @relation(fields: [userId], references: [id])
+  type     String
+  title    String
+  earnedAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Robot {
+  id             Int                       @id @default(autoincrement())
+  ownerId        Int
+  owner          User                      @relation(fields: [ownerId], references: [id])
+  teamId         Int?
+  team           Team?                     @relation(fields: [teamId], references: [id])
+  name           String
+  description    String?                   @db.LongText
+  category       RobotCategory
+  imageUrl       String?
+  videoUrl       String?                   @db.VarChar(512)
+  status         String                    @default("active")
+  wins           Int                       @default(0)
+  losses         Int                       @default(0)
+  draws          Int                       @default(0)
+  eloScore       Int                       @default(1000)
+  weightKg       Float?
+  lengthCm       Float?
+  widthCm        Float?
+  heightCm       Float?
+  matches        RobotMatch[]
+  awards         RobotAward[]
+  participations RobotEventParticipation[]
+  images         RobotImage[]
+  components     RobotComponent[]
+  createdAt      DateTime                  @default(now())
+  updatedAt      DateTime                  @updatedAt
+
+  @@index([ownerId])
+  @@index([category])
+  @@index([teamId])
+}
+
+model RobotComponent {
+  id          Int      @id @default(autoincrement())
+  robotId     Int
+  robot       Robot    @relation(fields: [robotId], references: [id])
+  name        String
+  quantity    Int      @default(1)
+  description String?
+  createdAt   DateTime @default(now())
+
+  @@index([robotId])
+}
+
+model RobotImage {
+  id        Int      @id @default(autoincrement())
+  robotId   Int
+  robot     Robot    @relation(fields: [robotId], references: [id])
+  imageUrl  String   @db.VarChar(2048)
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([robotId])
+  @@index([robotId, position])
+}
+
+model RobotMatch {
+  id            Int      @id @default(autoincrement())
+  robotId       Int
+  robot         Robot    @relation(fields: [robotId], references: [id])
+  opponentName  String
+  result        String
+  myScore       Int?
+  opponentScore Int?
+  eventName     String?
+  matchDate     DateTime
+  notes         String?
+  createdAt     DateTime @default(now())
+
+  @@index([robotId])
+}
+
+model RobotEvent {
+  id             Int                       @id @default(autoincrement())
+  name           String
+  description    String?
+  location       String?
+  eventDate      DateTime
+  category       String?
+  createdAt      DateTime                  @default(now())
+  participations RobotEventParticipation[]
+  awards         RobotAward[]
+}
+
+model RobotEventParticipation {
+  id        Int        @id @default(autoincrement())
+  robotId   Int
+  eventId   Int
+  robot     Robot      @relation(fields: [robotId], references: [id])
+  event     RobotEvent @relation(fields: [eventId], references: [id])
+  placement Int?
+  createdAt DateTime   @default(now())
+
+  @@unique([robotId, eventId])
+}
+
+model RobotAward {
+  id        Int         @id @default(autoincrement())
+  robotId   Int
+  eventId   Int?
+  robot     Robot       @relation(fields: [robotId], references: [id])
+  event     RobotEvent? @relation(fields: [eventId], references: [id])
+  title     String
+  placement Int?
+  year      Int
+  createdAt DateTime    @default(now())
+
+  @@index([robotId])
+}
+
+model Team {
+  id          Int          @id @default(autoincrement())
+  name        String
+  description String?      @db.LongText
+  avatarUrl   String?      @db.VarChar(2048)
+  videoUrl    String?      @db.VarChar(512)
+  ownerId     Int
+  owner       User         @relation("team_owner", fields: [ownerId], references: [id])
+  isPublic    Boolean      @default(true)
+  members     TeamMember[]
+  robots      Robot[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([ownerId])
+}
+
+model TeamMember {
+  id       Int      @id @default(autoincrement())
+  teamId   Int
+  userId   Int
+  team     Team     @relation(fields: [teamId], references: [id])
+  user     User     @relation(fields: [userId], references: [id])
+  role     TeamRole @default(member)
+  joinedAt DateTime @default(now())
+
+  @@unique([teamId, userId])
+  @@index([teamId])
+  @@index([userId])
+}
+
+model Community {
+  id          Int               @id @default(autoincrement())
+  name        String
+  description String?           @db.LongText
+  avatarUrl   String?           @db.VarChar(2048)
+  coverUrl    String?           @db.VarChar(2048)
+  videoUrl    String?           @db.VarChar(512)
+  category    Category
+  creatorId   Int
+  creator     User              @relation("community_creator", fields: [creatorId], references: [id])
+  isPublic    Boolean           @default(true)
+  members     CommunityMember[]
+  posts       CommunityPost[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@index([category])
+  @@index([creatorId])
+}
+
+model CommunityMember {
+  id          Int              @id @default(autoincrement())
+  communityId Int
+  userId      Int
+  community   Community        @relation(fields: [communityId], references: [id])
+  user        User             @relation(fields: [userId], references: [id])
+  role        CommunityRole    @default(member)
+  status      MembershipStatus @default(approved)
+  joinedAt    DateTime         @default(now())
+
+  @@unique([communityId, userId])
+  @@index([communityId])
+  @@index([userId])
+  @@index([communityId, status])
+}
+
+model CommunityPost {
+  id          Int       @id @default(autoincrement())
+  communityId Int
+  authorId    Int
+  community   Community @relation(fields: [communityId], references: [id])
+  author      User      @relation(fields: [authorId], references: [id])
+  title       String
+  content     String    @db.LongText
+  mediaUrl    String?   @db.VarChar(2048)
+  videoUrl    String?   @db.VarChar(512)
+  replies     Int       @default(0)
+  views       Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([communityId])
+  @@index([authorId])
+}
+
+model Project {
+  id                 Int                    @id @default(autoincrement())
+  title              String
+  description        String?
+  category           Category
+  creatorId          Int
+  creator            User                   @relation("creator", fields: [creatorId], references: [id])
+  parentId           Int?
+  parent             Project?               @relation("fork", fields: [parentId], references: [id])
+  children           Project[]              @relation("fork")
+  embeddingId        String?
+  content            String?                @db.LongText
+  coverImageUrl      String?                @db.VarChar(2048)
+  printerBrand       String?                @db.VarChar(100)
+  printerModel       String?                @db.VarChar(100)
+  printerNozzle      String?                @db.VarChar(20)
+  printerMaterial    String?                @db.VarChar(50)
+  printerLayerHeight String?                @db.VarChar(20)
+  votes              ProjectVote[]
+  difficulties       ProjectDifficulty[]
+  exports            ProjectExport[]
+  extractionLogs     ProjectExtractionLog[]
+  lgpdAuditLogs      LgpdAuditLog[]
+  images             ProjectImage[]
+  files              ProjectFile[]
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+
+  @@index([category])
+  @@index([parentId])
+  @@index([creatorId])
+}
+
+model ProjectImage {
+  id        Int      @id @default(autoincrement())
+  projectId Int
+  project   Project  @relation(fields: [projectId], references: [id])
+  imageUrl  String   @db.VarChar(2048)
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([projectId])
+  @@index([projectId, position])
+}
+
+model ProjectFile {
+  id         Int      @id @default(autoincrement())
+  projectId  Int
+  project    Project  @relation(fields: [projectId], references: [id])
+  fileName   String   @db.VarChar(255)
+  fileUrl    String   @db.VarChar(2048)
+  fileType   String   @db.VarChar(20)
+  fileSizeKb Int
+  createdAt  DateTime @default(now())
+
+  @@index([projectId])
+}
+
+model ProjectVote {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  projectId Int
+  user      User     @relation(fields: [userId], references: [id])
+  project   Project  @relation(fields: [projectId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([userId, projectId])
+  @@index([projectId])
+}
+
+model ProjectExport {
+  id        Int      @id @default(autoincrement())
+  projectId Int
+  project   Project  @relation(fields: [projectId], references: [id])
+  status    String   @default("queued")
+  fileUrl   String?
+  error     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([status])
+}
+
+model ProjectDifficulty {
+  id          Int      @id @default(autoincrement())
+  projectId   Int
+  project     Project  @relation(fields: [projectId], references: [id])
+  description String   @db.LongText
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([createdAt])
+}
+
+model ProjectExtractionLog {
+  id             Int      @id @default(autoincrement())
+  projectId      Int
+  project        Project  @relation(fields: [projectId], references: [id])
+  status         String   @default("queued")
+  source         String   @default("manual")
+  webhookId      String?  @unique
+  piiRedactions  Int      @default(0)
+  piiTypes       String?  @db.LongText
+  keywords       String?  @db.LongText
+  embeddingId    String?
+  latencyMs      Int?
+  anonymizeMs    Int?
+  n8nTriggerMs   Int?
+  output         String?  @db.LongText
+  error          String?  @db.LongText
+  n8nExecutionId String?
+  language       String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model LgpdAuditLog {
+  id         Int      @id @default(autoincrement())
+  createdAt  DateTime @default(now())
+  action     String
+  projectId  Int?
+  project    Project? @relation(fields: [projectId], references: [id])
+  userId     Int?
+  user       User?    @relation(fields: [userId], references: [id])
+  piiTypes   String?  @db.LongText
+  redactions Int      @default(0)
+  context    String?
+
+  @@index([projectId])
+  @@index([userId])
+  @@index([createdAt])
+}

@@ -1,0 +1,20 @@
+<svg viewBox="0 0 450 120" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .brand-text { font-family: Arial, sans-serif; font-size: 36px; font-weight: bold; fill: #1a1a1a; }
+    </style>
+  </defs>
+  <!-- Icon -->
+  <circle cx="60" cy="60" r="8" fill="#FFA500"/>
+  <circle cx="85" cy="40" r="6" fill="#FFB84D" opacity="0.9"/>
+  <circle cx="85" cy="80" r="6" fill="#FFB84D" opacity="0.9"/>
+  <circle cx="35" cy="40" r="6" fill="#1A3A4D" opacity="0.8"/>
+  <circle cx="35" cy="80" r="6" fill="#1A3A4D" opacity="0.8"/>
+  <line x1="60" y1="60" x2="85" y2="40" stroke="#FFA500" stroke-width="2.5"/>
+  <line x1="60" y1="60" x2="85" y2="80" stroke="#FFA500" stroke-width="2.5"/>
+  <line x1="60" y1="60" x2="35" y2="40" stroke="#1A3A4D" stroke-width="2.5"/>
+  <line x1="60" y1="60" x2="35" y2="80" stroke="#1A3A4D" stroke-width="2.5"/>
+  
+  <!-- Texto -->
+  <text x="140" y="80" class="brand-text">NODE CONNECT</text>
+</svg>

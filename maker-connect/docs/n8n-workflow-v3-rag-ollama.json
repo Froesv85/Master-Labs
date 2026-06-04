@@ -1,0 +1,125 @@
+{
+  "name": "MakerConnect RAG Pipeline v3.4 (Fix)",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "extraction",
+        "httpMethod": "POST",
+        "responseMode": "onReceived"
+      },
+      "id": "webhook_trigger",
+      "name": "Webhook Trigger1",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extrair dados do webhook e normalizar payload\nconst triggerItem = $input.first().json;\nconst payload = triggerItem.body ?? triggerItem;\nconst { webhookId, projectId, projectTitle, input, keywords, piiRedactions, embeddingId, callbackUrl, language } = payload;\n\nconst safeInput = typeof input === 'string' ? input.trim() : '';\nconst safeKeywords = Array.isArray(keywords) ? keywords.filter(Boolean).slice(0, 12) : [];\nconst embeddingPrompt = (safeKeywords.length > 0 ? safeKeywords.join(', ') : safeInput).slice(0, 600);\n\nreturn [{\n  json: {\n    webhookId,\n    projectId,\n    projectTitle,\n    embeddingId,\n    callbackUrl,\n    language: language || 'pt-BR',\n    input: safeInput,\n    keywords: safeKeywords,\n    embeddingPrompt,\n    piiRedactions: piiRedactions || 0,\n    startedAt: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "process_input",
+      "name": "Process Input1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [400, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:11434/api/embeddings",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { model: 'nomic-embed-text', prompt: $json.embeddingPrompt || $json.input } }}"
+      },
+      "id": "ollama_embeddings",
+      "name": "Ollama Embeddings1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://maker-knowledge-v86bxu0.svc.aped-4627-b74a.pinecone.io/query",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "pineconeApi",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "vector",
+              "value": "={{ $node[\"Ollama Embeddings1\"].json.embedding }}"
+            },
+            {
+              "name": "topK",
+              "value": "3"
+            },
+            {
+              "name": "includeMetadata",
+              "value": "true"
+            }
+          ]
+        }
+      },
+      "id": "pinecone_search_http",
+      "name": "Pinecone Search",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [800, 300],
+      "credentials": {
+        "pineconeApi": {
+          "id": "QYwRilEyoiEv0CKM",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:11434/api/generate",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { model: 'qwen2.5:7b-instruct', prompt: `Você é o MakerBrain.\nResponda SOMENTE JSON válido em ${$node[\"Process Input1\"].json.language}.\nProjeto: ${$node[\"Process Input1\"].json.projectTitle}.\nContexto resumido: ${($node[\"Process Input1\"].json.input || '').slice(0, 800)}\n\nEvidências técnicas (top 3):\n${($node[\"Pinecone Search\"].json.results || $node[\"Pinecone Search\"].json.matches || []).slice(0,3).map(d => (d.metadata?.text || '').slice(0, 320)).join('\\n---\\n')}\n\nFormato de saída obrigatório:\n{\"technicalRequirements\":[{\"name\":\"string\",\"detail\":\"string\"}],\"suggestedBOM\":[{\"item\":\"string\",\"quantity\":1}],\"confidenceScore\":0}\n\nRegras:\n1) confidenceScore deve ser número entre 0 e 100.\n2) Sem markdown, sem texto fora do JSON.\n3) Máximo de 6 itens por array.`, stream: false, format: 'json', options: { temperature: 0.1, num_predict: 260 } } }}"
+      },
+      "id": "ollama_rag",
+      "name": "Ollama RAG1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1000, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Preparar payload final para o callback com normalização de saída\nconst inputData = $node[\"Process Input1\"].json;\nconst aiResponse = $node[\"Ollama RAG1\"].json;\nconst vectorNodes = $node[\"Pinecone Search\"].json;\nconst vectorResults = vectorNodes.matches || vectorNodes.results || [];\n\nconst totalLatencyMs = Date.now() - new Date(inputData.startedAt).getTime();\n\nconst rawText = aiResponse.response || JSON.stringify(aiResponse);\nlet parsedOutput;\nlet parseError = null;\ntry {\n  const cleanText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();\n  parsedOutput = JSON.parse(cleanText);\n} catch (e) {\n  parseError = 'Failed to parse JSON';\n  parsedOutput = { technicalRequirements: [], suggestedBOM: [], confidenceScore: 0 };\n}\n\nlet confidence = Number(parsedOutput.confidenceScore ?? 0);\nif (!Number.isFinite(confidence)) confidence = 0;\nif (confidence <= 1) confidence = confidence * 100;\nconfidence = Math.max(0, Math.min(100, Math.round(confidence * 100) / 100));\n\nconst normalizedOutput = {\n  technicalRequirements: Array.isArray(parsedOutput.technicalRequirements) ? parsedOutput.technicalRequirements.slice(0, 6) : [],\n  suggestedBOM: Array.isArray(parsedOutput.suggestedBOM) ? parsedOutput.suggestedBOM.slice(0, 6) : [],\n  confidenceScore: confidence\n};\n\nreturn [{\n  json: {\n    callbackUrl: inputData.callbackUrl,\n    payload: {\n      webhookId: inputData.webhookId,\n      status: 'done',\n      n8nExecutionId: $execution.id,\n      latencyMs: totalLatencyMs,\n      output: {\n        ...normalizedOutput,\n        parseError,\n        groundingCount: vectorResults.length,\n        embeddingId: inputData.embeddingId\n      }\n    }\n  }\n}];"
+      },
+      "id": "prep_callback",
+      "name": "Prep Callback1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1200, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.callbackUrl }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.payload) }}"
+      },
+      "id": "callback_api",
+      "name": "Callback to API1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1400, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger1": { "main": [[{ "node": "Process Input1", "type": "main", "index": 0 }]] },
+    "Process Input1": { "main": [[{ "node": "Ollama Embeddings1", "type": "main", "index": 0 }]] },
+    "Ollama Embeddings1": { "main": [[{ "node": "Pinecone Search", "type": "main", "index": 0 }]] },
+    "Pinecone Search": { "main": [[{ "node": "Ollama RAG1", "type": "main", "index": 0 }]] },
+    "Ollama RAG1": { "main": [[{ "node": "Prep Callback1", "type": "main", "index": 0 }]] },
+    "Prep Callback1": { "main": [[{ "node": "Callback to API1", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": {}
+}
