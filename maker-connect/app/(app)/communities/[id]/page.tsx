@@ -22,11 +22,11 @@ type Community = {
   createdAt: string;
 };
 
-const CATEGORY_CONFIG: Record<string, { emoji: string; color: string }> = {
-  Robotics:   { emoji: '🤖', color: 'from-blue-900/40 to-[#0f1829]' },
-  Printing3D: { emoji: '🖨️', color: 'from-violet-900/40 to-[#0f1829]' },
-  IoT:        { emoji: '📡', color: 'from-teal-900/40 to-[#0f1829]' },
-  Woodworking:{ emoji: '🪵', color: 'from-amber-900/40 to-[#0f1829]' },
+const CATEGORY_CONFIG: Record<string, { label: string; color: string }> = {
+  Robotics:   { label: 'Robótica',     color: 'from-blue-900/40 to-[#0f1829]' },
+  Printing3D: { label: 'Impressão 3D', color: 'from-violet-900/40 to-[#0f1829]' },
+  IoT:        { label: 'IoT',          color: 'from-teal-900/40 to-[#0f1829]' },
+  Woodworking:{ label: 'Marcenaria',   color: 'from-amber-900/40 to-[#0f1829]' },
 };
 
 const ROLE_CONFIG: Record<string, { label: string; color: string }> = {
@@ -376,8 +376,8 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
         <div className="h-2 w-full bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600" />
         <div className="p-6 sm:p-8">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
-            <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-5xl">
-              {catCfg.emoji}
+            <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-sm font-black text-zinc-300 uppercase tracking-wider">
+              {catCfg.label.slice(0, 3)}
             </div>
             <div className="flex-1 space-y-2">
               <div className="flex flex-wrap items-center gap-3">

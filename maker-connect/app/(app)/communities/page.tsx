@@ -11,11 +11,11 @@ type Community = {
   createdAt: string;
 };
 
-const CATEGORY_CONFIG: Record<string, { label: string; emoji: string; color: string; accent: string }> = {
-  Robotics:   { label: 'Robótica',    emoji: '🤖', color: 'border-blue-500/30 hover:border-blue-500/50',   accent: 'bg-blue-900/40 text-blue-300' },
-  Printing3D: { label: '3D Printing', emoji: '🖨️', color: 'border-violet-500/30 hover:border-violet-500/50', accent: 'bg-violet-900/40 text-violet-300' },
-  IoT:        { label: 'IoT',         emoji: '📡', color: 'border-teal-500/30 hover:border-teal-500/50',    accent: 'bg-teal-900/40 text-teal-300' },
-  Woodworking:{ label: 'Woodworking', emoji: '🪵', color: 'border-amber-500/30 hover:border-amber-500/50',  accent: 'bg-amber-900/40 text-amber-300' },
+const CATEGORY_CONFIG: Record<string, { label: string; color: string; accent: string }> = {
+  Robotics:   { label: 'Robótica',    color: 'border-blue-500/30 hover:border-blue-500/50',   accent: 'bg-blue-900/40 text-blue-300' },
+  Printing3D: { label: 'Impressão 3D', color: 'border-violet-500/30 hover:border-violet-500/50', accent: 'bg-violet-900/40 text-violet-300' },
+  IoT:        { label: 'IoT',         color: 'border-teal-500/30 hover:border-teal-500/50',    accent: 'bg-teal-900/40 text-teal-300' },
+  Woodworking:{ label: 'Marcenaria',  color: 'border-amber-500/30 hover:border-amber-500/50',  accent: 'bg-amber-900/40 text-amber-300' },
 };
 
 function CreateCommunityModal({ onClose, onCreated }: { onClose: () => void; onCreated: (c: Community) => void }) {
@@ -56,10 +56,10 @@ function CreateCommunityModal({ onClose, onCreated }: { onClose: () => void; onC
         </Field>
         <Field label="Categoria">
           <select value={category} onChange={(e) => setCategory(e.target.value)} className={selectCls}>
-            <option value="Robotics">🤖 Robótica</option>
-            <option value="Printing3D">🖨️ 3D Printing</option>
-            <option value="IoT">📡 IoT</option>
-            <option value="Woodworking">🪵 Woodworking</option>
+            <option value="Robotics">Robótica</option>
+            <option value="Printing3D">Impressão 3D</option>
+            <option value="IoT">IoT</option>
+            <option value="Woodworking">Marcenaria</option>
           </select>
         </Field>
         <Field label="Visibilidade">
@@ -140,7 +140,7 @@ export default function CommunitiesPage() {
                 : 'border-white/10 text-zinc-400 hover:border-amber-500/40 hover:text-zinc-200'
             }`}
           >
-            {cfg.emoji} {cfg.label}
+            {cfg.label}
           </button>
         ))}
       </div>
@@ -170,8 +170,8 @@ export default function CommunitiesPage() {
                 className={`group flex flex-col gap-4 rounded-xl border bg-slate-900/60 p-5 transition-all hover:bg-slate-800/80 hover:shadow-[0_0_16px_rgba(245,158,11,0.08)] ${cfg.color}`}
               >
                 <div className="flex items-start gap-4">
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-slate-800 text-3xl">
-                    {cfg.emoji}
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-slate-800 text-xs font-black text-zinc-400 uppercase tracking-wider">
+                    {cfg.label.slice(0, 2)}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="mb-1 flex items-center gap-2">

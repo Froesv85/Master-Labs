@@ -222,19 +222,19 @@ export default function ExtractPanel({
 
           {result.status === 'done' && result.output && (
             <div className="mt-4 border-t border-emerald-200 pt-4">
-              <h4 className="font-bold mb-2">📋 Requisitos Técnicos Gerados:</h4>
+              <h4 className="font-bold mb-2">Requisitos Técnicos Gerados:</h4>
               <ul className="list-disc pl-5 mb-4 space-y-1">
                 {result.output.technicalRequirements?.map((req: any, i: number) => (
                   <li key={i}>
-                    <strong>{req?.name || `Requirement ${i + 1}`}</strong>
+                    <strong>{req?.name || `Requisito ${i + 1}`}</strong>
                     {': '}
-                    {req?.detail || 'No detail provided.'}
+                    {req?.detail || 'Sem detalhes.'}
                     {req?.priority ? ` [${req.priority}]` : ''}
                   </li>
                 ))}
               </ul>
 
-              <h4 className="font-bold mb-2">📊 BOM Sugerido:</h4>
+              <h4 className="font-bold mb-2">Lista de Materiais (BOM):</h4>
               <ul className="list-disc pl-5 space-y-1 mb-4">
                 {result.output.suggestedBOM?.map((bom: any, i: number) => (
                   <li key={i}>
@@ -245,7 +245,7 @@ export default function ExtractPanel({
 
               {result.output.suggestedCode && (
                 <>
-                  <h4 className="font-bold mb-2 mt-4 text-zinc-900 leading-none">💻 Firmware Sugerido:</h4>
+                  <h4 className="font-bold mb-2 mt-4 text-zinc-900 leading-none">Firmware Sugerido:</h4>
                   <CodeViewer code={result.output.suggestedCode} />
                 </>
               )}

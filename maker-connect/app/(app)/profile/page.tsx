@@ -40,16 +40,16 @@ const CATEGORY_BADGE: Record<string, string> = {
   Woodworking: 'bg-amber-100 text-amber-800',
 };
 
-const CATEGORY_EMOJI: Record<string, string> = {
-  Printing3D: '🖨️',
-  '3D_Printing': '🖨️',
-  Robotics: '🤖',
-  IoT: '📡',
-  Woodworking: '🪵',
+const CATEGORY_LABEL_MAP: Record<string, string> = {
+  Printing3D: 'Impressão 3D',
+  '3D_Printing': 'Impressão 3D',
+  Robotics: 'Robótica',
+  IoT: 'IoT',
+  Woodworking: 'Marcenaria',
 };
 
 function displayCategory(category: ProfileProject['category']) {
-  return category === 'Printing3D' ? '3D Printing' : category;
+  return CATEGORY_LABEL_MAP[category] ?? category;
 }
 
 function relativeTime(dateStr: string): string {
@@ -179,7 +179,6 @@ export default function ProfilePage() {
         {/* Error */}
         {error ? (
           <div className="mb-6 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            <span aria-hidden="true">⚠️</span>
             <span>{error}</span>
           </div>
         ) : null}
@@ -237,12 +236,10 @@ export default function ProfilePage() {
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                   {profile.projects.map((project) => {
                     const badgeClass = CATEGORY_BADGE[project.category] ?? 'bg-zinc-100 text-zinc-700';
-                    const emoji = CATEGORY_EMOJI[project.category] ?? '📦';
                     return (
                       <article key={project.id} className="flex flex-col rounded-xl border border-zinc-100 bg-zinc-50 p-4">
                         <div className="mb-2 flex items-center justify-between gap-2">
-                          <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${badgeClass}`}>
-                            <span aria-hidden="true">{emoji}</span>
+                          <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${badgeClass}`}>
                             {displayCategory(project.category)}
                           </span>
                           <time className="text-xs text-zinc-400" dateTime={project.createdAt}>

@@ -48,17 +48,17 @@ const LEVEL_CONFIG: Record<MakerLevel, { label: string; color: string; bg: strin
   grandmaster: { label: 'Grandmaster', color: 'text-yellow-300', bg: 'bg-yellow-900/40' },
 };
 
-const BADGE_CONFIG: Record<string, { icon: string; color: string }> = {
-  first_project: { icon: '🚀', color: 'bg-blue-900/50 border-blue-500/40' },
-  first_fork: { icon: '🍴', color: 'bg-teal-900/50 border-teal-500/40' },
-  robot_master: { icon: '🤖', color: 'bg-amber-900/50 border-amber-500/40' },
-  team_player: { icon: '👥', color: 'bg-violet-900/50 border-violet-500/40' },
-  documentation_hero: { icon: '📚', color: 'bg-emerald-900/50 border-emerald-500/40' },
-  champion: { icon: '🏆', color: 'bg-yellow-900/50 border-yellow-500/40' },
-  arena_legend: { icon: '⚡', color: 'bg-orange-900/50 border-orange-500/40' },
-  grandmaster: { icon: '👑', color: 'bg-yellow-900/50 border-yellow-400/50' },
-  rag_pioneer: { icon: '🧠', color: 'bg-cyan-900/50 border-cyan-500/40' },
-  iot_expert: { icon: '📡', color: 'bg-teal-900/50 border-teal-500/40' },
+const BADGE_CONFIG: Record<string, { color: string }> = {
+  first_project:      { color: 'bg-blue-900/50 border-blue-500/40' },
+  first_fork:         { color: 'bg-teal-900/50 border-teal-500/40' },
+  robot_master:       { color: 'bg-amber-900/50 border-amber-500/40' },
+  team_player:        { color: 'bg-violet-900/50 border-violet-500/40' },
+  documentation_hero: { color: 'bg-emerald-900/50 border-emerald-500/40' },
+  champion:           { color: 'bg-yellow-900/50 border-yellow-500/40' },
+  arena_legend:       { color: 'bg-orange-900/50 border-orange-500/40' },
+  grandmaster:        { color: 'bg-yellow-900/50 border-yellow-400/50' },
+  rag_pioneer:        { color: 'bg-cyan-900/50 border-cyan-500/40' },
+  iot_expert:         { color: 'bg-teal-900/50 border-teal-500/40' },
 };
 
 const CATEGORY_BADGE: Record<string, string> = {
@@ -69,8 +69,8 @@ const CATEGORY_BADGE: Record<string, string> = {
 };
 
 const CATEGORY_LABEL: Record<string, string> = {
-  Printing3D: '3D Printing', Robotics: 'Robotics', IoT: 'IoT', Woodworking: 'Woodworking',
-  sumo: 'Sumo', line_follower: 'Line Follower', combat: 'Combate',
+  Printing3D: 'Impressão 3D', Robotics: 'Robótica', IoT: 'IoT', Woodworking: 'Marcenaria',
+  sumo: 'Sumo', line_follower: 'Seguidor de Linha', combat: 'Combate',
   autonomous: 'Autônomo', educational: 'Educacional', competition: 'Competição',
 };
 
@@ -447,7 +447,7 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
                     onClick={() => setEditing(true)}
                     className="flex shrink-0 items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs font-bold text-amber-400 transition hover:bg-amber-500/20"
                   >
-                    ✏️ Editar Perfil
+                    Editar Perfil
                   </button>
                 )}
               </div>
@@ -457,15 +457,15 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
               )}
 
               <div className="flex flex-wrap gap-3 text-xs text-zinc-400">
-                {user.profile?.location && <span>📍 {user.profile.location}</span>}
+                {user.profile?.location && <span>{user.profile.location}</span>}
                 {user.profile?.website && (
                   <a href={user.profile.website} target="_blank" rel="noopener noreferrer" className="text-amber-400 hover:underline">
-                    🌐 Website
+                    Website
                   </a>
                 )}
                 {user.profile?.githubUrl && (
                   <a href={user.profile.githubUrl} target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:underline">
-                    ⌥ GitHub
+                    GitHub
                   </a>
                 )}
               </div>
@@ -510,10 +510,9 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
           <h2 className="mb-4 text-xs font-bold uppercase tracking-widest text-amber-400">Conquistas</h2>
           <div className="flex flex-wrap gap-3">
             {user.badges.map((badge) => {
-              const cfg = BADGE_CONFIG[badge.type] ?? { icon: '🎖️', color: 'bg-slate-800 border-white/10' };
+              const cfg = BADGE_CONFIG[badge.type] ?? { color: 'bg-slate-800 border-white/10' };
               return (
                 <div key={badge.id} className={`flex items-center gap-2 rounded-lg border px-3 py-2 ${cfg.color}`}>
-                  <span className="text-lg">{cfg.icon}</span>
                   <span className="text-xs font-semibold text-zinc-200">{badge.title}</span>
                 </div>
               );
@@ -582,8 +581,8 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
               href={`/robots/${robot.id}`}
               className="group flex items-start gap-4 rounded-xl border border-white/10 bg-slate-900/60 p-4 transition-all hover:border-amber-500/30 hover:bg-slate-800"
             >
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-2xl">
-                🤖
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-xs font-black text-amber-400 uppercase tracking-wider">
+                ROB
               </div>
               <div className="flex-1 space-y-1">
                 <div className="flex items-center gap-2">
@@ -599,7 +598,7 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
                   <span className="ml-auto font-mono text-amber-400">ELO {robot.eloScore}</span>
                 </div>
                 {robot.awards.length > 0 && (
-                  <p className="text-[11px] text-yellow-400">🏆 {robot.awards[0].title}</p>
+                  <p className="text-[11px] text-yellow-400">{robot.awards[0].title}</p>
                 )}
               </div>
             </Link>
@@ -642,7 +641,6 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
               className="group rounded-xl border border-white/10 bg-slate-900/60 p-4 transition-all hover:border-amber-500/30 hover:bg-slate-800"
             >
               <div className="mb-1 flex items-center gap-2">
-                <span className="text-lg">🌐</span>
                 <h3 className="text-sm font-bold text-zinc-100 group-hover:text-amber-300">{c.name}</h3>
               </div>
               <span className={`rounded px-2 py-0.5 text-[10px] font-semibold ${CATEGORY_BADGE[c.category] ?? 'bg-slate-700 text-zinc-300'}`}>

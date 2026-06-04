@@ -14,14 +14,14 @@ const CATEGORY_OPTIONS: Array<{
   icon: React.ReactNode;
 }> = [
   {
-    label: '3D Printing', value: '3D_Printing',
+    label: 'Impressão 3D', value: '3D_Printing',
     badge: 'bg-violet-900/60 text-violet-300 border border-violet-500/30',
     filterActive: 'border-violet-400 bg-violet-600 text-white',
     filterHover: 'border-white/10 text-zinc-400 hover:border-violet-500/40 hover:text-violet-300',
     icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>,
   },
   {
-    label: 'Robotics', value: 'Robotics',
+    label: 'Robótica', value: 'Robotics',
     badge: 'bg-blue-900/60 text-blue-300 border border-blue-500/30',
     filterActive: 'border-blue-400 bg-blue-600 text-white',
     filterHover: 'border-white/10 text-zinc-400 hover:border-blue-500/40 hover:text-blue-300',
@@ -35,7 +35,7 @@ const CATEGORY_OPTIONS: Array<{
     icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1" fill="currentColor"/></svg>,
   },
   {
-    label: 'Woodworking', value: 'Woodworking',
+    label: 'Marcenaria', value: 'Woodworking',
     badge: 'bg-amber-900/60 text-amber-300 border border-amber-500/30',
     filterActive: 'border-amber-400 bg-amber-600 text-white',
     filterHover: 'border-white/10 text-zinc-400 hover:border-amber-500/40 hover:text-amber-300',
@@ -43,7 +43,7 @@ const CATEGORY_OPTIONS: Array<{
   },
 ];
 
-const PRINTER_MATERIALS = ['PLA', 'PETG', 'ABS', 'ASA', 'TPU', 'Nylon', 'Resin', 'Carbon Fiber', 'Wood Fill', 'Outro'];
+const PRINTER_MATERIALS = ['PLA', 'PETG', 'ABS', 'ASA', 'TPU', 'Nylon', 'Resina', 'Fibra de Carbono', 'Madeira Preenchida', 'Outro'];
 const NOZZLE_SIZES = ['0.2mm', '0.4mm', '0.6mm', '0.8mm', '1.0mm'];
 const LAYER_HEIGHTS = ['0.05mm', '0.1mm', '0.15mm', '0.2mm', '0.25mm', '0.3mm', '0.4mm'];
 const PAGE_SIZE = 9;
@@ -224,7 +224,7 @@ function ProjectCard({ project, onVote, onFork, isVoting, isForking }: {
               onClick={() => onFork(project.id)}
               className="inline-flex items-center gap-1 rounded-lg border border-white/8 bg-slate-800 px-2.5 py-1.5 text-xs text-zinc-400 transition hover:border-white/15 hover:text-zinc-200 disabled:opacity-60"
             >
-              <IconFork />{isForking ? '…' : 'Fork'}
+              <IconFork />{isForking ? '…' : 'Bifurcar'}
             </button>
           </div>
         </div>

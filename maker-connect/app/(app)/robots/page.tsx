@@ -24,10 +24,10 @@ type Robot = {
 const CATEGORY_OPTIONS = [
   { value: 'sumo',         label: 'Sumo',         color: 'bg-red-900/40 text-red-300 border-red-500/30',       filterActive: 'border-red-400 bg-red-600 text-white' },
   { value: 'combat',       label: 'Combate',       color: 'bg-orange-900/40 text-orange-300 border-orange-500/30', filterActive: 'border-orange-400 bg-orange-600 text-white' },
-  { value: 'line_follower',label: 'Line Follower', color: 'bg-blue-900/40 text-blue-300 border-blue-500/30',    filterActive: 'border-blue-400 bg-blue-600 text-white' },
-  { value: 'autonomous',   label: 'Autonomo',      color: 'bg-violet-900/40 text-violet-300 border-violet-500/30', filterActive: 'border-violet-400 bg-violet-600 text-white' },
-  { value: 'educational',  label: 'Educacional',   color: 'bg-teal-900/40 text-teal-300 border-teal-500/30',    filterActive: 'border-teal-400 bg-teal-600 text-white' },
-  { value: 'competition',  label: 'Competicao',    color: 'bg-amber-900/40 text-amber-300 border-amber-500/30', filterActive: 'border-amber-400 bg-amber-600 text-white' },
+  { value: 'line_follower',label: 'Seguidor de Linha', color: 'bg-blue-900/40 text-blue-300 border-blue-500/30',    filterActive: 'border-blue-400 bg-blue-600 text-white' },
+  { value: 'autonomous',   label: 'Autônomo',          color: 'bg-violet-900/40 text-violet-300 border-violet-500/30', filterActive: 'border-violet-400 bg-violet-600 text-white' },
+  { value: 'educational',  label: 'Educacional',       color: 'bg-teal-900/40 text-teal-300 border-teal-500/30',    filterActive: 'border-teal-400 bg-teal-600 text-white' },
+  { value: 'competition',  label: 'Competição',        color: 'bg-amber-900/40 text-amber-300 border-amber-500/30', filterActive: 'border-amber-400 bg-amber-600 text-white' },
 ];
 
 function catConfig(cat: string) {

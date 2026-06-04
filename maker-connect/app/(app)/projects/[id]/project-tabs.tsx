@@ -31,7 +31,7 @@ export default function ProjectTabs({
               ? 'bg-white text-zinc-900 shadow ring-1 ring-zinc-200' 
               : 'text-zinc-600 hover:bg-white/[0.12] hover:text-zinc-800'}`}
         >
-          🤖 Engenharia IA
+          Engenharia IA
         </button>
         <button
           onClick={() => setActiveTab('docs')}
@@ -40,7 +40,7 @@ export default function ProjectTabs({
               ? 'bg-white text-zinc-900 shadow ring-1 ring-zinc-200' 
               : 'text-zinc-600 hover:bg-white/[0.12] hover:text-zinc-800'}`}
         >
-          📄 Dossiê Técnico
+          Dossiê Técnico
         </button>
         <button
           onClick={() => setActiveTab('gov')}
@@ -49,7 +49,7 @@ export default function ProjectTabs({
               ? 'bg-white text-zinc-900 shadow ring-1 ring-zinc-200' 
               : 'text-zinc-600 hover:bg-white/[0.12] hover:text-zinc-800'}`}
         >
-          🛡️ Governança & Auditoria
+          Governança e Auditoria
         </button>
       </div>
 

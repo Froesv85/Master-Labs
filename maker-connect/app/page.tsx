@@ -119,7 +119,7 @@ export default function Home() {
                     </svg>
                   ),
                   color: 'orange',
-                  title: 'Computer Vision',
+                  title: 'Visão Computacional',
                   desc: 'Analise fotos e esquemáticos. O agente identifica circuitos e sugere firmware base (Arduino/ESP).',
                 },
                 {
@@ -189,7 +189,7 @@ export default function Home() {
                   Ranking ELO em tempo real, histórico de partidas, premiações e eventos. Acompanhe cada batalha de sumo, combat, line follower e mais.
                 </p>
                 <div className="flex flex-wrap gap-3 mb-8">
-                  {['Sumo', 'Combat', 'Line Follower', 'Autônomo', 'IoT'].map((cat) => (
+                  {['Sumo', 'Combate', 'Seguidor de Linha', 'Autônomo', 'IoT'].map((cat) => (
                     <span key={cat} className="rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-400">
                       {cat}
                     </span>
