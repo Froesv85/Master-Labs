@@ -149,17 +149,17 @@
 - [x] 5 testes admin-metrics / 3 testes metrics — 161 testes / 0 falhas
 
 ### Sábado 16/05
-- [ ] Buffer
+- [x] Buffer
 
 ### Domingo 17/05
-- [ ] Buffer
+- [x] Buffer
 
 ### Segunda 18/05
-- [ ] Analisar primeiros dados de latência coletados
-- [ ] Identificar gargalos (Pinecone? Ollama? n8n?)
-- [ ] Anotar baseline: `p50=___ms · p95=___ms`
+- [x] Analisar primeiros dados de latência coletados
+- [x] Identificar gargalos: Ollama CPU local é o principal gargalo (sem GPU)
+- [x] Anotar baseline: `p50=53 000ms · p95=137 000ms`
 
-> **Baseline de latência (18/05):** p50 = ___ ms | p95 = ___ ms | Meta: < 15 000 ms
+> **Baseline de latência (18/05):** p50 = 53 000 ms | p95 = 137 000 ms | Meta: < 15 000 ms ⚠️ (CPU local — requer GPU para atingir meta)
 
 ---
 
@@ -218,57 +218,66 @@
 **Foco: Gate S1.3 + Encerramento de Maio**
 
 ### Terça 26/05 — Véspera do Gate S1.3
-- [ ] Dashboard frontend com visualização de latência e relevance
-- [ ] Rodar suite completa — 0 falhas
-- [ ] Rodar RAG eval final — confirmar ≥ 85%
-- [ ] Medir latência E2E — confirmar p95 < 15 000 ms
+- [x] Dashboard frontend com visualização de latência e relevance (`/admin/metrics`)
+- [x] Rodar suite completa — 0 falhas (161 testes)
+- [x] Rodar RAG eval final — 98% ✅
+- [~] Medir latência E2E — p95=137 000 ms (CPU local sem GPU) ⚠️
 
 ### Quarta 27/05 — GATE S1.3 (CRÍTICO)
-- [ ] **Gate S1.3 — Critérios obrigatórios:**
-  - [ ] RAG relevance ≥ 85%
-  - [ ] Latência p95 < 15 000 ms
-  - [ ] Dashboard mostrando métricas reais
-  - [ ] 0 falhas na suite de testes
+- [x] **Gate S1.3 — Critérios obrigatórios:**
+  - [x] RAG relevance ≥ 85% → **98%** ✅
+  - [~] Latência p95 < 15 000 ms → **137 000 ms** ⚠️ (CPU local, sem GPU — infra pendente)
+  - [x] Dashboard mostrando métricas reais ✅
+  - [x] 0 falhas na suite de testes ✅
 - [ ] Atualizar Jira — tickets S1.3 → Concluído
-- [ ] **Decisão Go/No-Go para Junho (S1.4 + S2):** _______________
+- [x] **Decisão Go/No-Go para Junho (S1.4 + S2):** GO — seguir com PDF Export em junho; GPU/infra decidir em paralelo
 
-> **Resultado Gate S1.3:** _______________  
-> **RAG relevance final:** ___%  
-> **Latência p95 final:** ___ ms  
-> **Go/No-Go:** _______________
+> **Resultado Gate S1.3:** PARTIAL PASS — relevance e testes OK; latência bloqueada por infra  
+> **RAG relevance final:** 98%  
+> **Latência p95 final:** ~137 000 ms (CPU local) — alvo requer GPU (KVM4 ou Gemini API)  
+> **Go/No-Go:** GO para features de junho; decisão de infra pendente até 15/06
 
 ### Quinta 28/05
-- [ ] Fechar todos os tickets abertos de maio no Jira
-- [ ] Commit final de encerramento do mês
+- [x] Commit final de encerramento do mês — branch v.002
+- [ ] Fechar tickets abertos de maio no Jira _(realizado em 04/06 com auditoria geral)_
 
 ### Sexta 29/05
-- [ ] Atualizar `docs/planning/cronograma-sprint-detalhado.md` com status real de maio
-- [ ] Anotar o que foi adiado ou antecipado
+- [s] Adiado para sessão de 04/06
 
 ### Sábado 30/05
-- [ ] Buffer
+- [x] Buffer
 
 ### Domingo 31/05 — Retrospectiva Maio
-- [ ] Preencher resumo abaixo
-- [ ] Planejar ajustes para Junho (S1.4 + S2.0)
+- [x] Retrospectiva preenchida em 04/06
 
 ---
 
 ## Retrospectiva Maio
 
-> Preencher em 31/05/2026
+> Preenchida em 04/06/2026
 
 | Métrica | Planejado | Real |
 |---------|-----------|------|
-| Gate S1.2 | 13/05 PASS | ___ |
-| Gate S1.3 | 27/05 PASS | ___ |
-| RAG relevance | ≥ 85% | ___% |
-| Latência p95 | < 15 000 ms | ___ ms |
-| Testes totais | > 160 | ___ |
-| Tickets Jira fechados | ~12 | ___ |
+| Gate S1.2 | 13/05 PASS | ✅ PASS (13/05) |
+| Gate S1.3 | 27/05 PASS | ⚠️ PARTIAL — relevance OK, latência bloqueada por infra |
+| RAG relevance | ≥ 85% | **98%** ✅ |
+| Latência p95 | < 15 000 ms | ~137 000 ms (CPU local) ⚠️ |
+| Testes totais | > 160 | **174** ✅ |
+| Tickets Jira fechados | ~12 | **13** (Sprint 0 ×10 + ML-16, ML-52, ML-57) |
 
 **O que funcionou bem:**
+- RAG relevance muito acima da meta (98% vs 85%)
+- LGPD audit trail completo e testado
+- Dashboard de métricas operacional
+- Camada social de comunidades (posts, media, membership) entregue antes do prazo
+- Suite de testes saudável (174 / 0 falhas)
 
-**O que atrasar / bloqueou:**
+**O que atrasou / bloqueou:**
+- Latência p95 não atingiu meta (<15s) por falta de GPU — Ollama em CPU local
+- Decisão de infra (KVM2 vs KVM4 / Gemini vs 7B local) não tomada em maio
+- Gate S1.3 ficou como partial PASS por conta da latência
 
 **Ajustes para Junho:**
+- Semana 7-8 (04–17 Jun): PDF Export + BullMQ (seguir plano)
+- Semana 9-10 (18 Jun – 01 Jul): Auth E2E + resolver infra/GPU
+- Decisão de infra até 15/06 para não bloquear Gate S1.4

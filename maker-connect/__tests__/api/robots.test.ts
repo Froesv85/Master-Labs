@@ -6,8 +6,22 @@ jest.mock('@/lib/prisma', () => ({
       findMany: jest.fn(),
       count: jest.fn(),
       create: jest.fn(),
+      findUnique: jest.fn(),
     },
+    robotImage: { create: jest.fn() },
+    robotComponent: { createMany: jest.fn() },
+    robotAward: { createMany: jest.fn() },
+    robotEvent: { create: jest.fn() },
+    robotEventParticipation: { create: jest.fn() },
   },
+}));
+
+jest.mock('@/lib/auth', () => ({
+  getSession: jest.fn().mockResolvedValue({ userId: 1 }),
+}));
+
+jest.mock('@/lib/project-media', () => ({
+  uploadProjectImage: jest.fn(),
 }));
 
 import { prisma } from '@/lib/prisma';
@@ -66,6 +80,7 @@ describe('POST /api/robots', () => {
 
   it('cria robô e retorna 201', async () => {
     (prisma.robot.create as jest.Mock).mockResolvedValue(mockRobot);
+    (prisma.robot.findUnique as jest.Mock).mockResolvedValue(mockRobot);
 
     const req = makeRequest('http://localhost:3000/api/robots', {
       method: 'POST',

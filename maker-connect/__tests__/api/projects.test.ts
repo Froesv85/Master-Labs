@@ -11,6 +11,14 @@ jest.mock('@/lib/prisma', () => ({
   },
 }));
 
+jest.mock('@/lib/auth', () => ({
+  getSession: jest.fn().mockResolvedValue({ userId: 1 }),
+}));
+
+jest.mock('@/lib/project-media', () => ({
+  uploadProjectImage: jest.fn(),
+}));
+
 import { prisma } from '@/lib/prisma';
 import { GET, POST } from '@/app/api/projects/route';
 
