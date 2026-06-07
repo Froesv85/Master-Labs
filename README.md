@@ -344,11 +344,3 @@ Master-Labs/
 
 ---
 
-## Documentos-Chave
-
-- [`docs/planning/cronograma-junho-2026.md`](docs/planning/cronograma-junho-2026.md) — plano atual (Semanas 7-10)
-- [`docs/planning/cronograma-maio-2026.md`](docs/planning/cronograma-maio-2026.md) — retrospectiva de maio
-- [`docs/architecture/c4-banca-makerconnect-2026-04-18.md`](docs/architecture/c4-banca-makerconnect-2026-04-18.md) — diagrama C4
-- [`docs/tcc/CRONOGRAMA_SEMANAL_OFICIAL.md`](docs/tcc/CRONOGRAMA_SEMANAL_OFICIAL.md) — cronograma TCC 26 semanas
-- [`docs/ai/ollama-deployment-runbook.md`](docs/ai/ollama-deployment-runbook.md) — runbook Ollama
-- [`docs/INDEX.md`](docs/INDEX.md) — índice navegável de toda a documentação
