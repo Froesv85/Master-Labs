@@ -195,81 +195,81 @@ Screenshots capturadas em 04/06/2026 via Playwright (1440×900). Para atualizar:
 <table>
   <tr>
     <td align="center" width="50%">
-      <img src="docs/screenshots/2026-06-04/01-landing.png" alt="Página inicial" />
+      <img src="assets/Screenshots/01-landing.png" alt="Página inicial" />
       <br><b>01 — Página Inicial</b>
     </td>
     <td align="center" width="50%">
-      <img src="docs/screenshots/2026-06-04/02-login.png" alt="Login" />
+      <img src="assets/Screenshots/02-login.png" alt="Login" />
       <br><b>02 — Login</b>
     </td>
   </tr>
   <tr>
     <td align="center" width="50%">
-      <img src="docs/screenshots/2026-06-04/03-feed.png" alt="Feed de projetos" />
+      <img src="assets/Screenshots/03-feed.png" alt="Feed de projetos" />
       <br><b>03 — Feed de Projetos</b>
     </td>
     <td align="center" width="50%">
-      <img src="docs/screenshots/2026-06-04/04-feed-robotica.png" alt="Feed filtrado por Robótica" />
+      <img src="assets/Screenshots/04-feed-robotica.png" alt="Feed filtrado por Robótica" />
       <br><b>04 — Feed — Filtro Robótica</b>
     </td>
   </tr>
   <tr>
     <td align="center" width="50%">
-      <img src="docs/screenshots/2026-06-04/05-projeto-detalhe.png" alt="Detalhe do projeto" />
+      <img src="assets/Screenshots/05-projeto-detalhe.png" alt="Detalhe do projeto" />
       <br><b>05 — Detalhe do Projeto</b>
     </td>
     <td align="center" width="50%">
-      <img src="docs/screenshots/2026-06-04/06-robos-lista.png" alt="Lista de robôs" />
+      <img src="assets/Screenshots/06-robos-lista.png" alt="Lista de robôs" />
       <br><b>06 — Lista de Robôs (Ranking ELO)</b>
     </td>
   </tr>
   <tr>
     <td align="center" width="50%">
-      <img src="docs/screenshots/2026-06-04/07-robo-detalhe.png" alt="Detalhe do robô" />
+      <img src="assets/Screenshots/07-robo-detalhe.png" alt="Detalhe do robô" />
       <br><b>07 — Detalhe do Robô</b>
     </td>
     <td align="center" width="50%">
-      <img src="docs/screenshots/2026-06-04/08-comunidades-lista.png" alt="Comunidades" />
+      <img src="assets/Screenshots/08-comunidades-lista.png" alt="Comunidades" />
       <br><b>08 — Comunidades</b>
     </td>
   </tr>
   <tr>
     <td align="center" width="50%">
-      <img src="docs/screenshots/2026-06-04/09-comunidade-detalhe.png" alt="Detalhe da comunidade" />
+      <img src="assets/Screenshots/09-comunidade-detalhe.png" alt="Detalhe da comunidade" />
       <br><b>09 — Detalhe da Comunidade</b>
     </td>
     <td align="center" width="50%">
-      <img src="docs/screenshots/2026-06-04/10-perfil-proprio.png" alt="Perfil próprio" />
+      <img src="assets/Screenshots/10-perfil-proprio.png" alt="Perfil próprio" />
       <br><b>10 — Perfil do Usuário</b>
     </td>
   </tr>
   <tr>
     <td align="center" width="50%">
-      <img src="docs/screenshots/2026-06-04/11-perfil-publico.png" alt="Perfil público" />
+      <img src="assets/Screenshots/11-perfil-publico.png" alt="Perfil público" />
       <br><b>11 — Perfil Público</b>
     </td>
     <td align="center" width="50%">
-      <img src="docs/screenshots/2026-06-04/12-admin-metricas.png" alt="Dashboard de métricas" />
+      <img src="assets/Screenshots/12-admin-metricas.png" alt="Dashboard de métricas" />
       <br><b>12 — Dashboard de Métricas IA</b>
     </td>
   </tr>
   <tr>
     <td align="center" width="50%">
-      <img src="docs/screenshots/2026-06-04/13-robo-cadastro-modal.png" alt="Modal cadastro de robô" />
+      <img src="assets/Screenshots/13-robo-cadastro-modal.png" alt="Modal cadastro de robô" />
       <br><b>13 — Cadastro de Robô</b>
     </td>
     <td align="center" width="50%">
-      <img src="docs/screenshots/2026-06-04/14-comunidade-criar-modal.png" alt="Modal criar comunidade" />
+      <img src="assets/Screenshots/14-comunidade-criar-modal.png" alt="Modal criar comunidade" />
       <br><b>14 — Criar Comunidade</b>
     </td>
   </tr>
   <tr>
     <td align="center" width="50%">
-      <img src="docs/screenshots/2026-06-04/15-N8N.png" alt="Workflow n8n" />
+      <img src="assets/Screenshots/15-N8N.png" alt="Workflow n8n" />
       <br><b>15 — Workflow n8n (Orquestração IA)</b>
     </td>
     <td align="center" width="50%">
-      <img src="docs/screenshots/2026-06-04/16-Jira.png" alt="Board Jira" />
+      <img src="assets/Screenshots/16-Jira.png" alt="Board Jira" />
       <br><b>16 — Board Jira (Gestão do Projeto)</b>
     </td>
   </tr>

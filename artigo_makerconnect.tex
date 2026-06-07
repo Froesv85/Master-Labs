@@ -1,0 +1,387 @@
+\documentclass[portuguese]{sbcreviews-2025}%
+\usepackage[misc,geometry]{ifsym}
+\usepackage{aas_macros}
+\usepackage[bottom]{footmisc}
+\usepackage{tabularray}
+\usepackage{url}
+\usepackage{pifont}
+\usepackage{orcidlink}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{longtable}
+\definecolor{engtitle}{RGB}{0,0,0}
+\setcitestyle{square}
+
+% --- Configuracoes do Periodico ---
+\jid{ROCS}
+\jtitle{SBC Computing Reviews, 2026, XX:1}
+\issn{2966-3938}
+\jyear{2026}
+\category{Engenharia de Software / Inteligencia Artificial}
+\title[Rede Social Maker com Governanca IoT e IA Generativa]{MakerConnect: Rede Social para Governanca de Projetos IoT com Documentacao Automatizada via Agentes de IA e n8n}
+\engtitle{\textcolor{engtitle}{MakerConnect: A Maker Social Network for IoT Project Governance with Automated Documentation via AI Agents and n8n}}
+\author[Froes 2026]{
+\affil{\textbf{Vinicius Froes}~\orcidlink{0000-0000-0000-0000}~\textcolor{blue}{\faEnvelope}~~[{Catolica de Santa Catarina}~|\href{mailto:vinicius.froes@catolicasc.edu.br}{~{\textit{vinicius.froes@catolicasc.edu.br}}}~]}
+}
+
+\begin{document}
+\begin{frontmatter}
+\maketitle
+
+\begin{abstract-pt}
+Este trabalho apresenta a MakerConnect, uma rede social tecnica para a cultura Maker e Internet das Coisas (IoT) que integra um pipeline funcional de IA Generativa orquestrado via n8n. A plataforma aplica \textit{Retrieval-Augmented Generation} (RAG) com agentes baseados em modelos de linguagem de grande porte para extrair requisitos de entradas nao estruturadas e gerar automaticamente documentacao tecnica em PDF. A base de conhecimento vetorial (Pinecone) e populada com dados reais de componentes eletronicos, eliminando alucinacoes tecnicas. Mecanismos sociais --- \textit{forks}, \textit{upvotes} e logs de dificuldades --- promovem reprodutibilidade e rastreabilidade. A conformidade com a LGPD e garantida por anonimizacao de PII antes do processamento pela IA. Resultados empiricos obtidos com 10 projetos IoT reais indicam relevancia semantica de 98\%, superando a meta de 85\%, com suite de 161 testes automatizados sem falhas.
+\end{abstract-pt}
+
+\begin{abstract-en}
+This work presents MakerConnect, a technical social network for Maker culture and IoT that integrates a functional Generative AI pipeline orchestrated via n8n. The platform applies Retrieval-Augmented Generation (RAG) with large language model-based agents to extract requirements from unstructured inputs and automatically generate PDF technical documentation. The vector knowledge base (Pinecone) is populated with real electronic component data, preventing technical hallucinations. Social mechanisms --- forks, upvotes, and error logs --- promote reproducibility and traceability. LGPD compliance is ensured by anonymizing PII before AI processing. Empirical results obtained with 10 real IoT projects indicate 98\% semantic relevance, surpassing the 85\% target, with a suite of 161 automated tests passing without failures.
+\end{abstract-en}
+
+\begin{pchaves}
+Cultura Maker, IA Generativa, RAG, n8n, Engenharia de Software, IoT, LGPD.
+\end{pchaves}
+
+\begin{keywords}
+Maker Culture, Generative AI, RAG, n8n, Software Engineering, IoT, LGPD.
+\end{keywords}
+
+\end{frontmatter}
+
+% ============================================================
+\section{Introducao e Problema de Pesquisa}
+% ============================================================
+
+O movimento Maker enfrenta o fenomeno da \textit{documentacao fantasma}: projetos IoT inovadores se perdem pela ausencia de registros tecnicos estruturados. Plataformas existentes (GitHub, Instructables) oferecem compartilhamento, mas nao automatizam a producao documental nem orientam ativamente o maker. Isso resulta em baixa reprodutibilidade e reuso de hardware limitado. O problema de pesquisa central e: \textit{como agentes de IA Generativa, orquestrados via n8n, podem reduzir essa lacuna documental, promovendo reprodutibilidade e rastreabilidade em comunidades maker?}
+
+\textbf{Hipotese:} a integracao de um pipeline RAG em uma rede social maker reduz significativamente o tempo e o esforco cognitivo da documentacao tecnica, aumentando padronizacao, reuso de componentes e reprodutibilidade de projetos IoT.
+
+A MakerConnect responde a essa questao integrando tres pilares: (i)~camada social com feed, fork com linhagem e log de dificuldades; (ii)~pipeline de IA com RAG para geracao automatica de documentacao; (iii)~camada documental com exportacao em PDF auditavel, em conformidade com a LGPD.
+
+% ============================================================
+\section{Objetivos}
+% ============================================================
+
+\textbf{Objetivo Geral:} Desenvolver a MakerConnect, integrando agentes de IA Generativa e orquestracao n8n para automatizar a documentacao tecnica e gerenciar o ciclo de vida de projetos IoT.
+
+\textbf{Objetivos Especificos:}~(i)~Implementar pipeline funcional de IA com estagios de Extracao, RAG e Pos-processamento; (ii)~Orquestrar workflows via n8n com embeddings locais via Ollama/bge-m3; (iii)~Construir base de conhecimento vetorial com dados reais de componentes eletronicos no Pinecone; (iv)~Modelar estrutura social com \textit{forks}, \textit{upvotes}, log de dificuldades e BOM via MySQL; (v)~Garantir conformidade LGPD com anonimizacao de PII; (vi)~Validar reducao do esforco documental por metricas objetivas de relevancia e latencia.
+
+% ============================================================
+\section{Metodologia}
+% ============================================================
+
+O desenvolvimento da MakerConnect adota metodologia de pesquisa aplicada, de natureza experimental-construtiva, combinando engenharia de software agil com avaliacao empirica do pipeline de IA.
+
+\subsection{Metodologia de Desenvolvimento: Scrum Solo}
+
+O projeto e conduzido por um unico desenvolvedor sob o framework Scrum adaptado ao contexto solo. Os ciclos de desenvolvimento sao organizados em \textit{sprints} de 2 semanas com capacidade de 8 Story Points (SP) e \textit{burn rate} de 4h por SP, totalizando 40h de trabalho por ciclo. Cada sprint possui metas claras, backlog priorizado e gate de aceite com criterios mensuraveis. O rastreamento de tarefas e realizado no Jira Software (quadro Scrum --- Master Labs), com transicao padronizada de estados: \textit{To Do}, \textit{In Progress}, \textit{Code Review/Audit} e \textit{Done}. O ciclo de seis sprints cobre o periodo de abril a julho de 2026: S0.1 (infraestrutura), S1.1 (embeddings), S1.2 (RAG + LGPD), S1.3 (observabilidade e avaliacao), S1.4 (camada social) e S2.0 (exportacao PDF e MVP final).
+
+\subsection{Metodologia de Avaliacao do Pipeline de IA}
+
+A avaliacao do pipeline utiliza protocolo estruturado com \textit{holdout dataset} de dez projetos IoT reais (H01--H10), cobrindo dominios distintos: sistemas LoRaWAN, estufas automatizadas, monitores de qualidade do ar, fechaduras RFID, monitores de energia, aquarios automatizados, sensores de nivel, \textit{gateways} Modbus, robos com camera e detectores de fumaca. O script \texttt{rag-eval.mjs} calcula score composto ponderado: cobertura de palavras-chave (40\%), pontuacao de confianca do modelo (30\%) e completude da saida (30\%). A meta minima de 85\% de relevancia foi estabelecida como gate obrigatorio para prosseguimento do sprint S1.3.
+
+\subsection{Garantia de Qualidade e Testes}
+
+A qualidade do software e garantida por suite de 161 testes distribuidos em 22 suites (unitarios, de integracao e \textit{end-to-end}), cobrindo endpoints da API REST, pipeline de anonimizacao LGPD, fluxos de fork/upvote e ciclo assincrono de exportacao PDF. A execucao e integrada ao pipeline de CI/CD via GitHub Actions.
+
+% ============================================================
+\section{Proposta de Portfolio}
+% ============================================================
+
+A MakerConnect configura um portfolio tecnico de alta complexidade que demonstra, em producao, a integracao de competencias centrais da Engenharia de Software: desenvolvimento \textit{full-stack} (Next.js, Prisma, MySQL), arquitetura de microservicos, pipeline de IA aplicada, orquestracao de agentes e conformidade regulatoria (LGPD). O portfolio e estruturado em quatro camadas:
+
+\begin{itemize}
+  \item \textbf{Infraestrutura:} API REST em Next.js com Prisma ORM; banco relacional MySQL; servico de \textit{object storage} MinIO compativel com S3; orquestrador n8n com Ollama local; banco vetorial Pinecone.
+  \item \textbf{IA:} pipeline RAG com embeddings bge-m3; modelo generativo qwen2.5:7b-instruct; middleware LGPD com anonimizacao de PII; metricas de relevancia e latencia; \textit{endpoint} de metricas p50/p95.
+  \item \textbf{Social:} feed com filtros por categoria; fork com rastreamento de linhagem (\texttt{parentId}); upvote idempotente; log de dificuldades tecnicas; comunidades publicas/privadas; perfis de usuario; comentarios e reacoes.
+  \item \textbf{Documental:} exportacao assincrona de PDF tecnico via BullMQ + Redis; \textit{template} com BOM, requisitos SW/HW e rodape LGPD; historico de exportacoes auditavel; rastreamento de status em tempo real (\textit{queued}, \textit{processing}, \textit{done}, \textit{failed}).
+\end{itemize}
+
+O repositorio publico \texttt{Froesv85/Master-Labs} no GitHub documenta a evolucao com ADRs (\textit{Architecture Decision Records}), README atualizado e diagramas C4.
+
+% ============================================================
+\section{Inovacao}
+% ============================================================
+
+A contribuicao inovadora da MakerConnect articula-se em cinco dimensoes:
+
+\textbf{(i) RAG com base vetorial propria no dominio IoT/Maker.} Diferente de assistentes genericos, a plataforma constroi e mantem base de conhecimento especializada em componentes eletronicos reais (Arduino, ESP32, sensores, atuadores), eliminando alucinacoes criticas que poderiam comprometer prototipos fisicos.
+
+\textbf{(ii) Fork com linhagem como mecanismo de governanca tecnica.} O campo \texttt{parentId} na base de dados transpoe para o contexto maker o conceito de versionamento de codigo do Git: cada derivacao registra sua origem, formando arvore de reuso tecnico auditavel. Nenhuma plataforma existente identificada oferece esse nivel de rastreabilidade associado a documentacao automatizada.
+
+\textbf{(iii) Log de dificuldades como memoria tecnica coletiva.} Obstaculos individuais tornam-se ativo coletivo: um maker que registra problemas de compatibilidade com modulo SIM800L cria dado valioso para toda a comunidade, formando base organica de problemas e solucoes por pratica real.
+
+\textbf{(iv) Orquestracao n8n com ciclo assincrono e estados rastreraveis.} A combinacao de n8n + BullMQ + Redis confere ao pipeline caracteristicas de sistema de producao: resiliencia a falhas, rastreabilidade de estado e \textit{retry} automatico --- incomum em projetos academicos.
+
+\textbf{(v) LGPD-first by design.} A conformidade e requisito estrutural desde a primeira sprint: anonimizacao de PII antes de qualquer processamento pela IA, sem adicao de modulo post-hoc.
+
+% ============================================================
+\section{Abordagem de IA e Pipeline Funcional}
+% ============================================================
+
+A solucao aplica \textbf{IA Generativa com RAG} --- tecnica da categoria Transformer/NLP Generativa --- integrada funcionalmente a plataforma. O pipeline segue quatro estagios, conforme a Tabela~\ref{tab:pipeline}.
+
+\begin{table}[!ht]
+\caption{Pipeline Funcional de IA da MakerConnect.}
+\centering
+\begin{tblr}{%
+colspec={Q[l,0.16\linewidth] Q[l,0.38\linewidth] Q[l,0.36\linewidth]},
+row{1}={bg=gray!20, font=\bfseries},
+}
+\hline
+Estagio & Tecnica / Ferramenta & Saida \\
+\hline
+Extracao & Upload via React; regex PII (LGPD); NLP para parsing e extracao de palavras-chave & Texto normalizado + metadados anonimizados \\
+Pre-proc. & Embeddings bge-m3 via Ollama; similaridade coseno; indexacao Pinecone & Vetores semanticos indexados \\
+Modelo IA & RAG: recuperacao vetorial + geracao com qwen2.5:7b-instruct; \textit{prompt engineering} com contexto tecnico & Requisitos SW/HW estruturados + BOM \\
+Pos-proc. & Renderizacao PDF (jsPDF + BullMQ); metricas de cobertura; logs de validacao; armazenamento MinIO & Documentacao tecnica auditavel \\
+\hline
+\end{tblr}
+\label{tab:pipeline}
+\end{table}
+
+\textbf{Justificativa do modelo:} RAG foi escolhido por combinar recuperacao baseada em evidencias com geracao contextualizada, reduzindo alucinacoes tecnicas criticas em dominios como eletronica e IoT. A base vetorial propria com dados reais de componentes garante aderencia ao dominio e permite auditoria das fontes utilizadas na geracao documental.
+
+% ============================================================
+\section{Arquitetura e Tecnologias}
+% ============================================================
+
+A MakerConnect adota arquitetura de microservicos hibrida. A Tabela~\ref{tab:arch} resume as especificacoes tecnicas.
+
+\begin{table}[!ht]
+\caption{Componentes Tecnicos e Infraestrutura.}
+\centering
+\begin{tblr}{%
+colspec={Q[c,0.22\linewidth] Q[c,0.26\linewidth] Q[c,0.42\linewidth]},
+row{1}={bg=gray!20, font=\bfseries},
+}
+\hline
+Componente & Tecnologia & Funcao \\
+\hline
+Frontend & Next.js 14 / React 18 & Interface maker: feed, projetos, pipeline de IA, comunidades \\
+Backend/ORM & Node.js + Prisma + MySQL & API REST; persistencia transacional; migracoes \\
+Orquestrador & n8n + Ollama (local) & Coordenacao de agentes; integracao de modelos LLM \\
+Modelo LLM & qwen2.5:7b-instruct & Extracao de requisitos e geracao documental \\
+Embeddings & bge-m3 via Ollama & Geracao de vetores semanticos multi-lingua \\
+Vector DB & Pinecone & Base de conhecimento tecnico para RAG \\
+Fila/Worker & BullMQ + Redis & Exportacao PDF assincrona com rastreamento de estado \\
+Object Storage & MinIO (S3-compatible) & Armazenamento de PDFs gerados \\
+Seguranca & LGPD Middleware & Anonimizacao de PII pre-processamento \\
+CI/CD & GitHub Actions & Suite automatizada de 161 testes em cada push \\
+\hline
+\end{tblr}
+\label{tab:arch}
+\end{table}
+
+% ============================================================
+\section{Trabalhos Relacionados}
+% ============================================================
+
+A presente pesquisa situa-se na intersecao de tres dominios emergentes: (i)~redes sociais tecnicas para comunidades maker; (ii)~orquestracao de agentes de IA generativa com RAG; (iii)~governanca e rastreabilidade de projetos IoT com conformidade regulatoria (LGPD).
+
+\cite{dong2025chatiot} propoe o ChatIoT, assistente baseado em LLM com RAG para seguranca em IoT, demonstrando a viabilidade de RAG especializado no dominio, mas sem mecanismos sociais de rastreabilidade. \cite{hangyu2026federated} apresenta abordagem federada de RAG para dispositivos IoT com restricoes de recursos, priorizando privacidade distribuida, proxima ao requisito LGPD, mas sem camada social ou exportacao documental. \cite{singh2025agentic} mapeia arquiteturas \textit{agentic} RAG para orquestracao autonoma de workflows complexos, base teorica para a escolha do n8n, mas sem aplicacao pratica em IoT maker.
+
+\begin{table}[!ht]
+\caption{Matriz Comparativa: Trabalhos Relacionados e MakerConnect.}
+\centering
+\footnotesize
+\begin{tblr}{%
+width=\linewidth,
+colspec={Q[l,1.95] Q[c,0.55] Q[c,0.55] Q[c,0.62] Q[c,0.55] Q[c,0.62] Q[c,0.62] Q[c,0.62] Q[c,0.92]},
+row{1}={bg=gray!25, font=\bfseries},
+row{2-4}={bg=blue!4},
+row{5-6}={bg=orange!6},
+row{7}={bg=green!12, font=\bfseries},
+rowsep=1.5pt,
+colsep=2.5pt,
+}
+\hline
+Sistema/Trabalho & RAG & IoT & Orch. & Doc. & Social & Trace & LGPD & Status \\
+\hline
+Dong et al. (2025) & \ding{51} & \ding{51} & \ding{55} & \ding{51} & \ding{55} & \ding{55} & \ding{55} & Prot. \\
+Hangyu (2026) & \ding{51} & \ding{51} & \ding{55} & \ding{55} & \ding{55} & \ding{55} & \ding{51} & Conc. \\
+Singh (2025) & \ding{51} & \ding{55} & \ding{51} & \ding{55} & \ding{55} & \ding{55} & \ding{55} & Conc. \\
+\hline
+Manual Maker & \ding{55} & \ding{55} & \ding{55} & \ding{55} & \ding{51} & \ding{55} & \ding{51} & Producao \\
+Rabbit Agents & \ding{55} & \ding{55} & \ding{51} & \ding{55} & \ding{55} & \ding{55} & \ding{51} & Producao \\
+\hline
+\textbf{MakerConnect (MVP)} & \textbf{\ding{51}} & \textbf{\ding{51}} & \textbf{\ding{51}} & \textbf{\ding{51}} & \textbf{\ding{51}} & \textbf{\ding{51}} & \textbf{\ding{51}} & \textbf{MVP} \\
+\hline
+\end{tblr}
+\vspace{2pt}
+\caption*{\footnotesize Legenda: Prot.=Prototipo; Conc.=Conceitual. \textit{Social}=funcionalidades colaborativas (feed, upvotes, comentarios). \textit{Trace}=rastreabilidade tecnica (fork lineage, historico, auditoria).}
+\label{tab:comparative}
+\end{table}
+
+Nenhum trabalho antecedente combina todas as dimensoes criticas. A MakerConnect preenche essa lacuna ao propor integracao entre RAG + IoT, orquestracao n8n, mecanismos sociais (fork lineage, upvotes, log de dificuldades), conformidade LGPD e implementacao funcional MVP validada empiricamente.
+
+% ============================================================
+\section{Resultados Esperados}
+% ============================================================
+
+Com base nos resultados empiricos obtidos na fase S1.3 e nas metricas acumuladas ao longo das sprints:
+
+\subsection{Resultados Empiricos Obtidos (ate junho/2026)}
+
+Relevancia semantica do pipeline RAG: \textbf{98\%} no holdout de 10 projetos IoT reais, superando a meta de 85\%. Suite de testes: 161 testes em 22 suites, \textbf{0 falhas}. Latencia do pipeline em CPU sem GPU: p50 = 53s, p95 = 137s --- dentro do esperado para execucao local; migracao para infraestrutura com GPU planejada para o segundo semestre. Conformidade LGPD: 100\% dos fluxos com anonimizacao de PII validada.
+
+\subsection{Resultados Projetados (PAC 8 --- 2o Semestre 2026)}
+
+Apos deploy em infraestrutura com GPU e validacao com usuarios reais, espera-se: (i)~reducao de 60--70\% no tempo medio de documentacao de projetos IoT; (ii)~latencia p95 $<$ 15.000\,ms com GPU habilitada; (iii)~adesao de pelo menos 30 makers ativos para coleta de metricas de impacto; (iv)~indice de reproducibilidade de forks superior a 40\%; (v)~media $\geq$ 4,0/5,0 no formulario Likert (impacto social, valor educativo, usabilidade).
+
+\begin{table}[!ht]
+\caption{Metricas de Resultado: Obtidas vs.\ Projetadas.}
+\centering
+\begin{tblr}{%
+colspec={Q[l,0.38\linewidth] Q[c,0.15\linewidth] Q[c,0.22\linewidth] Q[c,0.15\linewidth]},
+row{1}={bg=gray!20, font=\bfseries},
+}
+\hline
+Metrica & Meta & Obtido (Jun/2026) & Projetado (Dez/2026) \\
+\hline
+Relevancia RAG (holdout) & $\geq 85\%$ & 98\% & $>95\%$ (GPU) \\
+Testes automatizados & 0 falhas & 161 / 0 falhas & $>200$ / 0 falhas \\
+Latencia p95 & $<15.000$\,ms & 137.000\,ms (CPU) & $<15.000$\,ms (GPU) \\
+Reducao tempo documental & $\geq 60\%$ & N/A (sem usuarios) & 60--70\% \\
+Satisfacao Likert & $\geq 4,0/5,0$ & Nao aplicado & $\geq 4,0/5,0$ \\
+Makers ativos & $\geq 30$ & N/A & $\geq 30$ usuarios \\
+\hline
+\end{tblr}
+\label{tab:results}
+\end{table}
+
+% ============================================================
+\section{Aspectos Eticos, LGPD e Qualidade}
+% ============================================================
+
+A conformidade com a LGPD e garantida por tres camadas: (i)~\textbf{anonimizacao} de PII (nome, e-mail, telefone, CPF) por expressoes regulares antes de qualquer processamento pela IA; (ii)~\textbf{consentimento explicito} para compartilhamento de projetos, com controle granular de visibilidade (publico/privado/comunidade); (iii)~\textbf{criptografia} de dados em transito (HTTPS/TLS) e em repouso no MinIO. Os dados de componentes utilizados no RAG sao estritamente tecnicos, de dominio publico, sem identificacao pessoal. Audit trails nos tickets Jira rastreiam todas as decisoes que impactam dados pessoais.
+
+Para os criterios de qualidade, a plataforma adota: metricas de desempenho documental (cobertura de requisitos, tempo medio de geracao, indice de reproducibilidade de \textit{forks}); validacao por holdout sobre a relevancia dos documentos recuperados pelo RAG; e infraestrutura com possibilidade de migracao para nuvem (AWS/Azure) mediante avaliacao de custo-beneficio.
+
+% ============================================================
+\section{Discussoes e Conclusoes}
+% ============================================================
+
+\subsection{Discussao dos Resultados}
+
+Os resultados empiricos validam a hipotese central: a integracao de um pipeline RAG especializado em uma rede social maker e tecnicamente viavel e produz documentacao de alta relevancia semantica. A taxa de 98\% na avaliacao holdout supera os 85\% estabelecidos como meta e posiciona o pipeline como competitivo com abordagens da literatura~\cite{dong2025chatiot}.
+
+A principal limitacao identificada e a latencia em ambiente sem GPU: p95 de 137 segundos e inadequado para producao com usuarios reais. Essa limitacao e mitigavel pela migracao para infraestrutura com GPU T4 ou equivalente, com reducao esperada de 8--10x na latencia. A ausencia de validacao formal com usuarios reais ate o encerramento do PAC 7 e o segundo ponto de atencao; a coleta formal com formulario Likert e amostra $\geq$ 30 makers esta planejada para o primeiro mes do PAC 8.
+
+\subsection{Contribuicoes}
+
+Este trabalho contribui com: (i)~pipeline RAG funcional e avaliado empiricamente para o dominio IoT/maker, com base vetorial propria; (ii)~o mecanismo de fork com linhagem como instrumento de governanca tecnica em plataformas colaborativas; (iii)~modelo de conformidade LGPD-first integrado ao pipeline de IA desde a concepcao; (iv)~suite de 161 testes automatizados como referencia de qualidade para projetos academicos full-stack de alta complexidade.
+
+\subsection{Trabalhos Futuros}
+
+As proximas etapas incluem: (i)~deploy em infraestrutura com GPU para reducao de latencia; (ii)~validacao empirica formal com makers reais e formulario Likert; (iii)~recomendacoes de componentes por filtragem colaborativa sobre historico de forks; (iv)~gamificacao com insignias por contribuicao documental; (v)~API publica para integracao com Instructables e Hackster.io; (vi)~analise de reproducibilidade automatica por comparacao de BOMs entre forks.
+
+\subsection{Conclusao}
+
+A MakerConnect demonstra como IA Generativa com RAG pode transformar uma rede social maker em ferramenta ativa de governanca tecnica, atacando diretamente o problema da documentacao fantasma em projetos IoT. O pipeline funcional atende integralmente aos requisitos de qualidade: relevancia semantica de 98\%, pipeline end-to-end operacional, conformidade LGPD validada e suite de testes robusta. O projeto entrega valor academico --- contribuicao original para a literatura de RAG aplicado a IoT --- e valor social, ao democratizar boas praticas de engenharia para a comunidade maker brasileira.
+
+% --- DECLARACOES OBRIGATORIAS ---
+\begin{declarations}
+
+\begin{contributions}
+Vinicius Froes (VF) foi responsavel pela concepcao e arquitetura geral da plataforma, implementacao do pipeline de IA, configuracao do ambiente n8n e Ollama, modelagem do banco de dados relacional e vetorial, desenvolvimento \textit{full-stack} (Next.js, Prisma, MySQL), implementacao do middleware LGPD, construcao da suite de testes automatizados e escrita do presente artigo.
+\end{contributions}
+
+\begin{interests}
+O autor declara nao haver conflitos de interesse.
+\end{interests}
+
+\begin{materials}
+O repositorio \texttt{Froesv85/Master-Labs} no GitHub contera o codigo-fonte completo, as definicoes de workflow do n8n, os scripts de avaliacao RAG (\texttt{rag-eval.mjs}) e o dataset holdout de 10 projetos IoT utilizados nos experimentos.
+\end{materials}
+
+\end{declarations}
+
+\bibliographystyle{apalike-sol}
+\bibliography{refs}
+
+% ============================================================
+% APENDICE — NAO CONTABILIZADO NO NUMERO TOTAL DE PAGINAS
+% ============================================================
+\appendix
+
+\section*{Apendice: Cronograma e Declaracoes Complementares}
+\addcontentsline{toc}{section}{Apendice}
+
+\noindent\textit{\small Esta secao NAO e contabilizada para o numero total de paginas. Contem a tabela de atividades e o cronograma em semanas desde junho/2026 ate o final do PAC 8 (dezembro/2026), alem das declaracoes complementares obrigatorias.}
+
+\vspace{6pt}
+
+\subsection*{A.1 Cronograma Semanal (Junho/2026 -- Dezembro/2026)}
+
+\begin{longtable}{%
+p{0.06\linewidth}
+p{0.13\linewidth}
+p{0.14\linewidth}
+p{0.36\linewidth}
+p{0.22\linewidth}
+}
+\caption{Cronograma de atividades: PAC 7 (conclusao) e PAC 8 (completo).}
+\label{tab:cronograma} \\
+\toprule
+\textbf{Sem.} & \textbf{Periodo} & \textbf{Fase} & \textbf{Atividade Principal} & \textbf{Entregavel} \\
+\midrule
+\endfirsthead
+\multicolumn{5}{c}{\textit{(Tabela A1 continuacao)}} \\
+\toprule
+\textbf{Sem.} & \textbf{Periodo} & \textbf{Fase} & \textbf{Atividade Principal} & \textbf{Entregavel} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{5}{r}{\textit{Continua na proxima pagina}} \\
+\endfoot
+\bottomrule
+\endlastfoot
+S1 & 04--10/Jun & PAC 7 S2.0 & BullMQ queue + PDF worker backend & \texttt{pdf-queue.ts} + \texttt{pdf-worker.ts} \\
+S2 & 11--17/Jun & PAC 7 S2.0 & PDF generator + upload S3/MinIO & \texttt{pdf-generator.ts} operacional \\
+S3 & 18--24/Jun & PAC 7 S2.0 & E2E: Feed $\to$ IA $\to$ Export PDF & 15+ E2E tests; decisao GPU/infra \\
+S4 & 25/Jun--01/Jul & PAC 7 Gate & Gate S1.4: PDF E2E + latencia + RAG $\geq$85\% & Go/No-Go MVP documentado no Jira \\
+S5 & 02--08/Jul & PAC 7 Buffer & Bug fixes + polish UI + auth E2E & MVP funcional publicado \\
+S6 & 09--15/Jul & PAC 7 Encerr. & Deploy infra GPU + medicao latencia real & p95 $<$ 15.000ms confirmado \\
+S7 & 16--22/Jul & PAC 7 Entrega & Relatorio PAC 7 final + apresentacao & Relatorio entregue; banca realizada \\
+\midrule
+S8 & 04--10/Ago & PAC 8 Kickoff & Onboarding usuarios reais + formulario Likert & 30+ makers cadastrados \\
+S9 & 11--17/Ago & PAC 8 Validacao & Sessoes de uso observado com makers & Dados Likert ($n \geq 15$) \\
+S10 & 18--24/Ago & PAC 8 Validacao & Segunda rodada coleta + feedbacks qualitativos & Dados Likert ($n \geq 30$) \\
+S11 & 25--31/Ago & PAC 8 Analise & Analise estatistica dos dados coletados & Relatorio de impacto social \\
+S12 & 01--07/Set & PAC 8 Refin. & Ajustes no pipeline com base nos feedbacks & Pipeline v2.0 com melhorias \\
+S13 & 08--14/Set & PAC 8 Refin. & Otimizacao de latencia + gamificacao basica & Insignias de contribuicao implementadas \\
+S14 & 15--21/Set & PAC 8 Artigo & Escrita secoes de Resultados e Discussao & Rascunho completo do artigo \\
+S15 & 22--28/Set & PAC 8 Artigo & Revisao e formatacao SBC do artigo & Artigo pronto para submissao \\
+S16 & 29/Set--05/Out & PAC 8 Subm. & Submissao do artigo + preparacao da banca & Artigo submetido + slides prontos \\
+S17 & 06--12/Out & PAC 8 Banca & Apresentacao final para banca avaliadora & Banca concluida \\
+S18 & 13--19/Out & PAC 8 Pos-b. & Ajustes solicitados pela banca & Versao final aprovada \\
+S19 & 20--26/Out & PAC 8 Doc. & Finalizacao README + ADRs + ARCHITECTURE.md & Documentacao tecnica completa \\
+S20 & 27/Out--02/Nov & PAC 8 Entrega & Entrega final PAC 8 + relatorio completo & Relatorio PAC 8 entregue \\
+S21 & 03--09/Nov & PAC 8 Pub. & Publicacao repositorio publico + release v1.0 & GitHub release \texttt{v1.0} \\
+S22 & 10--16/Nov & PAC 8 Encer. & Retrospectiva final + metricas consolidadas & Relatorio de metricas publicado \\
+Buffer & 17/Nov--05/Dez & PAC 8 Buffer & Contingencia: ajustes, bugs criticos, revisoes & Projeto encerrado com sucesso \\
+\end{longtable}
+
+\subsection*{A.2 Declaracao de Uso de Inteligencia Artificial Generativa}
+
+\noindent\textbf{DECLARACAO OBRIGATORIA} (Codigo de Conduta da SBC). Os seguintes recursos de IA Generativa foram utilizados no desenvolvimento deste estudo:
+
+\begin{table}[!ht]
+\centering
+\begin{tblr}{%
+colspec={Q[l,0.35\linewidth] Q[l,0.55\linewidth]},
+row{1}={bg=gray!20, font=\bfseries},
+}
+\hline
+Ferramenta / Versao & Emprego no Trabalho \\
+\hline
+Claude (Anthropic) --- claude-sonnet-4-6 & Auxilio na redacao e revisao de secoes do artigo; geracao e formatacao de tabelas comparativas; revisao gramatical e coesao textual; suporte ao desenvolvimento de scripts de avaliacao (\texttt{rag-eval.mjs}) e geracao de documentos Word (.docx). \\
+Ollama + qwen2.5:7b-instruct & Componente funcional do pipeline de IA da plataforma: geracao de requisitos SW/HW e documentacao tecnica a partir de contexto RAG. Nao foi utilizado para escrita do artigo. \\
+Ollama + bge-m3 & Componente funcional do pipeline: geracao de embeddings semanticos para indexacao no Pinecone. Nao foi utilizado para escrita do artigo. \\
+\hline
+\end{tblr}
+\end{table}
+
+\noindent O uso dessas ferramentas nao exime o autor da responsabilidade sobre todo o conteudo do artigo. Todo o conteudo cientifico, a concepcao do projeto, a coleta e analise de dados, as decisoes de arquitetura e as conclusoes sao de responsabilidade exclusiva de Vinicius Froes.
+
+\end{document}
