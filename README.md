@@ -8,7 +8,7 @@
 >
 > Acadêmico: Vinicius Froes
 >
-> > Projeto de Aprendizagem Colaborativa — PAC Extensionista
+>  Projeto de Aprendizagem Colaborativa — PAC Extensionista
 
 ---
 
