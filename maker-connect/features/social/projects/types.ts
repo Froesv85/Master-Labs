@@ -42,3 +42,11 @@ export type VoteProjectResponse = {
     alreadyVoted: boolean;
   };
 };
+
+export type ShareProjectResponse = {
+  data: {
+    projectId: number;
+    shares: number;
+    alreadyShared: boolean;
+  };
+};

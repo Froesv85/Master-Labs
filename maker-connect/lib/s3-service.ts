@@ -54,7 +54,15 @@ export async function uploadFile(
 
   await s3Client.send(command);
 
-  // Return the public URL. In MinIO with anonymous download enabled:
+  // Public URL for the browser. MinIO serves objects path-style from the same
+  // endpoint used for the SDK, but providers like Cloudflare R2 use a separate
+  // public domain (their S3 API endpoint isn't publicly readable), so
+  // S3_PUBLIC_URL_BASE lets that be configured independently when needed.
+  const publicBase = process.env.S3_PUBLIC_URL_BASE;
+  if (publicBase) {
+    return `${publicBase}/${filename}`;
+  }
+
   const endpoint = process.env.S3_ENDPOINT || 'http://localhost:9000';
   return `${endpoint}/${bucket}/${filename}`;
 }

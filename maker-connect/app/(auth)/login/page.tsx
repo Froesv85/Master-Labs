@@ -22,10 +22,10 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
       if (!res.ok) {
-        const d = await res.json();
+        const d = await res.json().catch(() => ({}));
         throw new Error(d.error ?? 'Erro ao entrar');
       }
-      router.push('/feed');
+      router.replace('/feed');
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro inesperado');

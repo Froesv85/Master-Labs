@@ -2,6 +2,7 @@ import type {
   FeedCategory,
   FeedSort,
   ProjectsFeedResponse,
+  ShareProjectResponse,
   VoteProjectResponse,
 } from './types';
 
@@ -67,6 +68,19 @@ export async function forkProject(projectId: number): Promise<void> {
     const message = await readErrorMessage(response, 'Falha ao criar fork.');
     throw new Error(message);
   }
+}
+
+export async function shareProject(projectId: number): Promise<ShareProjectResponse> {
+  const response = await fetch(`/api/projects/${projectId}/share`, {
+    method: 'POST',
+  });
+
+  if (!response.ok) {
+    const message = await readErrorMessage(response, 'Falha ao compartilhar projeto.');
+    throw new Error(message);
+  }
+
+  return (await response.json()) as ShareProjectResponse;
 }
 
 export async function voteProject(projectId: number): Promise<VoteProjectResponse> {
