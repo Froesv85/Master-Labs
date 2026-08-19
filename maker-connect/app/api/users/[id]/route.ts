@@ -19,6 +19,22 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
         orderBy: { createdAt: 'desc' },
         take: 6,
       },
+      sharedProjects: {
+        orderBy: { createdAt: 'desc' },
+        take: 12,
+        include: {
+          project: {
+            select: {
+              id: true,
+              title: true,
+              category: true,
+              creatorId: true,
+              creator: { select: { id: true, name: true } },
+              createdAt: true,
+            },
+          },
+        },
+      },
       ownedTeams: {
         include: { members: true },
       },

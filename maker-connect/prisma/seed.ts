@@ -6,36 +6,39 @@ import {
   RobotCategory,
   TeamRole,
 } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
 async function main() {
   // ── Users ─────────────────────────────────────────────────────────
+  const passwordHash = await bcrypt.hash('maker123', 10);
+
   const users = await Promise.all([
     prisma.user.upsert({
       where: { email: 'test@example.com' },
-      update: {},
-      create: { email: 'test@example.com', name: 'Vinicius Froes' },
+      update: { password: passwordHash },
+      create: { email: 'test@example.com', name: 'Vinicius Froes', password: passwordHash },
     }),
     prisma.user.upsert({
       where: { email: 'ana.silva@maker.com' },
-      update: {},
-      create: { email: 'ana.silva@maker.com', name: 'Ana Silva' },
+      update: { password: passwordHash },
+      create: { email: 'ana.silva@maker.com', name: 'Ana Silva', password: passwordHash },
     }),
     prisma.user.upsert({
       where: { email: 'carlos.robo@maker.com' },
-      update: {},
-      create: { email: 'carlos.robo@maker.com', name: 'Carlos Robotics' },
+      update: { password: passwordHash },
+      create: { email: 'carlos.robo@maker.com', name: 'Carlos Robotics', password: passwordHash },
     }),
     prisma.user.upsert({
       where: { email: 'julia.3d@maker.com' },
-      update: {},
-      create: { email: 'julia.3d@maker.com', name: 'Júlia 3D' },
+      update: { password: passwordHash },
+      create: { email: 'julia.3d@maker.com', name: 'Júlia 3D', password: passwordHash },
     }),
     prisma.user.upsert({
       where: { email: 'pedro.iot@maker.com' },
-      update: {},
-      create: { email: 'pedro.iot@maker.com', name: 'Pedro IoT' },
+      update: { password: passwordHash },
+      create: { email: 'pedro.iot@maker.com', name: 'Pedro IoT', password: passwordHash },
     }),
   ]);
 

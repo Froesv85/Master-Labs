@@ -12,6 +12,11 @@ type MakerLevel = 'apprentice' | 'journeyman' | 'master' | 'grandmaster';
 type Badge = { id: number; type: string; title: string; earnedAt: string };
 type Robot = { id: number; name: string; category: string; wins: number; losses: number; draws: number; eloScore: number; awards: { title: string }[] };
 type Project = { id: number; title: string; category: string; createdAt: string };
+type SharedProject = {
+  id: number;
+  createdAt: string;
+  project: { id: number; title: string; category: string; createdAt: string; creator: { id: number; name: string | null } };
+};
 type Team = { team: { id: number; name: string; members: unknown[] } };
 type Community = { community: { id: number; name: string; category: string } };
 
@@ -33,6 +38,7 @@ type UserData = {
   badges: Badge[];
   robots: Robot[];
   projects: Project[];
+  sharedProjects: SharedProject[];
   teamMemberships: Team[];
   communities: Community[];
   following: { followingId: number }[];
@@ -319,7 +325,7 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
   const { id } = use(params);
   const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<'projects' | 'robots' | 'teams' | 'communities'>('projects');
+  const [tab, setTab] = useState<'projects' | 'shared' | 'robots' | 'teams' | 'communities'>('projects');
   const [editing, setEditing] = useState(false);
   const [sessionUserId, setSessionUserId] = useState<number | null>(null);
   const [avatarUploading, setAvatarUploading] = useState(false);
@@ -525,6 +531,7 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
       <div className="flex gap-1 rounded-lg border border-white/10 bg-slate-900/60 p-1">
         {([
           { key: 'projects', label: 'Projetos', count: user.projects.length },
+          { key: 'shared', label: 'Compartilhados', count: user.sharedProjects.length },
           { key: 'robots', label: 'Robôs', count: user.robots.length },
           { key: 'teams', label: 'Equipes', count: user.teamMemberships.length },
           { key: 'communities', label: 'Comunidades', count: user.communities.length },
@@ -563,6 +570,33 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
               </div>
               <p className="text-[11px] text-zinc-500">
                 {new Date(p.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}
+              </p>
+            </Link>
+          ))}
+        </div>
+      )}
+
+      {/* ── Shared Projects Tab ──────────────────────────────────────── */}
+      {tab === 'shared' && (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {user.sharedProjects.length === 0 && (
+            <p className="col-span-full py-8 text-center text-zinc-500">Nenhum projeto compartilhado ainda.</p>
+          )}
+          {user.sharedProjects.map((share) => (
+            <Link
+              key={share.id}
+              href={`/projects/${share.project.id}`}
+              className="group rounded-xl border border-white/10 bg-slate-900/60 p-4 transition-all hover:border-amber-500/30 hover:bg-slate-800"
+            >
+              <div className="mb-2 flex items-start justify-between gap-2">
+                <h3 className="text-sm font-bold text-zinc-100 group-hover:text-amber-300">{share.project.title}</h3>
+                <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${CATEGORY_BADGE[share.project.category] ?? 'bg-slate-700 text-zinc-300'}`}>
+                  {CATEGORY_LABEL[share.project.category] ?? share.project.category}
+                </span>
+              </div>
+              <p className="text-[11px] text-zinc-500">
+                por {share.project.creator.name ?? 'Maker Anônimo'} · compartilhado em{' '}
+                {new Date(share.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}
               </p>
             </Link>
           ))}

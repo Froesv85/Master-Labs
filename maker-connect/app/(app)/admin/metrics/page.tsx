@@ -41,16 +41,19 @@ export default function AdminMetricsPage() {
 
   async function fetchMetrics() {
     try {
-      const [resGeneral, resPipeline] = await Promise.all([
+      const [resGeneral, resPipeline] = await Promise.allSettled([
         fetch('/api/metrics'),
         fetch('/api/admin/metrics'),
       ]);
-      if (resGeneral.ok) {
-        const payload = await resGeneral.json();
+
+      if (resGeneral.status === 'fulfilled' && resGeneral.value.ok) {
+        const payload = await resGeneral.value.json();
         setData(payload.data);
       }
-      if (resPipeline.ok) {
-        setPipeline(await resPipeline.json());
+
+      if (resPipeline.status === 'fulfilled' && resPipeline.value.ok) {
+        const pipelinePayload = await resPipeline.value.json();
+        setPipeline(pipelinePayload);
       }
     } catch (e) {
       console.error(e);
