@@ -313,7 +313,7 @@ model CommunityPost {
 model Project {
   id                 Int                    @id @default(autoincrement())
   title              String
-  description        String?
+  description        String?                @db.Text
   category           Category
   creatorId          Int
   creator            User                   @relation("creator", fields: [creatorId], references: [id])
