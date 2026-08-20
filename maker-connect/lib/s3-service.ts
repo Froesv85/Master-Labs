@@ -1,8 +1,14 @@
 import { S3Client, PutObjectCommand, CreateBucketCommand, HeadBucketCommand, PutBucketPolicyCommand } from '@aws-sdk/client-s3';
 
+// SigV4 signs requests against the exact path they're sent to. S3_ENDPOINT is
+// the public URL (e.g. https://SEU_DOMINIO.com/storage) used to build browser
+// -facing links, but when Nginx proxies /storage/ to MinIO it strips that
+// prefix, so a signed request built against S3_ENDPOINT reaches MinIO with a
+// path the signature no longer matches (403 SignatureDoesNotMatch). The SDK
+// itself must talk to MinIO directly, hence a separate internal endpoint.
 const s3Client = new S3Client({
   region: process.env.AWS_REGION || 'us-east-1',
-  endpoint: process.env.S3_ENDPOINT || 'http://localhost:9000',
+  endpoint: process.env.S3_INTERNAL_ENDPOINT || process.env.S3_ENDPOINT || 'http://localhost:9000',
   forcePathStyle: true, // Required for MinIO
   credentials: {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID || 'minioadmin',
