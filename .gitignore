@@ -50,7 +50,9 @@ yarn-error.log*
 # pastas de documentação, scripts e configurações — apenas locais
 docs/
 scripts/
-.github/
+.github/*
+!.github/workflows/
+!.github/workflows/**
 
 # typescript
 *.tsbuildinfo
