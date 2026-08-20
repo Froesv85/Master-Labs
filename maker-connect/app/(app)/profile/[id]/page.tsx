@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { use } from 'react';
 import { YoutubeEmbed } from '@/components/youtube-embed';
+import { Modal, Field, FormActions, inputCls, selectCls } from '@/components/modal';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -319,6 +320,204 @@ function EditProfileModal({
   );
 }
 
+// ─── EditProjectModal ─────────────────────────────────────────────────────────
+
+const EDIT_CATEGORY_OPTIONS: { value: string; label: string }[] = [
+  { value: 'Robotics', label: 'Robótica' },
+  { value: 'Printing3D', label: 'Impressão 3D' },
+  { value: 'IoT', label: 'IoT' },
+  { value: 'Woodworking', label: 'Marcenaria' },
+];
+const EDIT_PRINTER_MATERIALS = ['PLA', 'PETG', 'ABS', 'ASA', 'TPU', 'Nylon', 'Resina', 'Fibra de Carbono', 'Madeira Preenchida', 'Outro'];
+const EDIT_NOZZLE_SIZES = ['0.2mm', '0.4mm', '0.6mm', '0.8mm', '1.0mm'];
+const EDIT_LAYER_HEIGHTS = ['0.05mm', '0.1mm', '0.15mm', '0.2mm', '0.25mm', '0.3mm', '0.4mm'];
+
+type EditableProject = {
+  id: number;
+  title: string;
+  description: string | null;
+  category: string;
+  coverImageUrl: string | null;
+  printerBrand: string | null;
+  printerModel: string | null;
+  printerNozzle: string | null;
+  printerMaterial: string | null;
+  printerLayerHeight: string | null;
+};
+
+function EditProjectModal({ projectId, onClose, onSaved }: {
+  projectId: number;
+  onClose: () => void;
+  onSaved: (project: { id: number; title: string; category: string }) => void;
+}) {
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [project, setProject] = useState<EditableProject | null>(null);
+
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [category, setCategory] = useState('Robotics');
+  const [printerBrand, setPrinterBrand] = useState('');
+  const [printerModel, setPrinterModel] = useState('');
+  const [printerNozzle, setPrinterNozzle] = useState('');
+  const [printerMaterial, setPrinterMaterial] = useState('');
+  const [printerLayerHeight, setPrinterLayerHeight] = useState('');
+
+  const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const [coverB64, setCoverB64] = useState<string | null>(null);
+  const [coverContentType, setCoverContentType] = useState<string | null>(null);
+  const coverRef = useRef<HTMLInputElement>(null);
+
+  const is3D = category === 'Printing3D';
+
+  useEffect(() => {
+    fetch(`/api/projects/${projectId}`)
+      .then((r) => r.ok ? r.json() : Promise.reject(new Error('Falha ao carregar projeto')))
+      .then((data: EditableProject) => {
+        setProject(data);
+        setTitle(data.title);
+        setDescription(data.description ?? '');
+        setCategory(data.category);
+        setPrinterBrand(data.printerBrand ?? '');
+        setPrinterModel(data.printerModel ?? '');
+        setPrinterNozzle(data.printerNozzle ?? '');
+        setPrinterMaterial(data.printerMaterial ?? '');
+        setPrinterLayerHeight(data.printerLayerHeight ?? '');
+        setCoverPreview(data.coverImageUrl);
+      })
+      .catch((err) => setError(err instanceof Error ? err.message : 'Erro ao carregar projeto'))
+      .finally(() => setLoading(false));
+  }, [projectId]);
+
+  function handleCoverChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 8 * 1024 * 1024) { setError('Imagem maior que 8 MB'); return; }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const result = ev.target?.result as string;
+      const [header, b64] = result.split(',');
+      const ct = header.match(/data:([^;]+)/)?.[1] ?? 'image/jpeg';
+      setCoverB64(b64);
+      setCoverContentType(ct);
+      setCoverPreview(result);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!title.trim()) { setError('Título obrigatório'); return; }
+    setSaving(true); setError(null);
+    try {
+      const body: Record<string, unknown> = { title, description, category };
+      if (is3D) {
+        body.printerBrand = printerBrand;
+        body.printerModel = printerModel;
+        body.printerNozzle = printerNozzle;
+        body.printerMaterial = printerMaterial;
+        body.printerLayerHeight = printerLayerHeight;
+      }
+      if (coverB64 && coverContentType) { body.coverImageB64 = coverB64; body.coverImageContentType = coverContentType; }
+
+      const res = await fetch(`/api/projects/${projectId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error ?? 'Erro ao salvar'); }
+      const updated = await res.json();
+      onSaved(updated);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao salvar projeto');
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Modal title="Editar Projeto" onClose={onClose}>
+      {loading ? (
+        <p className="py-8 text-center text-sm text-zinc-500">Carregando…</p>
+      ) : !project ? (
+        <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-xs text-red-400">{error ?? 'Projeto não encontrado'}</p>
+      ) : (
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-zinc-400">Imagem de capa</label>
+            {coverPreview ? (
+              <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl border border-white/10">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={coverPreview} alt="Capa" className="h-full w-full object-cover" />
+                <button type="button" onClick={() => { setCoverPreview(null); setCoverB64(null); setCoverContentType(null); if (coverRef.current) coverRef.current.value = ''; }}
+                  className="absolute right-2 top-2 rounded-full bg-black/60 px-2 py-0.5 text-xs text-white backdrop-blur-sm hover:bg-black/80">
+                  Remover
+                </button>
+              </div>
+            ) : (
+              <button type="button" onClick={() => coverRef.current?.click()}
+                className="flex w-full flex-col items-center gap-2 rounded-xl border border-dashed border-white/15 bg-slate-800/50 py-8 text-sm text-zinc-500 transition hover:border-amber-500/30 hover:text-zinc-300">
+                Adicionar foto do modelo
+                <span className="text-xs text-zinc-600">jpeg, png, webp — máx 8 MB</span>
+              </button>
+            )}
+            <input ref={coverRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={handleCoverChange} />
+          </div>
+
+          <Field label="Título">
+            <input value={title} onChange={(e) => setTitle(e.target.value)} className={inputCls} />
+          </Field>
+          <Field label="Descrição" hint="(opcional)">
+            <textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} className={`${inputCls} resize-none`} />
+          </Field>
+          <Field label="Categoria">
+            <select value={category} onChange={(e) => setCategory(e.target.value)} className={selectCls}>
+              {EDIT_CATEGORY_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+          </Field>
+
+          {is3D && (
+            <div className="space-y-4 rounded-xl border border-violet-500/20 bg-violet-900/10 p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-violet-400">Configuração da Impressora</p>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Marca">
+                  <input value={printerBrand} onChange={(e) => setPrinterBrand(e.target.value)} className={inputCls} />
+                </Field>
+                <Field label="Modelo">
+                  <input value={printerModel} onChange={(e) => setPrinterModel(e.target.value)} className={inputCls} />
+                </Field>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <Field label="Bico">
+                  <select value={printerNozzle} onChange={(e) => setPrinterNozzle(e.target.value)} className={selectCls}>
+                    <option value="">—</option>
+                    {EDIT_NOZZLE_SIZES.map((s) => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </Field>
+                <Field label="Material">
+                  <select value={printerMaterial} onChange={(e) => setPrinterMaterial(e.target.value)} className={selectCls}>
+                    <option value="">—</option>
+                    {EDIT_PRINTER_MATERIALS.map((m) => <option key={m} value={m}>{m}</option>)}
+                  </select>
+                </Field>
+                <Field label="Altura de camada">
+                  <select value={printerLayerHeight} onChange={(e) => setPrinterLayerHeight(e.target.value)} className={selectCls}>
+                    <option value="">—</option>
+                    {EDIT_LAYER_HEIGHTS.map((h) => <option key={h} value={h}>{h}</option>)}
+                  </select>
+                </Field>
+              </div>
+            </div>
+          )}
+
+          {error && <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-xs text-red-400">{error}</p>}
+          <FormActions onClose={onClose} saving={saving} label="Salvar" />
+        </form>
+      )}
+    </Modal>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ProfilePage({ params }: { params: Promise<{ id: string }> }) {
@@ -330,8 +529,32 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
   const [sessionUserId, setSessionUserId] = useState<number | null>(null);
   const [avatarUploading, setAvatarUploading] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
+  const [editingProjectId, setEditingProjectId] = useState<number | null>(null);
+  const [deletingProjectId, setDeletingProjectId] = useState<number | null>(null);
 
   const isOwner = sessionUserId !== null && user !== null && sessionUserId === user.id;
+
+  function handleProjectSaved(updated: { id: number; title: string; category: string }) {
+    setEditingProjectId(null);
+    setUser((prev) => prev ? {
+      ...prev,
+      projects: prev.projects.map((p) => p.id === updated.id ? { ...p, title: updated.title, category: updated.category } : p),
+    } : prev);
+  }
+
+  async function handleDeleteProject(projectId: number) {
+    if (!window.confirm('Excluir este projeto? Essa ação não pode ser desfeita.')) return;
+    setDeletingProjectId(projectId);
+    try {
+      const res = await fetch(`/api/projects/${projectId}`, { method: 'DELETE' });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error ?? 'Erro ao excluir'); }
+      setUser((prev) => prev ? { ...prev, projects: prev.projects.filter((p) => p.id !== projectId) } : prev);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Erro ao excluir projeto');
+    } finally {
+      setDeletingProjectId(null);
+    }
+  }
 
   useEffect(() => {
     fetch('/api/auth/me')
@@ -571,9 +794,35 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
               <p className="text-[11px] text-zinc-500">
                 {new Date(p.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}
               </p>
+              {isOwner && (
+                <div className="mt-3 flex gap-2 border-t border-white/5 pt-3">
+                  <button
+                    type="button"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setEditingProjectId(p.id); }}
+                    className="rounded-lg border border-white/10 bg-slate-800 px-2.5 py-1 text-[11px] font-semibold text-zinc-300 transition hover:border-amber-500/40 hover:text-amber-300"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    type="button"
+                    disabled={deletingProjectId === p.id}
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeleteProject(p.id); }}
+                    className="rounded-lg border border-red-500/20 bg-red-500/10 px-2.5 py-1 text-[11px] font-semibold text-red-400 transition hover:border-red-500/40 hover:bg-red-500/20 disabled:opacity-50"
+                  >
+                    {deletingProjectId === p.id ? 'Excluindo…' : 'Excluir'}
+                  </button>
+                </div>
+              )}
             </Link>
           ))}
         </div>
+      )}
+      {editingProjectId !== null && (
+        <EditProjectModal
+          projectId={editingProjectId}
+          onClose={() => setEditingProjectId(null)}
+          onSaved={handleProjectSaved}
+        />
       )}
 
       {/* ── Shared Projects Tab ──────────────────────────────────────── */}
