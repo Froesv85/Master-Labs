@@ -174,8 +174,10 @@ export async function POST(req: NextRequest) {
           where: { id: project.id },
           data: { coverImageUrl: result.url },
         });
-      } catch {
-        // cover image failure is non-fatal
+      } catch (err) {
+        // cover image failure is non-fatal for project creation, but log it
+        // so upload issues (storage misconfig, bad payload) are diagnosable
+        console.error('Cover image upload failed', err);
       }
     }
 
