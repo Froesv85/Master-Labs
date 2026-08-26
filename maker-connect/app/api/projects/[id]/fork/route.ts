@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-
-const DEFAULT_FORK_USER_EMAIL = 'test@example.com';
 
 function parseProjectId(value: string) {
   const parsed = Number(value);
@@ -24,20 +23,15 @@ export async function POST(
   }
 
   try {
-    const [project, user] = await Promise.all([
-      prisma.project.findUnique({ where: { id: projectId } }),
-      prisma.user.findUnique({ where: { email: DEFAULT_FORK_USER_EMAIL } }),
-    ]);
+    const session = await getSession();
+    if (!session?.userId) {
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+    }
+
+    const project = await prisma.project.findUnique({ where: { id: projectId } });
 
     if (!project) {
       return NextResponse.json({ error: 'Project not found.' }, { status: 404 });
-    }
-
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Default fork user not found. Run seed first.' },
-        { status: 400 }
-      );
     }
 
     const fork = await prisma.project.create({
@@ -45,7 +39,7 @@ export async function POST(
         title: `${project.title} (Fork)`,
         description: project.description,
         category: project.category,
-        creatorId: user.id,
+        creatorId: session.userId,
         parentId: project.id,
         content: project.content,
       },

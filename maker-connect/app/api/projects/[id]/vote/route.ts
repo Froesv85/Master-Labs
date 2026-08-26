@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-
-const DEFAULT_VOTE_USER_EMAIL = 'test@example.com';
 
 function parseProjectId(value: string) {
   const parsed = Number(value);
@@ -24,26 +23,25 @@ export async function POST(
   }
 
   try {
-    const [project, user] = await Promise.all([
-      prisma.project.findUnique({ where: { id: projectId }, select: { id: true } }),
-      prisma.user.findUnique({ where: { email: DEFAULT_VOTE_USER_EMAIL }, select: { id: true } }),
-    ]);
+    const session = await getSession();
+    const userId = session?.userId;
+    if (!userId) {
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+    }
+
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+      select: { id: true },
+    });
 
     if (!project) {
       return NextResponse.json({ error: 'Project not found.' }, { status: 404 });
     }
 
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Default vote user not found. Run seed first.' },
-        { status: 400 }
-      );
-    }
-
     const existingVote = await prisma.projectVote.findUnique({
       where: {
         userId_projectId: {
-          userId: user.id,
+          userId,
           projectId,
         },
       },
@@ -53,7 +51,7 @@ export async function POST(
     if (!existingVote) {
       await prisma.projectVote.create({
         data: {
-          userId: user.id,
+          userId,
           projectId,
         },
       });

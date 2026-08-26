@@ -51,11 +51,24 @@ export async function GET(_req: NextRequest, { params }: Params) {
       printerNozzle: true,
       printerMaterial: true,
       printerLayerHeight: true,
+      createdAt: true,
+      updatedAt: true,
+      creator: { select: { id: true, name: true, email: true } },
+      parent: { select: { id: true, title: true } },
+      images: { orderBy: { position: 'asc' }, select: { id: true, imageUrl: true, position: true } },
+      files: { orderBy: { createdAt: 'asc' }, select: { id: true, fileName: true, fileUrl: true, fileType: true, fileSizeKb: true } },
+      _count: { select: { votes: true, shares: true, children: true } },
     },
   });
   if (!project) return NextResponse.json({ error: 'Projeto não encontrado' }, { status: 404 });
 
-  return NextResponse.json(project);
+  const { _count, ...rest } = project;
+  return NextResponse.json({
+    ...rest,
+    votes: _count.votes,
+    shares: _count.shares,
+    forkCount: _count.children,
+  });
 }
 
 export async function PATCH(req: NextRequest, { params }: Params) {
