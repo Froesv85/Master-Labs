@@ -8,8 +8,14 @@ const STATE_MAX_AGE = 60 * 10; // 10 minutes
 export function getAppUrl(req: NextRequest) {
   // Must match the origin the user's browser actually used — this is a
   // browser-redirect flow, unlike server-to-server webhook URLs (which use
-  // API_URL and may point at an internal/Docker host).
-  return req.nextUrl.origin;
+  // API_URL and may point at an internal/Docker host). Self-hosted `next
+  // start` (unlike Vercel) does not resolve req.nextUrl.origin from the
+  // reverse proxy's headers — it falls back to the internal bind address
+  // (e.g. http://localhost:3000) — so read the forwarded headers directly.
+  const forwardedHost = req.headers.get('x-forwarded-host');
+  if (!forwardedHost) return req.nextUrl.origin;
+  const forwardedProto = req.headers.get('x-forwarded-proto') ?? 'https';
+  return `${forwardedProto}://${forwardedHost}`;
 }
 
 export function generateState() {
