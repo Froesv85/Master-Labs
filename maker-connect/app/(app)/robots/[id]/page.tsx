@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { use, useEffect, useState } from 'react';
+import { Modal, Field, FormActions, inputCls, selectCls } from '@/components/modal';
 
 type RobotImage = { id: number; imageUrl: string; position: number };
 type RobotComponent = { id: number; name: string; quantity: number; description: string | null; createdAt: string };
@@ -112,12 +113,137 @@ function IconTrophy({ className }: { className?: string }) {
   );
 }
 
+// ─── EditRobotModal ───────────────────────────────────────────────────────────
+
+const EDIT_CATEGORY_OPTIONS = [
+  { value: 'sumo', label: 'Sumô' },
+  { value: 'combat', label: 'Combate' },
+  { value: 'line_follower', label: 'Seguidor de Linha' },
+  { value: 'autonomous', label: 'Autônomo' },
+  { value: 'educational', label: 'Educacional' },
+  { value: 'competition', label: 'Competição' },
+];
+
+const STATUS_OPTIONS = [
+  { value: 'active', label: 'Ativo' },
+  { value: 'inactive', label: 'Inativo' },
+  { value: 'retired', label: 'Aposentado' },
+];
+
+function EditRobotModal({ robot, onClose, onSaved }: {
+  robot: Robot;
+  onClose: () => void;
+  onSaved: (robot: Robot) => void;
+}) {
+  const [name, setName] = useState(robot.name);
+  const [description, setDescription] = useState(robot.description ?? '');
+  const [category, setCategory] = useState(robot.category);
+  const [status, setStatus] = useState(robot.status);
+  const [teamId, setTeamId] = useState<number | null>(robot.team?.id ?? null);
+  const [teams, setTeams] = useState<{ id: number; name: string }[]>([]);
+  const [weightKg, setWeightKg] = useState(robot.weightKg?.toString() ?? '');
+  const [lengthCm, setLengthCm] = useState(robot.lengthCm?.toString() ?? '');
+  const [widthCm, setWidthCm] = useState(robot.widthCm?.toString() ?? '');
+  const [heightCm, setHeightCm] = useState(robot.heightCm?.toString() ?? '');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch('/api/teams').then((r) => r.ok ? r.json() : null).then((d) => { if (d?.teams) setTeams(d.teams); }).catch(() => {});
+  }, []);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!name.trim()) { setError('Nome obrigatório'); return; }
+    setSaving(true); setError(null);
+    try {
+      const res = await fetch(`/api/robots/${robot.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name, description, category, status,
+          teamId,
+          weightKg: weightKg ? parseFloat(weightKg) : null,
+          lengthCm: lengthCm ? parseFloat(lengthCm) : null,
+          widthCm: widthCm ? parseFloat(widthCm) : null,
+          heightCm: heightCm ? parseFloat(heightCm) : null,
+        }),
+      });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error ?? 'Erro ao salvar'); }
+      const updated = await res.json();
+      onSaved(updated);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao salvar robô');
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Modal title="Editar Robô" onClose={onClose}>
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <Field label="Nome do Robô">
+          <input value={name} onChange={(e) => setName(e.target.value)} className={inputCls} />
+        </Field>
+        <Field label="Descrição" hint="(opcional)">
+          <textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} className={`${inputCls} resize-none`} />
+        </Field>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Categoria">
+            <select value={category} onChange={(e) => setCategory(e.target.value)} className={selectCls}>
+              {EDIT_CATEGORY_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+          </Field>
+          <Field label="Status">
+            <select value={status} onChange={(e) => setStatus(e.target.value)} className={selectCls}>
+              {STATUS_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+          </Field>
+        </div>
+        <Field label="Equipe" hint="(opcional)">
+          <select value={teamId ?? ''} onChange={(e) => setTeamId(e.target.value ? Number(e.target.value) : null)} className={selectCls}>
+            <option value="">— Sem equipe —</option>
+            {teams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+          </select>
+        </Field>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <Field label="Peso (kg)">
+            <input type="number" step="0.01" min="0" value={weightKg} onChange={(e) => setWeightKg(e.target.value)} className={inputCls} />
+          </Field>
+          <Field label="Comp. (cm)">
+            <input type="number" step="0.1" min="0" value={lengthCm} onChange={(e) => setLengthCm(e.target.value)} className={inputCls} />
+          </Field>
+          <Field label="Larg. (cm)">
+            <input type="number" step="0.1" min="0" value={widthCm} onChange={(e) => setWidthCm(e.target.value)} className={inputCls} />
+          </Field>
+          <Field label="Alt. (cm)">
+            <input type="number" step="0.1" min="0" value={heightCm} onChange={(e) => setHeightCm(e.target.value)} className={inputCls} />
+          </Field>
+        </div>
+
+        {error && <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-xs text-red-400">{error}</p>}
+        <FormActions onClose={onClose} saving={saving} label="Salvar" />
+      </form>
+    </Modal>
+  );
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
 export default function RobotDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const [robot, setRobot] = useState<Robot | null>(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'matches' | 'events' | 'awards' | 'components'>('matches');
   const [activeImg, setActiveImg] = useState(0);
+  const [sessionUserId, setSessionUserId] = useState<number | null>(null);
+  const [editing, setEditing] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then((r) => r.ok ? r.json() : null)
+      .then((s) => { if (s?.userId) setSessionUserId(s.userId); })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     fetch(`/api/robots/${id}`)
@@ -137,9 +263,18 @@ export default function RobotDetailPage({ params }: { params: Promise<{ id: stri
   const coverImage = robot.images[activeImg] ?? robot.images[0] ?? null;
 
   const hasDimensions = robot.weightKg != null || robot.lengthCm != null || robot.widthCm != null || robot.heightCm != null;
+  const isOwner = sessionUserId !== null && sessionUserId === robot.owner.id;
 
   return (
     <div className="space-y-6">
+      {editing && (
+        <EditRobotModal
+          robot={robot}
+          onClose={() => setEditing(false)}
+          onSaved={(updated) => { setRobot(updated); setEditing(false); }}
+        />
+      )}
+
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-xs text-zinc-500">
         <Link href="/robots" className="hover:text-amber-400">Robôs</Link>
@@ -196,6 +331,14 @@ export default function RobotDetailPage({ params }: { params: Promise<{ id: stri
                   }`}>
                     {robot.status === 'active' ? 'ATIVO' : robot.status.toUpperCase()}
                   </span>
+                  {isOwner && (
+                    <button
+                      onClick={() => setEditing(true)}
+                      className="flex shrink-0 items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs font-bold text-amber-400 transition hover:bg-amber-500/20"
+                    >
+                      Editar Robô
+                    </button>
+                  )}
                 </div>
                 <div className="mt-1 flex flex-wrap items-center gap-3 text-sm text-zinc-400">
                   <Link href={`/profile/${robot.owner.id}`} className="hover:text-amber-400">
