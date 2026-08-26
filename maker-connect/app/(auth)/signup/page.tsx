@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import OAuthButtons from '../_components/OAuthButtons';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -41,6 +42,14 @@ export default function SignupPage() {
     <div className="rounded-2xl border border-white/10 bg-slate-900/80 p-8 shadow-[0_0_40px_rgba(0,0,0,0.4)]">
       <h1 className="mb-1 text-xl font-black text-white">Criar conta</h1>
       <p className="mb-6 text-sm text-zinc-500">Junte-se à comunidade maker</p>
+
+      <OAuthButtons />
+
+      <div className="my-6 flex items-center gap-3">
+        <div className="h-px flex-1 bg-white/10" />
+        <span className="text-xs uppercase tracking-wide text-zinc-600">ou</span>
+        <div className="h-px flex-1 bg-white/10" />
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>

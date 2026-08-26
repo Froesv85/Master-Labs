@@ -53,6 +53,8 @@ model User {
   email           String            @unique
   name            String?
   password        String?
+  googleId        String?           @unique
+  githubId        String?           @unique
   language        String            @default("pt-BR")
   projects        Project[]         @relation("creator")
   votes           ProjectVote[]

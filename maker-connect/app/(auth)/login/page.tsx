@@ -1,15 +1,27 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useState } from 'react';
+import OAuthButtons from '../_components/OAuthButtons';
 
-export default function LoginPage() {
+const OAUTH_ERROR_MESSAGES: Record<string, string> = {
+  oauth_state_invalido: 'Sessão de login expirada, tente novamente',
+  oauth_nao_configurado: 'Login social indisponível no momento',
+  oauth_token_falhou: 'Não foi possível autenticar com o provedor',
+  oauth_falhou: 'Erro ao entrar com o provedor',
+};
+
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const oauthError = searchParams.get('error');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(
+    oauthError ? OAUTH_ERROR_MESSAGES[oauthError] ?? 'Erro ao entrar' : null,
+  );
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -37,6 +49,14 @@ export default function LoginPage() {
     <div className="rounded-2xl border border-white/10 bg-slate-900/80 p-8 shadow-[0_0_40px_rgba(0,0,0,0.4)]">
       <h1 className="mb-1 text-xl font-black text-white">Entrar</h1>
       <p className="mb-6 text-sm text-zinc-500">Acesse sua conta MakerConnect</p>
+
+      <OAuthButtons />
+
+      <div className="my-6 flex items-center gap-3">
+        <div className="h-px flex-1 bg-white/10" />
+        <span className="text-xs uppercase tracking-wide text-zinc-600">ou</span>
+        <div className="h-px flex-1 bg-white/10" />
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
@@ -88,5 +108,13 @@ export default function LoginPage() {
         </Link>
       </p>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
   );
 }
