@@ -61,9 +61,10 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
+            set -e
             cd /opt/maker-connect
             git pull origin main
-            echo "MAKER_IMAGE=ghcr.io/${{ github.repository_owner }}/maker-connect:latest" >> .env
+            echo "MAKER_IMAGE=ghcr.io/${{ toLower(github.repository_owner) }}/maker-connect:latest" > .env
             docker compose -f docker-compose.prod.yml pull maker-connect
             docker compose -f docker-compose.prod.yml up -d --no-deps maker-connect
             docker system prune -f --volumes=false
