@@ -2,13 +2,13 @@
 
 > **Universidade Católica de Santa Catarina — Jaraguá do Sul**
 >  
-> Curso: Engenharia de Software | Fase: 7ª
+> Curso: Engenharia de Software | Fase:8ª
 > 
-> Professor: Andrei Carniel
+> Professora: Tassiana Kautzmann e Jessica Karsten
 >
 > Acadêmico: Vinicius Froes
 >
->  Projeto de Aprendizagem Colaborativa — PAC Extensionista
+>  Projeto de Aprendizagem Colaborativa — PAC Extensionista e TCC
 
 ---
 
