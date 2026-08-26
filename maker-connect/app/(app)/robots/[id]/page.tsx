@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { use, useEffect, useState } from 'react';
+import { use, useEffect, useRef, useState } from 'react';
 import { Modal, Field, FormActions, inputCls, selectCls } from '@/components/modal';
 
 type RobotImage = { id: number; imageUrl: string; position: number };
@@ -130,6 +130,9 @@ const STATUS_OPTIONS = [
   { value: 'retired', label: 'Aposentado' },
 ];
 
+const PHOTO_MAX_BYTES = 5 * 1024 * 1024;
+const PHOTO_MAX_COUNT = 10;
+
 function EditRobotModal({ robot, onClose, onSaved }: {
   robot: Robot;
   onClose: () => void;
@@ -148,9 +151,63 @@ function EditRobotModal({ robot, onClose, onSaved }: {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [photos, setPhotos] = useState<RobotImage[]>(robot.images);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [deletingPhotoId, setDeletingPhotoId] = useState<number | null>(null);
+  const photoRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     fetch('/api/teams').then((r) => r.ok ? r.json() : null).then((d) => { if (d?.teams) setTeams(d.teams); }).catch(() => {});
   }, []);
+
+  function handlePhotoAdd(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []);
+    if (photoRef.current) photoRef.current.value = '';
+    if (files.length === 0) return;
+    if (photos.length + files.length > PHOTO_MAX_COUNT) {
+      setError(`Limite de ${PHOTO_MAX_COUNT} fotos por robô.`);
+      return;
+    }
+    setError(null);
+    setUploadingPhoto(true);
+
+    Promise.all(files.map((file) => new Promise<{ imageB64: string; contentType: string }>((resolve, reject) => {
+      if (file.size > PHOTO_MAX_BYTES) { reject(new Error(`${file.name} excede 5 MB`)); return; }
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const result = ev.target?.result as string;
+        resolve({ imageB64: result.split(',')[1], contentType: file.type });
+      };
+      reader.onerror = () => reject(new Error('Falha ao ler arquivo'));
+      reader.readAsDataURL(file);
+    })))
+      .then((images) => fetch(`/api/robots/${robot.id}/images`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ images }),
+      }))
+      .then(async (res) => {
+        if (!res.ok) { const d = await res.json(); throw new Error(d.error ?? 'Erro ao enviar foto'); }
+        const payload = await res.json() as { data: RobotImage[] };
+        setPhotos(payload.data);
+      })
+      .catch((err) => setError(err instanceof Error ? err.message : 'Erro ao enviar foto'))
+      .finally(() => setUploadingPhoto(false));
+  }
+
+  async function handlePhotoDelete(imageId: number) {
+    setDeletingPhotoId(imageId);
+    setError(null);
+    try {
+      const res = await fetch(`/api/robots/${robot.id}/images/${imageId}`, { method: 'DELETE' });
+      if (!res.ok && res.status !== 204) { const d = await res.json(); throw new Error(d.error ?? 'Erro ao remover foto'); }
+      setPhotos((prev) => prev.filter((p) => p.id !== imageId).map((p, i) => ({ ...p, position: i })));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao remover foto');
+    } finally {
+      setDeletingPhotoId(null);
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -181,6 +238,37 @@ function EditRobotModal({ robot, onClose, onSaved }: {
   return (
     <Modal title="Editar Robô" onClose={onClose}>
       <form onSubmit={handleSubmit} className="space-y-5">
+        <Field label={`Fotos (${photos.length}/${PHOTO_MAX_COUNT})`}>
+          <div className="grid grid-cols-4 gap-2">
+            {photos.map((img, i) => (
+              <div key={img.id} className="group relative aspect-square overflow-hidden rounded-lg border border-white/10">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={img.imageUrl} alt="" className="h-full w-full object-cover" />
+                {i === 0 && <span className="absolute left-1 top-1 rounded bg-amber-500 px-1 text-[10px] font-bold text-black">CAPA</span>}
+                <button
+                  type="button"
+                  disabled={deletingPhotoId === img.id}
+                  onClick={() => handlePhotoDelete(img.id)}
+                  className="absolute right-1 top-1 hidden rounded bg-black/70 p-1 text-white group-hover:flex disabled:opacity-50"
+                >
+                  {deletingPhotoId === img.id ? '…' : '✕'}
+                </button>
+              </div>
+            ))}
+            {photos.length < PHOTO_MAX_COUNT && (
+              <button
+                type="button"
+                disabled={uploadingPhoto}
+                onClick={() => photoRef.current?.click()}
+                className="flex aspect-square items-center justify-center rounded-lg border border-dashed border-white/20 text-zinc-600 transition hover:border-amber-500/40 hover:text-zinc-400 disabled:opacity-50"
+              >
+                {uploadingPhoto ? '…' : '+'}
+              </button>
+            )}
+          </div>
+          <input ref={photoRef} type="file" accept="image/jpeg,image/png,image/webp" multiple className="hidden" onChange={handlePhotoAdd} />
+        </Field>
+
         <Field label="Nome do Robô">
           <input value={name} onChange={(e) => setName(e.target.value)} className={inputCls} />
         </Field>
