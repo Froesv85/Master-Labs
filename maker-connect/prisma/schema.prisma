@@ -70,6 +70,7 @@ model User {
   communityPosts  CommunityPost[]
   createdCommunities Community[]    @relation("community_creator")
   lgpdAuditLogs  LgpdAuditLog[]
+  projectComments ProjectComment[]
 
   @@index([email])
 }
@@ -338,12 +339,27 @@ model Project {
   lgpdAuditLogs      LgpdAuditLog[]
   images             ProjectImage[]
   files              ProjectFile[]
+  comments           ProjectComment[]
   createdAt          DateTime               @default(now())
   updatedAt          DateTime               @updatedAt
 
   @@index([category])
   @@index([parentId])
   @@index([creatorId])
+}
+
+model ProjectComment {
+  id        Int      @id @default(autoincrement())
+  projectId Int
+  authorId  Int
+  project   Project  @relation(fields: [projectId], references: [id])
+  author    User     @relation(fields: [authorId], references: [id])
+  content   String   @db.Text
+  imageUrl  String?  @db.VarChar(2048)
+  createdAt DateTime @default(now())
+
+  @@index([projectId])
+  @@index([authorId])
 }
 
 model ProjectImage {

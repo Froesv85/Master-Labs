@@ -147,6 +147,7 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
     prisma.projectExtractionLog.deleteMany({ where: { projectId } }),
     prisma.projectImage.deleteMany({ where: { projectId } }),
     prisma.projectFile.deleteMany({ where: { projectId } }),
+    prisma.projectComment.deleteMany({ where: { projectId } }),
     prisma.project.delete({ where: { id: projectId } }),
   ]);
 

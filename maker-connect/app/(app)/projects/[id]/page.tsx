@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 
 import { prisma } from '@/lib/prisma';
+import { getSession } from '@/lib/auth';
 import ProjectTabs from './project-tabs';
 import ProjectHero from './project-hero';
 
@@ -49,6 +50,16 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
           updatedAt: true,
         },
       },
+      comments: {
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          content: true,
+          imageUrl: true,
+          createdAt: true,
+          author: { select: { id: true, name: true } },
+        },
+      },
       _count: {
         select: { votes: true, shares: true, children: true },
       },
@@ -58,6 +69,9 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
   if (!project) {
     notFound();
   }
+
+  const session = await getSession();
+  const isOwner = session?.userId === project.creatorId;
 
   return (
     <div className="space-y-6">
@@ -93,6 +107,8 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
         initialInput={project.content ?? project.description ?? ''}
         currentEmbeddingId={project.embeddingId}
         difficulties={project.difficulties}
+        comments={project.comments.map((c) => ({ ...c, createdAt: c.createdAt.toISOString() }))}
+        isOwner={isOwner}
       />
     </div>
   );

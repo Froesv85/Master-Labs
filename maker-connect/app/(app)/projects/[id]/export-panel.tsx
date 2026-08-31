@@ -10,7 +10,7 @@ type ProjectExport = {
   createdAt: string;
 };
 
-export default function ExportPanel({ projectId }: { projectId: number }) {
+export default function ExportPanel({ projectId, canGenerate = true }: { projectId: number; canGenerate?: boolean }) {
   const [exportsList, setExportsList] = useState<ProjectExport[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -77,13 +77,15 @@ export default function ExportPanel({ projectId }: { projectId: number }) {
             Gera um dossiê técnico PDF auditável utilizando as evidências do log de dificuldades e os requisitos calculados pela IA (MakerBrain RAG).
           </p>
         </div>
-        <button
-          onClick={handleExport}
-          disabled={loading || isPolling}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white disabled:cursor-not-allowed disabled:opacity-60 hover:bg-blue-700 transition-colors"
-        >
-          {loading || isPolling ? 'Montando PDF...' : 'Gerar Novo PDF'}
-        </button>
+        {canGenerate && (
+          <button
+            onClick={handleExport}
+            disabled={loading || isPolling}
+            className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white disabled:cursor-not-allowed disabled:opacity-60 hover:bg-blue-700 transition-colors"
+          >
+            {loading || isPolling ? 'Montando PDF...' : 'Gerar Novo PDF'}
+          </button>
+        )}
       </div>
 
       {error ? (
