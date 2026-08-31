@@ -6,8 +6,12 @@ jest.mock('@/lib/prisma', () => ({
       findUnique: jest.fn(),
       create: jest.fn(),
     },
-    user: { findUnique: jest.fn() },
   },
+}));
+
+const mockGetSession = jest.fn();
+jest.mock('@/lib/auth', () => ({
+  getSession: mockGetSession,
 }));
 
 import { prisma } from '@/lib/prisma';
@@ -20,7 +24,7 @@ const mockProject = {
   category: 'Robotics',
   content: null,
 };
-const mockUser = { id: 10 };
+const mockSession = { userId: 10, email: 'maker@example.com', name: 'Maker' };
 const mockFork = {
   id: 2,
   title: 'RoboSumo v2 (Fork)',
@@ -38,8 +42,8 @@ describe('POST /api/projects/[id]/fork', () => {
   afterEach(() => jest.clearAllMocks());
 
   it('cria fork e retorna 201', async () => {
+    mockGetSession.mockResolvedValue(mockSession);
     (prisma.project.findUnique as jest.Mock).mockResolvedValue(mockProject);
-    (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
     (prisma.project.create as jest.Mock).mockResolvedValue(mockFork);
 
     const res = await POST(makeRequest('http://localhost:3000/api/projects/1/fork'), {
@@ -49,11 +53,14 @@ describe('POST /api/projects/[id]/fork', () => {
     const body = await res.json();
     expect(body.data.title).toBe('RoboSumo v2 (Fork)');
     expect(body.data.parentId).toBe(1);
+    expect(prisma.project.create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ creatorId: 10 }) })
+    );
   });
 
   it('retorna 404 quando projeto original não existe', async () => {
+    mockGetSession.mockResolvedValue(mockSession);
     (prisma.project.findUnique as jest.Mock).mockResolvedValue(null);
-    (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
 
     const res = await POST(makeRequest('http://localhost:3000/api/projects/99/fork'), {
       params: Promise.resolve({ id: '99' }),
@@ -61,14 +68,14 @@ describe('POST /api/projects/[id]/fork', () => {
     expect(res.status).toBe(404);
   });
 
-  it('retorna 400 quando usuário padrão não existe', async () => {
-    (prisma.project.findUnique as jest.Mock).mockResolvedValue(mockProject);
-    (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
+  it('retorna 401 quando não autenticado', async () => {
+    mockGetSession.mockResolvedValue(null);
 
     const res = await POST(makeRequest('http://localhost:3000/api/projects/1/fork'), {
       params: Promise.resolve({ id: '1' }),
     });
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(401);
+    expect(prisma.project.findUnique).not.toHaveBeenCalled();
   });
 
   it('retorna 400 para id inválido', async () => {

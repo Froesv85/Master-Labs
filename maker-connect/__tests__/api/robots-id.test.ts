@@ -8,6 +8,10 @@ jest.mock('@/lib/prisma', () => ({
   },
 }));
 
+jest.mock('@/lib/auth', () => ({
+  getSession: jest.fn(),
+}));
+
 import { prisma } from '@/lib/prisma';
 import { GET } from '@/app/api/robots/[id]/route';
 
