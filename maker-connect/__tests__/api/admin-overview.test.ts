@@ -17,6 +17,12 @@ jest.mock('@/lib/azure-cost', () => ({
   getAzureCost: jest.fn().mockResolvedValue({ configured: false }),
 }));
 
+jest.mock('@/lib/infra-stats', () => ({
+  getRedisStats: jest.fn().mockResolvedValue({ configured: false }),
+  getMinioStats: jest.fn().mockResolvedValue({ configured: false }),
+  getPineconeStats: jest.fn().mockResolvedValue({ configured: false }),
+}));
+
 import { prisma } from '@/lib/prisma';
 import { getAdminSession } from '@/lib/admin';
 import { GET } from '@/app/api/admin/overview/route';
@@ -49,6 +55,9 @@ describe('GET /api/admin/overview', () => {
     expect(body.databases).toEqual([{ schema: 'maker', sizeMb: 1.44, tables: 27 }]);
     expect(body.topTables).toEqual([{ table: 'Project', sizeMb: 0.11, rowsEstimate: 64 }]);
     expect(body.azure).toEqual({ configured: false });
+    expect(body.redis).toEqual({ configured: false });
+    expect(body.minio).toEqual({ configured: false });
+    expect(body.pinecone).toEqual({ configured: false });
   });
 
   it('retorna 500 quando o banco lança exceção', async () => {

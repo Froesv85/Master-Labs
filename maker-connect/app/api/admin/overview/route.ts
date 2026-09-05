@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAdminSession } from '@/lib/admin';
 import { getAzureCost } from '@/lib/azure-cost';
+import { getRedisStats, getMinioStats, getPineconeStats } from '@/lib/infra-stats';
 
 type SchemaSizeRow = { schemaName: string; sizeMb: number | null; tableCount: bigint };
 type TableSizeRow = { tableName: string; sizeMb: number | null; rowsEstimate: bigint | null };
@@ -13,7 +14,7 @@ export async function GET() {
   }
 
   try {
-    const [users, projects, robots, competitions, teams, schemaSizes, tableSizes, azure] = await Promise.all([
+    const [users, projects, robots, competitions, teams, schemaSizes, tableSizes, azure, redis, minio, pinecone] = await Promise.all([
       prisma.user.count(),
       prisma.project.count(),
       prisma.robot.count(),
@@ -38,6 +39,9 @@ export async function GET() {
         LIMIT 12
       `,
       getAzureCost(),
+      getRedisStats(),
+      getMinioStats(),
+      getPineconeStats(),
     ]);
 
     return NextResponse.json({
@@ -53,6 +57,9 @@ export async function GET() {
         rowsEstimate: t.rowsEstimate !== null ? Number(t.rowsEstimate) : null,
       })),
       azure,
+      redis,
+      minio,
+      pinecone,
     });
   } catch (error) {
     console.error('Falha ao carregar overview administrativo:', error);

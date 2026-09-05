@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 
 type MetricData = {
   ai: {
@@ -39,6 +39,9 @@ type Overview = {
   databases: Array<{ schema: string; sizeMb: number; tables: number }>;
   topTables: Array<{ table: string; sizeMb: number; rowsEstimate: number | null }>;
   azure: { configured: boolean; monthToDateCost?: number; currency?: string; asOf?: string; error?: string };
+  redis: { configured: boolean; usedMemoryMb?: number; keys?: number; error?: string };
+  minio: { configured: boolean; bucket?: string; objects?: number; sizeMb?: number; error?: string };
+  pinecone: { configured: boolean; index?: string; vectors?: number; dimension?: number | null; error?: string };
 };
 
 export default function AdminMetricsPage() {
@@ -168,6 +171,45 @@ export default function AdminMetricsPage() {
                 {overview.topTables.length === 0 && <p className="text-sm text-zinc-600">Sem dados disponíveis.</p>}
               </div>
             </div>
+          </div>
+
+          <h3 className="mb-4 mt-8 text-sm font-semibold uppercase tracking-wider text-zinc-400">Outros Bancos de Dados</h3>
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            <InfraCard
+              title="Redis (cache/filas)"
+              envHint="REDIS_URL"
+              stats={overview.redis}
+              render={(s) => (
+                <>
+                  <p className="text-3xl font-bold text-amber-400">{s.usedMemoryMb} <span className="text-lg text-zinc-500">MB</span></p>
+                  <p className="mt-1 text-xs text-zinc-500">{s.keys} chaves armazenadas</p>
+                </>
+              )}
+            />
+            <InfraCard
+              title="MinIO (arquivos/S3)"
+              envHint="S3_ENDPOINT"
+              stats={overview.minio}
+              render={(s) => (
+                <>
+                  <p className="text-3xl font-bold text-amber-400">{s.sizeMb} <span className="text-lg text-zinc-500">MB</span></p>
+                  <p className="mt-1 text-xs text-zinc-500">{s.objects} arquivos no bucket &quot;{s.bucket}&quot;</p>
+                </>
+              )}
+            />
+            <InfraCard
+              title="Pinecone (vetores)"
+              envHint="PINECONE_API_KEY"
+              stats={overview.pinecone}
+              render={(s) => (
+                <>
+                  <p className="text-3xl font-bold text-amber-400">{s.vectors} <span className="text-lg text-zinc-500">vetores</span></p>
+                  <p className="mt-1 text-xs text-zinc-500">
+                    índice &quot;{s.index}&quot;{s.dimension ? ` · dimensão ${s.dimension}` : ''}
+                  </p>
+                </>
+              )}
+            />
           </div>
         </section>
       )}
@@ -343,6 +385,36 @@ function EfficiencyItem({ label, percent, desc, color }: { label: string, percen
         <div className={`h-full ${color}`} style={{ width: `${percent}%` }}></div>
       </div>
       <p className="mt-1 text-[10px] text-zinc-500">{desc}</p>
+    </div>
+  );
+}
+
+function InfraCard<T extends { configured: boolean; error?: string }>({
+  title,
+  envHint,
+  stats,
+  render,
+}: {
+  title: string;
+  envHint: string;
+  stats: T;
+  render: (stats: T) => ReactNode;
+}) {
+  return (
+    <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 shadow-xl">
+      <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-zinc-400">{title}</h3>
+      {!stats.configured ? (
+        <div className="text-sm text-zinc-500">
+          <p className="text-zinc-400">Integração não configurada.</p>
+          <p className="mt-2 text-xs leading-relaxed">
+            Defina <code className="text-amber-400">{envHint}</code> no ambiente.
+          </p>
+        </div>
+      ) : stats.error ? (
+        <p className="text-sm text-rose-400">{stats.error}</p>
+      ) : (
+        render(stats)
+      )}
     </div>
   );
 }

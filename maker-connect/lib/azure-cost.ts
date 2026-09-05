@@ -7,6 +7,7 @@ type AzureCostResult = {
 };
 
 const CACHE_TTL_MS = 15 * 60 * 1000;
+const ERROR_CACHE_TTL_MS = 5 * 60 * 1000;
 let cache: { data: AzureCostResult; expiresAt: number } | null = null;
 
 export async function getAzureCost(): Promise<AzureCostResult> {
@@ -86,9 +87,11 @@ export async function getAzureCost(): Promise<AzureCostResult> {
     cache = { data: result, expiresAt: Date.now() + CACHE_TTL_MS };
     return result;
   } catch (error) {
-    return {
+    const result: AzureCostResult = {
       configured: true,
       error: error instanceof Error ? error.message : 'Erro desconhecido ao consultar a Azure',
     };
+    cache = { data: result, expiresAt: Date.now() + ERROR_CACHE_TTL_MS };
+    return result;
   }
 }
