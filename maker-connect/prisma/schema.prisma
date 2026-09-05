@@ -21,6 +21,11 @@ enum MakerLevel {
   grandmaster
 }
 
+enum Role {
+  user
+  admin
+}
+
 enum RobotCategory {
   sumo
   line_follower
@@ -56,6 +61,7 @@ model User {
   googleId        String?           @unique
   githubId        String?           @unique
   language        String            @default("pt-BR")
+  role            Role              @default(user)
   projects        Project[]         @relation("creator")
   votes           ProjectVote[]
   sharedProjects  ProjectShare[]

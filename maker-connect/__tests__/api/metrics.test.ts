@@ -10,11 +10,23 @@ jest.mock('@/lib/prisma', () => ({
   },
 }));
 
+jest.mock('@/lib/admin', () => ({
+  getAdminSession: jest.fn().mockResolvedValue({ userId: 1, email: 'admin@test.com', name: 'Admin' }),
+}));
+
 import { prisma } from '@/lib/prisma';
+import { getAdminSession } from '@/lib/admin';
 import { GET } from '@/app/api/metrics/route';
 
 describe('GET /api/metrics', () => {
   afterEach(() => jest.clearAllMocks());
+
+  it('retorna 403 quando o usuário não é admin', async () => {
+    (getAdminSession as jest.Mock).mockResolvedValueOnce(null);
+
+    const res = await GET();
+    expect(res.status).toBe(403);
+  });
 
   it('retorna métricas consolidadas com status 200', async () => {
     (prisma.projectExtractionLog.aggregate as jest.Mock).mockResolvedValue({

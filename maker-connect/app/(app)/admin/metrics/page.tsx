@@ -34,16 +34,25 @@ type PipelineMetrics = {
   lastRunAt: string | null;
 };
 
+type Overview = {
+  counts: { users: number; projects: number; robots: number; competitions: number; teams: number };
+  databases: Array<{ schema: string; sizeMb: number; tables: number }>;
+  topTables: Array<{ table: string; sizeMb: number; rowsEstimate: number | null }>;
+  azure: { configured: boolean; monthToDateCost?: number; currency?: string; asOf?: string; error?: string };
+};
+
 export default function AdminMetricsPage() {
   const [data, setData] = useState<MetricData | null>(null);
   const [pipeline, setPipeline] = useState<PipelineMetrics | null>(null);
+  const [overview, setOverview] = useState<Overview | null>(null);
   const [loading, setLoading] = useState(true);
 
   async function fetchMetrics() {
     try {
-      const [resGeneral, resPipeline] = await Promise.allSettled([
+      const [resGeneral, resPipeline, resOverview] = await Promise.allSettled([
         fetch('/api/metrics'),
         fetch('/api/admin/metrics'),
+        fetch('/api/admin/overview'),
       ]);
 
       if (resGeneral.status === 'fulfilled' && resGeneral.value.ok) {
@@ -54,6 +63,11 @@ export default function AdminMetricsPage() {
       if (resPipeline.status === 'fulfilled' && resPipeline.value.ok) {
         const pipelinePayload = await resPipeline.value.json();
         setPipeline(pipelinePayload);
+      }
+
+      if (resOverview.status === 'fulfilled' && resOverview.value.ok) {
+        const overviewPayload = await resOverview.value.json();
+        setOverview(overviewPayload);
       }
     } catch (e) {
       console.error(e);
@@ -87,10 +101,81 @@ export default function AdminMetricsPage() {
         <p className="mt-2 text-zinc-400">MakerBrain Intelligence & Compliance Analytics (Demo Day)</p>
       </header>
 
+      {/* PLATFORM OVERVIEW */}
+      {overview && (
+        <section className="mb-10">
+          <h2 className="mb-4 text-lg font-semibold text-zinc-200">Visão Geral da Plataforma</h2>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-5">
+            <KPICard title="Usuários" value={overview.counts.users.toString()} subtitle="Makers cadastrados" color="emerald" />
+            <KPICard title="Projetos" value={overview.counts.projects.toString()} subtitle="Publicados na plataforma" color="cyan" />
+            <KPICard title="Robôs" value={overview.counts.robots.toString()} subtitle="Cadastrados na arena" color="blue" />
+            <KPICard title="Competições" value={overview.counts.competitions.toString()} subtitle="Eventos de competição" color="rose" />
+            <KPICard title="Equipes" value={overview.counts.teams.toString()} subtitle="Equipes formadas" color="emerald" />
+          </div>
+
+          <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
+            {/* AZURE COST */}
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 shadow-xl">
+              <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-zinc-400">Consumo Azure (mês atual)</h3>
+              {!overview.azure.configured ? (
+                <div className="text-sm text-zinc-500">
+                  <p className="text-zinc-400">Integração não configurada.</p>
+                  <p className="mt-2 text-xs leading-relaxed">
+                    Defina <code className="text-amber-400">AZURE_TENANT_ID</code>, <code className="text-amber-400">AZURE_CLIENT_ID</code>,{' '}
+                    <code className="text-amber-400">AZURE_CLIENT_SECRET</code> e <code className="text-amber-400">AZURE_SUBSCRIPTION_ID</code>{' '}
+                    no ambiente (App Registration com papel &quot;Cost Management Reader&quot; na subscription).
+                  </p>
+                </div>
+              ) : overview.azure.error ? (
+                <p className="text-sm text-rose-400">{overview.azure.error}</p>
+              ) : (
+                <>
+                  <p className="text-3xl font-bold text-amber-400">
+                    {overview.azure.monthToDateCost?.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}{' '}
+                    <span className="text-lg text-zinc-500">{overview.azure.currency}</span>
+                  </p>
+                  <p className="mt-1 text-xs text-zinc-500">
+                    Atualizado em {overview.azure.asOf ? new Date(overview.azure.asOf).toLocaleString('pt-BR') : '--'}
+                  </p>
+                </>
+              )}
+            </div>
+
+            {/* DB SIZE BY SCHEMA */}
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 shadow-xl">
+              <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-zinc-400">Tamanho do Banco de Dados</h3>
+              <div className="space-y-3">
+                {overview.databases.map((db) => (
+                  <div key={db.schema} className="flex items-center justify-between text-sm">
+                    <span className="font-medium text-zinc-300">{db.schema}</span>
+                    <span className="text-zinc-500">{db.tables} tabelas · <span className="font-semibold text-cyan-400">{db.sizeMb} MB</span></span>
+                  </div>
+                ))}
+                {overview.databases.length === 0 && <p className="text-sm text-zinc-600">Sem dados disponíveis.</p>}
+              </div>
+            </div>
+
+            {/* TOP TABLES */}
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 shadow-xl">
+              <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-zinc-400">Maiores Tabelas</h3>
+              <div className="space-y-2">
+                {overview.topTables.slice(0, 6).map((t) => (
+                  <div key={t.table} className="flex items-center justify-between text-xs">
+                    <span className="truncate text-zinc-400">{t.table}</span>
+                    <span className="ml-2 flex-shrink-0 font-semibold text-zinc-300">{t.sizeMb} MB</span>
+                  </div>
+                ))}
+                {overview.topTables.length === 0 && <p className="text-sm text-zinc-600">Sem dados disponíveis.</p>}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* KPI GRID */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <KPICard 
-          title="Total de Questões IA" 
+        <KPICard
+          title="Total de Questões IA"
           value={data.ai.totalExtractions.toString()} 
           subtitle="Extrações RAG processadas"
           color="emerald"

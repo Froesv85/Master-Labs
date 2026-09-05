@@ -4,22 +4,25 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { LogoIcon } from '@/components/logo';
 
-const NAV_ITEMS = [
+const BASE_NAV_ITEMS = [
   { href: '/feed', label: 'Feed' },
   { href: '/robots', label: 'Robôs' },
   { href: '/teams', label: 'Equipes' },
   { href: '/communities', label: 'Comunidades' },
-  { href: '/admin/metrics', label: 'Métricas' },
 ];
+
+const ADMIN_NAV_ITEM = { href: '/admin/metrics', label: 'Métricas' };
 
 type Props = {
   userId: number;
   userName: string | null;
+  isAdmin: boolean;
 };
 
-export default function AppNav({ userId, userName }: Props) {
+export default function AppNav({ userId, userName, isAdmin }: Props) {
   const pathname = usePathname();
   const router = useRouter();
+  const NAV_ITEMS = isAdmin ? [...BASE_NAV_ITEMS, ADMIN_NAV_ITEM] : BASE_NAV_ITEMS;
 
   const initials = userName
     ? userName.split(' ').slice(0, 2).map((n) => n[0]).join('').toUpperCase()

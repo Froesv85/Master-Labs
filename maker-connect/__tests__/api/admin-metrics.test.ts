@@ -7,7 +7,12 @@ jest.mock('@/lib/prisma', () => ({
   },
 }));
 
+jest.mock('@/lib/admin', () => ({
+  getAdminSession: jest.fn().mockResolvedValue({ userId: 1, email: 'admin@test.com', name: 'Admin' }),
+}));
+
 import { prisma } from '@/lib/prisma';
+import { getAdminSession } from '@/lib/admin';
 import { GET } from '@/app/api/admin/metrics/route';
 
 const makeLogs = (latencies: number[], extras: Partial<{ anonymizeMs: number; n8nTriggerMs: number }> = {}) =>
@@ -20,6 +25,13 @@ const makeLogs = (latencies: number[], extras: Partial<{ anonymizeMs: number; n8
 
 describe('GET /api/admin/metrics', () => {
   afterEach(() => jest.clearAllMocks());
+
+  it('retorna 403 quando o usuário não é admin', async () => {
+    (getAdminSession as jest.Mock).mockResolvedValueOnce(null);
+
+    const res = await GET();
+    expect(res.status).toBe(403);
+  });
 
   it('retorna 200 com p50 e p95 calculados', async () => {
     const logs = makeLogs([100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]);

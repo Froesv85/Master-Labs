@@ -8,6 +8,7 @@
     "start": "prisma migrate deploy && next start",
     "lint": "eslint",
     "bench:ml72:progressive": "node scripts/run-ml72-progressive-concurrency.mjs",
+    "promote-admin": "ts-node scripts/promote-admin.ts",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"

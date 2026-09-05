@@ -1,7 +1,13 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getAdminSession } from '@/lib/admin';
 
 export async function GET() {
+  const session = await getAdminSession();
+  if (!session) {
+    return NextResponse.json({ error: 'Acesso restrito ao administrador' }, { status: 403 });
+  }
+
   try {
     // 1. Métricas de Extração IA (RAG)
     const extractionStats = await prisma.projectExtractionLog.aggregate({

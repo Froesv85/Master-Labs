@@ -1,7 +1,58 @@
 import Link from 'next/link';
 import { Logo } from '@/components/logo';
+import { prisma } from '@/lib/prisma';
 
-export default function Home() {
+export const dynamic = 'force-dynamic';
+
+function formatCount(value: number) {
+  return new Intl.NumberFormat('pt-BR').format(value);
+}
+
+async function getHomeData() {
+  try {
+    const [makers, robots, competitions, communities, ranking] = await Promise.all([
+      prisma.user.count(),
+      prisma.robot.count(),
+      prisma.robotEvent.count({ where: { category: 'competition' } }),
+      prisma.community.count({ where: { isPublic: true } }),
+      prisma.robot.findMany({
+        orderBy: { eloScore: 'desc' },
+        take: 5,
+        select: {
+          name: true,
+          eloScore: true,
+          owner: { select: { name: true } },
+          team: { select: { name: true } },
+        },
+      }),
+    ]);
+
+    return {
+      stats: [
+        { value: formatCount(makers), label: 'Makers cadastrados' },
+        { value: formatCount(robots), label: 'Robôs cadastrados' },
+        { value: formatCount(competitions), label: 'Competições' },
+        { value: formatCount(communities), label: 'Comunidades públicas' },
+      ],
+      ranking,
+    };
+  } catch (error) {
+    console.error('Falha ao carregar dados da home:', error);
+    return {
+      stats: [
+        { value: '0', label: 'Makers cadastrados' },
+        { value: '0', label: 'Robôs cadastrados' },
+        { value: '0', label: 'Competições' },
+        { value: '0', label: 'Comunidades públicas' },
+      ],
+      ranking: [],
+    };
+  }
+}
+
+export default async function Home() {
+  const { stats, ranking } = await getHomeData();
+
   return (
     <div className="relative min-h-screen bg-[#080c17] text-zinc-50 overflow-hidden font-sans">
       {/* Animated background glows */}
@@ -77,12 +128,7 @@ export default function Home() {
 
           {/* Stats bar */}
           <div className="mt-16 grid grid-cols-2 gap-px rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md sm:grid-cols-4 overflow-hidden">
-            {[
-              { value: '500+', label: 'Makers Ativos' },
-              { value: '120+', label: 'Robôs Cadastrados' },
-              { value: '40+', label: 'Competições' },
-              { value: '15+', label: 'Comunidades' },
-            ].map((stat) => (
+            {stats.map((stat) => (
               <div key={stat.label} className="flex flex-col items-center justify-center px-8 py-6 bg-[#0a0f1e]/60">
                 <span className="text-3xl font-black text-amber-400">{stat.value}</span>
                 <span className="mt-1 text-xs font-medium text-zinc-500 uppercase tracking-widest">{stat.label}</span>
@@ -91,6 +137,36 @@ export default function Home() {
           </div>
         </main>
 
+        {/* Academic origin */}
+        <section className="border-y border-amber-500/10 bg-[#0d1424]/70 px-8 py-16">
+          <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-[0.3em] text-amber-500">Origem da plataforma</span>
+              <h2 className="mt-3 max-w-3xl text-3xl font-black leading-tight text-white sm:text-4xl">
+                Um projeto de TCC que conecta conhecimento, comunidade e inovação.
+              </h2>
+              <p className="mt-5 max-w-3xl text-base leading-relaxed text-zinc-400">
+                A MakerConnect nasceu como projeto de Trabalho de Conclusão de Curso (TCC) do curso de Engenharia de Software da Universidade Católica de Santa Catarina, Unidade Jaraguá do Sul.
+              </p>
+            </div>
+            <div className="border-l border-amber-500/30 pl-6 text-sm leading-relaxed text-zinc-400">
+              <p>
+                <span className="font-semibold text-zinc-200">Aluno:</span> Vinicius Froes
+              </p>
+              <p className="mt-3">
+                <span className="font-semibold text-zinc-200">Orientação:</span> Rodrigo Otavio Ribeiro Hagstrom, Tassiana Kautzmann e Jessica Aline Karsten
+              </p>
+              <p className="mt-3">
+                Com participação e patrocínio da{' '}
+                <a href="https://www.masterbytech.com.br" target="_blank" rel="noreferrer" className="font-semibold text-amber-400 transition-colors hover:text-amber-300">
+                  Master by Tech
+                </a>
+                .
+              </p>
+            </div>
+          </div>
+        </section>
+
         {/* Features */}
         <section id="features" className="border-t border-white/5 bg-[#0a0f1e]/60 px-8 py-20 backdrop-blur-lg">
           <div className="mx-auto max-w-7xl">
@@ -98,7 +174,6 @@ export default function Home() {
               <span className="text-xs font-bold uppercase tracking-[0.3em] text-amber-500">Plataforma</span>
               <h2 className="mt-2 text-3xl font-black text-white">Tudo que um Maker precisa</h2>
             </div>
-
             <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
               {[
                 {
@@ -107,7 +182,6 @@ export default function Home() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
                   ),
-                  color: 'amber',
                   title: 'MakerBrain RAG',
                   desc: 'Pipelines de extração inteligentes com aterramento técnico real — sem alucinações na lista de componentes.',
                 },
@@ -118,7 +192,6 @@ export default function Home() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                     </svg>
                   ),
-                  color: 'orange',
                   title: 'Visão Computacional',
                   desc: 'Analise fotos e esquemáticos. O agente identifica circuitos e sugere firmware base (Arduino/ESP).',
                 },
@@ -128,7 +201,6 @@ export default function Home() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                   ),
-                  color: 'yellow',
                   title: 'Dossiê Técnico S3',
                   desc: 'Documentação PDF com BOM, código e diário de bordo armazenados em bucket empresarial seguro.',
                 },
@@ -210,24 +282,21 @@ export default function Home() {
                     <span className="text-xs font-bold uppercase tracking-widest text-amber-400">Top Ranking ELO</span>
                     <span className="text-xs text-zinc-600">ao vivo</span>
                   </div>
-                  {[
-                    { pos: 1, name: 'ThunderBot MK3', elo: 1620, team: 'Robótica UFSC', medal: '🥇' },
-                    { pos: 2, name: 'NanoStriker', elo: 1544, team: 'SteelBots Arena', medal: '🥈' },
-                    { pos: 3, name: 'LineX Velocity', elo: 1498, team: 'UFSC', medal: '🥉' },
-                    { pos: 4, name: 'CyberArm v2', elo: 1421, team: 'Robótica UFSC', medal: null },
-                    { pos: 5, name: 'Phantom Racer', elo: 1356, team: 'SteelBots', medal: null },
-                  ].map((r) => (
-                    <div key={r.pos} className="flex items-center gap-3 px-5 py-3 border-b border-white/5 last:border-0 hover:bg-white/3 transition-colors">
-                      <span className="w-6 text-center text-sm font-bold text-zinc-600">{r.medal ?? `#${r.pos}`}</span>
+                  {ranking.map((r, index) => (
+                    <div key={r.name} className="flex items-center gap-3 px-5 py-3 border-b border-white/5 last:border-0 hover:bg-white/3 transition-colors">
+                      <span className="w-6 text-center text-sm font-bold text-zinc-600">#{index + 1}</span>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-white truncate">{r.name}</p>
-                        <p className="text-xs text-zinc-600 truncate">{r.team}</p>
+                        <p className="text-xs text-zinc-600 truncate">{r.team?.name ?? r.owner.name ?? 'Maker independente'}</p>
                       </div>
-                      <span className={`text-sm font-black ${r.pos <= 3 ? 'text-amber-400' : 'text-zinc-500'}`}>
-                        {r.elo}
+                      <span className={`text-sm font-black ${index < 3 ? 'text-amber-400' : 'text-zinc-500'}`}>
+                        {r.eloScore}
                       </span>
                     </div>
                   ))}
+                  {ranking.length === 0 && (
+                    <p className="px-5 py-8 text-center text-sm text-zinc-600">Nenhum robô cadastrado ainda.</p>
+                  )}
                 </div>
               </div>
             </div>

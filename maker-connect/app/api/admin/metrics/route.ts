@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getAdminSession } from '@/lib/admin';
 
 function percentile(sorted: number[], p: number): number {
   if (sorted.length === 0) return 0;
@@ -8,6 +9,11 @@ function percentile(sorted: number[], p: number): number {
 }
 
 export async function GET() {
+  const session = await getAdminSession();
+  if (!session) {
+    return NextResponse.json({ error: 'Acesso restrito ao administrador' }, { status: 403 });
+  }
+
   const logs = await prisma.projectExtractionLog.findMany({
     where: { status: 'done', latencyMs: { not: null } },
     select: { latencyMs: true, anonymizeMs: true, n8nTriggerMs: true, updatedAt: true },
