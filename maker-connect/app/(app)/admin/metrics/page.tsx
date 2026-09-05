@@ -146,7 +146,7 @@ export default function AdminMetricsPage() {
 
             {/* DB SIZE BY SCHEMA */}
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 shadow-xl">
-              <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-zinc-400">Tamanho do Banco de Dados</h3>
+              <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-zinc-400">Tamanho BD MySql</h3>
               <div className="space-y-3">
                 {overview.databases.map((db) => (
                   <div key={db.schema} className="flex items-center justify-between text-sm">
@@ -173,7 +173,7 @@ export default function AdminMetricsPage() {
             </div>
           </div>
 
-          <h3 className="mb-4 mt-8 text-sm font-semibold uppercase tracking-wider text-zinc-400">Outros Bancos de Dados</h3>
+          <h3 className="mb-4 mt-8 text-sm font-semibold uppercase tracking-wider text-zinc-400">Bancos documentais</h3>
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <InfraCard
               title="Redis (cache/filas)"
