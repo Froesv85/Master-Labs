@@ -48,7 +48,7 @@ export async function GET(req: NextRequest) {
     const user = await findOrCreateOAuthUser('google', profile);
 
     const sessionToken = await signSession({ userId: user.id, email: user.email, name: user.name });
-    const res = NextResponse.redirect(`${appUrl}/feed`);
+    const res = NextResponse.redirect(`${appUrl}/projects`);
     res.cookies.set(sessionCookieOptions(sessionToken));
     res.cookies.set(clearStateCookieOptions());
     return res;

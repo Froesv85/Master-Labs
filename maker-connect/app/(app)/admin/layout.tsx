@@ -4,7 +4,7 @@ import { getAdminSession } from '@/lib/admin';
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   const session = await getAdminSession();
-  if (!session) redirect('/feed');
+  if (!session) redirect('/projects');
 
   return <>{children}</>;
 }

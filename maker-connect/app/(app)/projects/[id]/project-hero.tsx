@@ -176,7 +176,7 @@ export default function ProjectHero({ project }: { project: ProjectHeroData }) {
     <div className="space-y-6">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-xs text-zinc-500">
-        <Link href="/feed" className="hover:text-amber-400">Feed</Link>
+        <Link href="/projects" className="hover:text-amber-400">Projetos</Link>
         <span>/</span>
         <span className="line-clamp-1 text-zinc-300">{project.title}</span>
       </div>

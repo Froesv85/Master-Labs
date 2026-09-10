@@ -37,7 +37,7 @@ function LoginForm() {
         const d = await res.json().catch(() => ({}));
         throw new Error(d.error ?? 'Erro ao entrar');
       }
-      router.replace('/feed');
+      router.replace('/projects');
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro inesperado');

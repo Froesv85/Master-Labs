@@ -13,11 +13,27 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       members: {
         include: {
           user: {
-            select: { id: true, name: true },
-            include: { profile: { select: { makerLevel: true, reputation: true, avatarUrl: true } } } as never,
+            select: {
+              id: true,
+              name: true,
+              profile: { select: { makerLevel: true, reputation: true, avatarUrl: true } },
+            },
           },
         },
         orderBy: { joinedAt: 'asc' },
+      },
+      robots: {
+        select: {
+          id: true,
+          name: true,
+          category: true,
+          status: true,
+          eloScore: true,
+          imageUrl: true,
+          images: { take: 1, orderBy: { position: 'asc' }, select: { imageUrl: true } },
+          _count: { select: { matches: true } },
+        },
+        orderBy: { eloScore: 'desc' },
       },
     },
   });

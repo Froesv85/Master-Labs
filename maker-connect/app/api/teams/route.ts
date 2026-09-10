@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSession } from '@/lib/auth';
 
 export async function GET() {
   const teams = await prisma.team.findMany({
-    where: { isPublic: true },
     include: {
       owner: { select: { id: true, name: true } },
       members: {
@@ -17,12 +17,16 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
+    }
+
     const body = await req.json();
-    const { name, description, isPublic = true, ownerId = 1 } = body as {
+    const { name, description, isPublic = true } = body as {
       name: string;
       description?: string;
       isPublic?: boolean;
-      ownerId?: number;
     };
 
     if (!name?.trim()) return NextResponse.json({ error: 'Nome obrigatório' }, { status: 400 });
@@ -32,9 +36,9 @@ export async function POST(req: NextRequest) {
         name: name.trim(),
         description: description?.trim() || null,
         isPublic,
-        ownerId,
+        ownerId: session.userId,
         members: {
-          create: { userId: ownerId, role: 'owner' },
+          create: { userId: session.userId, role: 'owner' },
         },
       },
       include: {

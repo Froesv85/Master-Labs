@@ -9,17 +9,22 @@ jest.mock('@/lib/prisma', () => ({
   },
 }));
 
+jest.mock('@/lib/auth', () => ({ getSession: jest.fn() }));
+
 import { prisma } from '@/lib/prisma';
+import { getSession } from '@/lib/auth';
 import { GET, POST } from '@/app/api/teams/route';
+
+const mockSession = { userId: 7, email: 'maker@test.com', name: 'Alice Maker' };
 
 const mockTeam = {
   id: 1,
   name: 'Robô Warriors',
   description: 'Equipe de robótica competitiva',
   isPublic: true,
-  ownerId: 1,
-  owner: { id: 1, name: 'Alice Maker' },
-  members: [{ user: { id: 1, name: 'Alice Maker' } }],
+  ownerId: 7,
+  owner: { id: 7, name: 'Alice Maker' },
+  members: [{ user: { id: 7, name: 'Alice Maker' } }],
   createdAt: new Date(),
   updatedAt: new Date(),
 };
@@ -31,7 +36,7 @@ function makeRequest(url: string, init?: RequestInit) {
 describe('GET /api/teams', () => {
   afterEach(() => jest.clearAllMocks());
 
-  it('retorna lista de equipes públicas com status 200', async () => {
+  it('retorna lista de equipes com status 200', async () => {
     (prisma.team.findMany as jest.Mock).mockResolvedValue([mockTeam]);
 
     const res = await GET();
@@ -41,20 +46,33 @@ describe('GET /api/teams', () => {
     expect(body[0].name).toBe('Robô Warriors');
   });
 
-  it('consulta apenas equipes públicas', async () => {
+  it('não filtra por visibilidade — lista públicas e privadas', async () => {
     (prisma.team.findMany as jest.Mock).mockResolvedValue([]);
 
     await GET();
-    expect(prisma.team.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { isPublic: true } })
-    );
+    const callArgs = (prisma.team.findMany as jest.Mock).mock.calls[0][0];
+    expect(callArgs?.where).toBeUndefined();
   });
 });
 
 describe('POST /api/teams', () => {
   afterEach(() => jest.clearAllMocks());
 
-  it('cria equipe e retorna 201', async () => {
+  it('retorna 401 quando não autenticado', async () => {
+    (getSession as jest.Mock).mockResolvedValue(null);
+
+    const req = makeRequest('http://localhost:3000/api/teams', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Robô Warriors' }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(401);
+  });
+
+  it('cria equipe usando o dono da sessão e retorna 201', async () => {
+    (getSession as jest.Mock).mockResolvedValue(mockSession);
     (prisma.team.create as jest.Mock).mockResolvedValue(mockTeam);
 
     const req = makeRequest('http://localhost:3000/api/teams', {
@@ -67,9 +85,16 @@ describe('POST /api/teams', () => {
     expect(res.status).toBe(201);
     const body = await res.json();
     expect(body.name).toBe('Robô Warriors');
+    expect(prisma.team.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ ownerId: mockSession.userId }),
+      })
+    );
   });
 
   it('retorna 400 quando nome está vazio', async () => {
+    (getSession as jest.Mock).mockResolvedValue(mockSession);
+
     const req = makeRequest('http://localhost:3000/api/teams', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -83,6 +108,7 @@ describe('POST /api/teams', () => {
   });
 
   it('retorna 500 quando Prisma lança exceção', async () => {
+    (getSession as jest.Mock).mockResolvedValue(mockSession);
     (prisma.team.create as jest.Mock).mockRejectedValue(new Error('DB error'));
 
     const req = makeRequest('http://localhost:3000/api/teams', {

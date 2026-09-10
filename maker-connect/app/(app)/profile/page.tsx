@@ -139,10 +139,10 @@ export default function ProfilePage() {
           <div className="flex items-center gap-2">
             <LanguageSelector onSelect={handleLanguageChange} />
             <Link
-              href="/feed"
+              href="/projects"
               className="rounded-lg bg-white px-3 py-2 text-sm text-zinc-600 ring-1 ring-zinc-200 transition-colors hover:bg-zinc-50"
             >
-              ← Voltar ao Feed
+              ← Voltar aos Projetos
             </Link>
           </div>
         </header>

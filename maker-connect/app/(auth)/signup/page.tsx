@@ -27,7 +27,7 @@ export default function SignupPage() {
         const d = await res.json();
         throw new Error(d.error ?? 'Erro ao cadastrar');
       }
-      router.push('/feed');
+      router.push('/projects');
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro inesperado');

@@ -5,8 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { LogoIcon } from '@/components/logo';
 
 const BASE_NAV_ITEMS = [
-  { href: '/feed', label: 'Feed' },
-  { href: '/robots', label: 'Robôs' },
+  { href: '/projects', label: 'Projetos' },
   { href: '/teams', label: 'Equipes' },
   { href: '/communities', label: 'Comunidades' },
 ];
@@ -38,7 +37,7 @@ export default function AppNav({ userId, userName, isAdmin }: Props) {
     <header className="sticky top-0 z-50 border-b border-amber-500/20 bg-[#080c17]/95 backdrop-blur-md">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-0">
         {/* Logo */}
-        <Link href="/feed" className="flex items-center gap-2 py-3">
+        <Link href="/projects" className="flex items-center gap-2 py-3">
           <LogoIcon size={36} />
           <div className="hidden sm:block">
             <span className="text-base font-black tracking-tight text-white">
@@ -55,7 +54,7 @@ export default function AppNav({ userId, userName, isAdmin }: Props) {
           {NAV_ITEMS.map((item) => {
             const active =
               pathname === item.href ||
-              (item.href !== '/feed' && item.href !== '/admin/metrics' && pathname.startsWith(`/${item.href.split('/')[1]}`));
+              (item.href !== '/admin/metrics' && pathname.startsWith(`/${item.href.split('/')[1]}`));
             return (
               <Link
                 key={item.href}

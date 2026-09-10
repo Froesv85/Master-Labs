@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { Modal, Field, FormActions, inputCls } from '@/components/modal';
 
 type Member = { id: number; role: string; user: { id: number; name: string | null } };
-type Team = { id: number; name: string; description: string | null; ownerId: number; owner: { id: number; name: string | null }; members: Member[]; createdAt: string };
+type Team = { id: number; name: string; description: string | null; isPublic: boolean; ownerId: number; owner: { id: number; name: string | null }; members: Member[]; createdAt: string };
 
 function Avatar({ name, size = 'sm' }: { name: string | null; size?: 'sm' | 'md' }) {
   const initials = name ? name.split(' ').slice(0, 2).map((n) => n[0]).join('').toUpperCase() : '?';
@@ -96,7 +96,7 @@ export default function TeamsPage() {
           <h1 className="text-2xl font-black uppercase tracking-tight text-white sm:text-3xl">
             EQUIPES <span className="text-amber-400">MAKER</span>
           </h1>
-          <p className="text-sm text-zinc-400">Times de criação, competição e inovação</p>
+          <p className="text-sm text-zinc-400">Crie equipes, compartilhe projetos entre integrantes e organize robôs e competições</p>
         </div>
         <button
           onClick={() => setShowCreate(true)}
@@ -123,7 +123,12 @@ export default function TeamsPage() {
                   👥
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-black text-zinc-100 group-hover:text-amber-300 truncate">{team.name}</h3>
+                  <div className="mb-1 flex items-center gap-2">
+                    <h3 className="font-black text-zinc-100 group-hover:text-amber-300 truncate">{team.name}</h3>
+                    <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase ${team.isPublic ? 'border-teal-500/30 bg-teal-900/30 text-teal-400' : 'border-violet-500/30 bg-violet-900/30 text-violet-400'}`}>
+                      {team.isPublic ? 'Pública' : 'Privada'}
+                    </span>
+                  </div>
                   <p className="text-xs text-zinc-500">por {team.owner.name}</p>
                 </div>
               </div>

@@ -82,7 +82,7 @@ export default async function Home() {
             <Link href="/admin/metrics" className="transition-colors hover:text-amber-400">Métricas</Link>
           </nav>
           <Link
-            href="/feed"
+            href="/projects"
             className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-5 py-2 text-sm font-bold text-amber-400 transition-all hover:bg-amber-500/20 hover:border-amber-500/70"
           >
             Acessar Plataforma →
@@ -113,10 +113,10 @@ export default async function Home() {
 
           <div className="flex flex-wrap gap-4 justify-center">
             <Link
-              href="/feed"
+              href="/projects"
               className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 px-8 py-4 text-sm font-bold text-black shadow-[0_0_24px_rgba(245,158,11,0.35)] transition-all hover:shadow-[0_0_32px_rgba(245,158,11,0.5)] hover:scale-105"
             >
-              Explorar Feed
+              Explorar Projetos
             </Link>
             <Link
               href="/robots"
@@ -234,7 +234,7 @@ export default async function Home() {
                 { icon: '◉', title: 'Perfis', desc: 'Nível Maker, reputação, badges e portfólio de projetos.', href: '/profile/1' },
                 { icon: '◇', title: 'Equipes', desc: 'Monte sua equipe de competição ou colaboração open-source.', href: '/teams' },
                 { icon: '◎', title: 'Comunidades', desc: 'Grupos temáticos: Robótica, 3D Print, IoT, Woodworking.', href: '/communities' },
-                { icon: '◈', title: 'Feed', desc: 'Projetos e conquistas de quem você segue.', href: '/feed' },
+                { icon: '◈', title: 'Projetos', desc: 'Projetos e conquistas de quem você segue.', href: '/projects' },
               ].map((item) => (
                 <Link
                   key={item.title}
@@ -309,7 +309,7 @@ export default async function Home() {
             <h2 className="text-4xl font-black text-white mb-4">Pronto para entrar na arena?</h2>
             <p className="text-zinc-500 mb-8">Crie seu perfil, cadastre seu robô e conecte-se com os melhores makers do Brasil.</p>
             <Link
-              href="/feed"
+              href="/projects"
               className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 px-10 py-4 text-base font-black text-black shadow-[0_0_30px_rgba(245,158,11,0.4)] transition-all hover:shadow-[0_0_40px_rgba(245,158,11,0.6)] hover:scale-105"
             >
               Entrar na Plataforma

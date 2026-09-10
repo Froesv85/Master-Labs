@@ -251,17 +251,19 @@ model Team {
 }
 
 model TeamMember {
-  id       Int      @id @default(autoincrement())
+  id       Int              @id @default(autoincrement())
   teamId   Int
   userId   Int
-  team     Team     @relation(fields: [teamId], references: [id])
-  user     User     @relation(fields: [userId], references: [id])
-  role     TeamRole @default(member)
-  joinedAt DateTime @default(now())
+  team     Team             @relation(fields: [teamId], references: [id])
+  user     User             @relation(fields: [userId], references: [id])
+  role     TeamRole         @default(member)
+  status   MembershipStatus @default(approved)
+  joinedAt DateTime         @default(now())
 
   @@unique([teamId, userId])
   @@index([teamId])
   @@index([userId])
+  @@index([teamId, status])
 }
 
 model Community {
