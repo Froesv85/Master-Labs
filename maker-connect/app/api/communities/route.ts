@@ -1,6 +1,7 @@
 import { Category } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSession } from '@/lib/auth';
 
 const categoryMap: Record<string, Category> = {
   Printing3D: Category.Printing3D,
@@ -11,7 +12,6 @@ const categoryMap: Record<string, Category> = {
 
 export async function GET() {
   const communities = await prisma.community.findMany({
-    where: { isPublic: true },
     include: {
       creator: { select: { id: true, name: true } },
       _count: { select: { members: true, posts: true } },
@@ -23,13 +23,17 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
+    }
+
     const body = await req.json();
-    const { name, description, category, isPublic = true, creatorId = 1 } = body as {
+    const { name, description, category, isPublic = true } = body as {
       name: string;
       description?: string;
       category: string;
       isPublic?: boolean;
-      creatorId?: number;
     };
 
     if (!name?.trim()) return NextResponse.json({ error: 'Nome obrigatório' }, { status: 400 });
@@ -42,9 +46,9 @@ export async function POST(req: NextRequest) {
         description: description?.trim() || null,
         category: cat,
         isPublic,
-        creatorId,
+        creatorId: session.userId,
         members: {
-          create: { userId: creatorId, role: 'founder' },
+          create: { userId: session.userId, role: 'founder' },
         },
       },
       include: {

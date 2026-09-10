@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { Modal, Field, FormActions, inputCls, selectCls } from '@/components/modal';
 
 type Community = {
-  id: number; name: string; description: string | null; category: string;
+  id: number; name: string; description: string | null; category: string; isPublic: boolean;
   creator: { id: number; name: string | null };
   _count: { members: number; posts: number };
   createdAt: string;
@@ -110,7 +110,7 @@ export default function CommunitiesPage() {
           <h1 className="text-2xl font-black uppercase tracking-tight text-white sm:text-3xl">
             COMUNIDADES <span className="text-amber-400">MAKER</span>
           </h1>
-          <p className="text-sm text-zinc-400">Grupos temáticos, discussões e base de conhecimento</p>
+          <p className="text-sm text-zinc-400">Crie fóruns, compartilhe projetos e interaja com comentários e reações da comunidade maker</p>
         </div>
         <button
           onClick={() => setShowCreate(true)}
@@ -178,6 +178,9 @@ export default function CommunitiesPage() {
                       <h3 className="font-black text-zinc-100 group-hover:text-amber-300 truncate">{c.name}</h3>
                       <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${cfg.accent}`}>
                         {cfg.label}
+                      </span>
+                      <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase ${c.isPublic ? 'border-teal-500/30 bg-teal-900/30 text-teal-400' : 'border-violet-500/30 bg-violet-900/30 text-violet-400'}`}>
+                        {c.isPublic ? 'Pública' : 'Privada'}
                       </span>
                     </div>
                     <p className="text-xs text-zinc-500">por {c.creator.name}</p>
