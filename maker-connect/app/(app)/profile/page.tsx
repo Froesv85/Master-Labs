@@ -9,7 +9,7 @@ type ProfileProject = {
   id: number;
   title: string;
   description: string | null;
-  category: 'Printing3D' | 'Robotics' | 'IoT' | 'Woodworking';
+  tags: ('Printing3D' | 'Robotics' | 'IoT' | 'Woodworking')[];
   parentId: number | null;
   createdAt: string;
   updatedAt: string;
@@ -48,7 +48,7 @@ const CATEGORY_LABEL_MAP: Record<string, string> = {
   Woodworking: 'Marcenaria',
 };
 
-function displayCategory(category: ProfileProject['category']) {
+function displayCategory(category: ProfileProject['tags'][number]) {
   return CATEGORY_LABEL_MAP[category] ?? category;
 }
 
@@ -235,13 +235,16 @@ export default function ProfilePage() {
               ) : (
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                   {profile.projects.map((project) => {
-                    const badgeClass = CATEGORY_BADGE[project.category] ?? 'bg-zinc-100 text-zinc-700';
                     return (
                       <article key={project.id} className="flex flex-col rounded-xl border border-zinc-100 bg-zinc-50 p-4">
                         <div className="mb-2 flex items-center justify-between gap-2">
-                          <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${badgeClass}`}>
-                            {displayCategory(project.category)}
-                          </span>
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            {project.tags.map((tag) => (
+                              <span key={tag} className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${CATEGORY_BADGE[tag] ?? 'bg-zinc-100 text-zinc-700'}`}>
+                                {displayCategory(tag)}
+                              </span>
+                            ))}
+                          </div>
                           <time className="text-xs text-zinc-400" dateTime={project.createdAt}>
                             {relativeTime(project.createdAt)}
                           </time>

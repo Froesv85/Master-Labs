@@ -72,6 +72,7 @@ async function processPdfExportJob(jobData: PdfExportJobData) {
     where: { id: projectId },
     include: {
       creator: true,
+      tags: { select: { tag: true } },
       difficulties: { orderBy: { createdAt: 'desc' } },
       extractionLogs: {
         where: { status: 'done' },
@@ -113,7 +114,7 @@ async function processPdfExportJob(jobData: PdfExportJobData) {
     projectTitle: project.title,
     projectDescription: project.description || '',
     creator: project.creator.name || project.creator.email,
-    category: project.category,
+    tags: project.tags.map((t) => t.tag),
     difficulties: project.difficulties.map((difficulty) => ({
       date: new Date(difficulty.createdAt).toLocaleDateString('pt-BR'),
       description: difficulty.description,

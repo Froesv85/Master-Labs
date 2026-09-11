@@ -21,7 +21,11 @@ const mockProject = {
   id: 1,
   title: 'RoboSumo v2',
   description: 'Robô de sumô',
-  category: 'Robotics',
+  objective: null,
+  tags: [{ tag: 'Robotics' }],
+  visibility: 'public',
+  creatorId: 1,
+  teamId: null,
   content: null,
 };
 const mockSession = { userId: 10, email: 'maker@example.com', name: 'Maker' };
@@ -30,8 +34,8 @@ const mockFork = {
   title: 'RoboSumo v2 (Fork)',
   parentId: 1,
   creatorId: 10,
-  category: 'Robotics',
   createdAt: new Date(),
+  tags: [{ tag: 'Robotics' }],
 };
 
 function makeRequest(url: string) {

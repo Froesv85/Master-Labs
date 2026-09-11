@@ -2,11 +2,15 @@ export type FeedCategory = '3D_Printing' | 'Robotics' | 'IoT' | 'Woodworking';
 
 export type FeedSort = 'newest' | 'oldest' | 'top';
 
+export type ProjectVisibility = 'public' | 'private_owner' | 'private_team';
+
 export type ProjectItem = {
   id: number;
   title: string;
   description: string | null;
-  category: 'Printing3D' | 'Robotics' | 'IoT' | 'Woodworking';
+  tags: ('Printing3D' | 'Robotics' | 'IoT' | 'Woodworking')[];
+  visibility: ProjectVisibility;
+  teamId: number | null;
   votes: number;
   fileCount: number;
   creatorId: number;
@@ -29,7 +33,7 @@ export type ProjectsFeedResponse = {
     totalPages: number;
   };
   filters: {
-    category: string | null;
+    tag: string | null;
     q: string | null;
     sort: FeedSort;
   };

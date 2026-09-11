@@ -53,6 +53,12 @@ enum MembershipStatus {
   rejected
 }
 
+enum ProjectVisibility {
+  public
+  private_owner
+  private_team
+}
+
 model User {
   id              Int               @id @default(autoincrement())
   email           String            @unique
@@ -244,6 +250,7 @@ model Team {
   isPublic    Boolean      @default(true)
   members     TeamMember[]
   robots      Robot[]
+  projects    Project[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
@@ -325,7 +332,10 @@ model Project {
   id                 Int                    @id @default(autoincrement())
   title              String
   description        String?                @db.Text
-  category           Category
+  objective          String?                @db.Text
+  visibility         ProjectVisibility       @default(public)
+  teamId             Int?
+  team               Team?                  @relation(fields: [teamId], references: [id])
   creatorId          Int
   creator            User                   @relation("creator", fields: [creatorId], references: [id])
   parentId           Int?
@@ -339,6 +349,8 @@ model Project {
   printerNozzle      String?                @db.VarChar(20)
   printerMaterial    String?                @db.VarChar(50)
   printerLayerHeight String?                @db.VarChar(20)
+  tags               ProjectTag[]
+  components         ProjectComponent[]
   votes              ProjectVote[]
   shares             ProjectShare[]
   difficulties       ProjectDifficulty[]
@@ -351,9 +363,33 @@ model Project {
   createdAt          DateTime               @default(now())
   updatedAt          DateTime               @updatedAt
 
-  @@index([category])
+  @@index([visibility])
+  @@index([teamId])
   @@index([parentId])
   @@index([creatorId])
+}
+
+model ProjectTag {
+  id        Int      @id @default(autoincrement())
+  projectId Int
+  project   Project  @relation(fields: [projectId], references: [id])
+  tag       Category
+  createdAt DateTime @default(now())
+
+  @@unique([projectId, tag])
+  @@index([projectId])
+  @@index([tag])
+}
+
+model ProjectComponent {
+  id          Int     @id @default(autoincrement())
+  projectId   Int
+  project     Project @relation(fields: [projectId], references: [id])
+  name        String
+  quantity    Int     @default(1)
+  description String?
+
+  @@index([projectId])
 }
 
 model ProjectComment {

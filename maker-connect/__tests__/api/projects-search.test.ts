@@ -5,7 +5,14 @@ jest.mock('@/lib/prisma', () => ({
     project: {
       findMany: jest.fn(),
     },
+    teamMember: {
+      findMany: jest.fn().mockResolvedValue([]),
+    },
   },
+}));
+
+jest.mock('@/lib/auth', () => ({
+  getSession: jest.fn().mockResolvedValue(null),
 }));
 
 jest.mock('@/lib/ollama', () => ({
@@ -41,7 +48,7 @@ const mockProjects = [
     id: 12,
     title: 'ESP32 Home Automation',
     description: 'Sistema IoT',
-    category: 'IoT',
+    tags: [{ tag: 'IoT' }],
     embeddingId: 'emb_12_xxx',
     creatorId: 4,
     creator: { name: 'Pedro IoT' },

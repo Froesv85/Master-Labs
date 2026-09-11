@@ -18,6 +18,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       projects: {
         orderBy: { createdAt: 'desc' },
         take: 6,
+        include: { tags: { select: { tag: true } } },
       },
       sharedProjects: {
         orderBy: { createdAt: 'desc' },
@@ -27,7 +28,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
             select: {
               id: true,
               title: true,
-              category: true,
+              tags: { select: { tag: true } },
               creatorId: true,
               creator: { select: { id: true, name: true } },
               createdAt: true,
@@ -50,7 +51,15 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   });
 
   if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
-  return NextResponse.json(user);
+
+  return NextResponse.json({
+    ...user,
+    projects: user.projects.map((p) => ({ ...p, tags: p.tags.map((t) => t.tag) })),
+    sharedProjects: user.sharedProjects.map((s) => ({
+      ...s,
+      project: { ...s.project, tags: s.project.tags.map((t) => t.tag) },
+    })),
+  });
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

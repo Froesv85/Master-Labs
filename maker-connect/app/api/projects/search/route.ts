@@ -2,10 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { generateEmbedding } from '@/lib/ollama';
 import { queryByEmbedding } from '@/lib/pinecone';
+import { getSession } from '@/lib/auth';
+import { TAG_ALIASES, projectVisibilityWhere } from '@/lib/project-access';
 
 type SearchBody = {
   query?: string;
   topK?: number;
+  tag?: string;
   category?: string;
 };
 
@@ -37,7 +40,11 @@ export async function POST(req: NextRequest) {
   }
 
   const topK = parseTopK(body.topK);
-  const category = typeof body.category === 'string' ? body.category : undefined;
+  const tagParam = typeof body.tag === 'string' ? body.tag : typeof body.category === 'string' ? body.category : undefined;
+  const tag = tagParam ? TAG_ALIASES[tagParam] : undefined;
+  if (tagParam && !tag) {
+    return NextResponse.json({ error: 'Invalid tag.' }, { status: 400 });
+  }
 
   const startedAt = Date.now();
 
@@ -72,15 +79,23 @@ export async function POST(req: NextRequest) {
     .filter((w) => w.length >= 3)
     .slice(0, 5);
 
+  const session = await getSession();
+  const visWhere = await projectVisibilityWhere(session?.userId ?? null);
+
   const projectWhere = {
-    ...(category ? { category: category as never } : {}),
-    OR: words.map((w) => ({
-      OR: [
-        { title: { contains: w } },
-        { description: { contains: w } },
-        { content: { contains: w } },
-      ],
-    })),
+    AND: [
+      visWhere,
+      ...(tag ? [{ tags: { some: { tag } } }] : []),
+      {
+        OR: words.map((w) => ({
+          OR: [
+            { title: { contains: w } },
+            { description: { contains: w } },
+            { content: { contains: w } },
+          ],
+        })),
+      },
+    ],
   };
 
   const dbProjects = await prisma.project.findMany({
@@ -91,7 +106,7 @@ export async function POST(req: NextRequest) {
       id: true,
       title: true,
       description: true,
-      category: true,
+      tags: { select: { tag: true } },
       embeddingId: true,
       creatorId: true,
       creator: { select: { name: true } },
@@ -117,7 +132,7 @@ export async function POST(req: NextRequest) {
         id: p.id,
         title: p.title,
         description: p.description,
-        category: p.category,
+        tags: p.tags.map((t) => t.tag),
         creatorName: p.creator.name,
         votes: p.votes.length,
         embeddingId: p.embeddingId,

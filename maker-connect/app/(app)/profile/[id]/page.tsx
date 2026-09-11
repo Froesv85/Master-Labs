@@ -12,11 +12,11 @@ type MakerLevel = 'apprentice' | 'journeyman' | 'master' | 'grandmaster';
 
 type Badge = { id: number; type: string; title: string; earnedAt: string };
 type Robot = { id: number; name: string; category: string; wins: number; losses: number; draws: number; eloScore: number; awards: { title: string }[] };
-type Project = { id: number; title: string; category: string; createdAt: string };
+type Project = { id: number; title: string; tags: string[]; createdAt: string };
 type SharedProject = {
   id: number;
   createdAt: string;
-  project: { id: number; title: string; category: string; createdAt: string; creator: { id: number; name: string | null } };
+  project: { id: number; title: string; tags: string[]; createdAt: string; creator: { id: number; name: string | null } };
 };
 type Team = { team: { id: number; name: string; members: unknown[] } };
 type Community = { community: { id: number; name: string; category: string } };
@@ -336,7 +336,7 @@ type EditableProject = {
   id: number;
   title: string;
   description: string | null;
-  category: string;
+  tags: string[];
   coverImageUrl: string | null;
   printerBrand: string | null;
   printerModel: string | null;
@@ -348,7 +348,7 @@ type EditableProject = {
 function EditProjectModal({ projectId, onClose, onSaved }: {
   projectId: number;
   onClose: () => void;
-  onSaved: (project: { id: number; title: string; category: string }) => void;
+  onSaved: (project: { id: number; title: string; tags: string[] }) => void;
 }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -357,7 +357,7 @@ function EditProjectModal({ projectId, onClose, onSaved }: {
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('Robotics');
+  const [tags, setTags] = useState<string[]>(['Robotics']);
   const [printerBrand, setPrinterBrand] = useState('');
   const [printerModel, setPrinterModel] = useState('');
   const [printerNozzle, setPrinterNozzle] = useState('');
@@ -369,7 +369,11 @@ function EditProjectModal({ projectId, onClose, onSaved }: {
   const [coverContentType, setCoverContentType] = useState<string | null>(null);
   const coverRef = useRef<HTMLInputElement>(null);
 
-  const is3D = category === 'Printing3D';
+  const is3D = tags.includes('Printing3D');
+
+  function toggleTag(value: string) {
+    setTags((prev) => prev.includes(value) ? prev.filter((t) => t !== value) : [...prev, value]);
+  }
 
   useEffect(() => {
     fetch(`/api/projects/${projectId}`)
@@ -378,7 +382,7 @@ function EditProjectModal({ projectId, onClose, onSaved }: {
         setProject(data);
         setTitle(data.title);
         setDescription(data.description ?? '');
-        setCategory(data.category);
+        setTags(data.tags);
         setPrinterBrand(data.printerBrand ?? '');
         setPrinterModel(data.printerModel ?? '');
         setPrinterNozzle(data.printerNozzle ?? '');
@@ -409,9 +413,10 @@ function EditProjectModal({ projectId, onClose, onSaved }: {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!title.trim()) { setError('Título obrigatório'); return; }
+    if (tags.length === 0) { setError('Selecione ao menos uma tag'); return; }
     setSaving(true); setError(null);
     try {
-      const body: Record<string, unknown> = { title, description, category };
+      const body: Record<string, unknown> = { title, description, tags };
       if (is3D) {
         body.printerBrand = printerBrand;
         body.printerModel = printerModel;
@@ -470,10 +475,18 @@ function EditProjectModal({ projectId, onClose, onSaved }: {
           <Field label="Descrição" hint="(opcional)">
             <textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} className={`${inputCls} resize-none`} />
           </Field>
-          <Field label="Categoria">
-            <select value={category} onChange={(e) => setCategory(e.target.value)} className={selectCls}>
-              {EDIT_CATEGORY_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-            </select>
+          <Field label="Tags">
+            <div className="flex flex-wrap gap-2">
+              {EDIT_CATEGORY_OPTIONS.map((o) => {
+                const active = tags.includes(o.value);
+                return (
+                  <button key={o.value} type="button" onClick={() => toggleTag(o.value)}
+                    className={`rounded-full border px-3 py-1.5 text-xs font-bold uppercase tracking-wide transition-all ${active ? 'border-amber-500 bg-amber-500 text-black' : 'border-white/10 text-zinc-400 hover:border-amber-500/40 hover:text-zinc-200'}`}>
+                    {o.label}
+                  </button>
+                );
+              })}
+            </div>
           </Field>
 
           {is3D && (
@@ -534,11 +547,11 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
 
   const isOwner = sessionUserId !== null && user !== null && sessionUserId === user.id;
 
-  function handleProjectSaved(updated: { id: number; title: string; category: string }) {
+  function handleProjectSaved(updated: { id: number; title: string; tags: string[] }) {
     setEditingProjectId(null);
     setUser((prev) => prev ? {
       ...prev,
-      projects: prev.projects.map((p) => p.id === updated.id ? { ...p, title: updated.title, category: updated.category } : p),
+      projects: prev.projects.map((p) => p.id === updated.id ? { ...p, title: updated.title, tags: updated.tags } : p),
     } : prev);
   }
 
@@ -787,9 +800,13 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
             >
               <div className="mb-2 flex items-start justify-between gap-2">
                 <h3 className="text-sm font-bold text-zinc-100 group-hover:text-amber-300">{p.title}</h3>
-                <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${CATEGORY_BADGE[p.category] ?? 'bg-slate-700 text-zinc-300'}`}>
-                  {CATEGORY_LABEL[p.category] ?? p.category}
-                </span>
+                <div className="flex shrink-0 flex-wrap gap-1">
+                  {p.tags.map((tag) => (
+                    <span key={tag} className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${CATEGORY_BADGE[tag] ?? 'bg-slate-700 text-zinc-300'}`}>
+                      {CATEGORY_LABEL[tag] ?? tag}
+                    </span>
+                  ))}
+                </div>
               </div>
               <p className="text-[11px] text-zinc-500">
                 {new Date(p.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}
@@ -839,9 +856,13 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
             >
               <div className="mb-2 flex items-start justify-between gap-2">
                 <h3 className="text-sm font-bold text-zinc-100 group-hover:text-amber-300">{share.project.title}</h3>
-                <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${CATEGORY_BADGE[share.project.category] ?? 'bg-slate-700 text-zinc-300'}`}>
-                  {CATEGORY_LABEL[share.project.category] ?? share.project.category}
-                </span>
+                <div className="flex shrink-0 flex-wrap gap-1">
+                  {share.project.tags.map((tag) => (
+                    <span key={tag} className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${CATEGORY_BADGE[tag] ?? 'bg-slate-700 text-zinc-300'}`}>
+                      {CATEGORY_LABEL[tag] ?? tag}
+                    </span>
+                  ))}
+                </div>
               </div>
               <p className="text-[11px] text-zinc-500">
                 por {share.project.creator.name ?? 'Maker Anônimo'} · compartilhado em{' '}

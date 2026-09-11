@@ -22,7 +22,7 @@ const mockProfileUser = {
       id: 1,
       title: 'RoboSumo v2',
       description: 'Robô de sumô',
-      category: 'Robotics',
+      tags: [{ tag: 'Robotics' }],
       parentId: null,
       createdAt: new Date(),
       updatedAt: new Date(),

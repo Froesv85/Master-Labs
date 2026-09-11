@@ -10,7 +10,7 @@ type FetchProjectsFeedParams = {
   page: number;
   pageSize: number;
   sort: FeedSort;
-  category?: FeedCategory | null;
+  tag?: FeedCategory | null;
   q?: string;
   signal?: AbortSignal;
 };
@@ -28,7 +28,7 @@ export async function fetchProjectsFeed({
   page,
   pageSize,
   sort,
-  category,
+  tag,
   q,
   signal,
 }: FetchProjectsFeedParams): Promise<ProjectsFeedResponse> {
@@ -38,8 +38,8 @@ export async function fetchProjectsFeed({
     sort,
   });
 
-  if (category) {
-    params.set('category', category);
+  if (tag) {
+    params.set('tag', tag);
   }
 
   if (q?.trim()) {

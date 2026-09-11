@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
+import { canAccessProject } from '@/lib/project-access';
 import ProjectTabs from './project-tabs';
 import ProjectHero from './project-hero';
 
@@ -60,6 +61,9 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
           author: { select: { id: true, name: true } },
         },
       },
+      tags: { select: { tag: true } },
+      components: { select: { id: true, name: true, quantity: true, description: true } },
+      team: { select: { id: true, name: true } },
       _count: {
         select: { votes: true, shares: true, children: true },
       },
@@ -73,6 +77,11 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
   const session = await getSession();
   const isOwner = session?.userId === project.creatorId;
 
+  const allowed = await canAccessProject(project, session?.userId ?? null);
+  if (!allowed) {
+    notFound();
+  }
+
   return (
     <div className="space-y-6">
       <ProjectHero
@@ -80,7 +89,12 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
           id: project.id,
           title: project.title,
           description: project.description,
-          category: project.category,
+          objective: project.objective,
+          tags: project.tags.map((t) => t.tag),
+          components: project.components,
+          visibility: project.visibility,
+          teamId: project.teamId,
+          teamName: project.team?.name ?? null,
           creatorId: project.creatorId,
           creatorName: project.creator.name,
           creatorEmail: project.creator.email,

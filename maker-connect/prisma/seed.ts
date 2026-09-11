@@ -456,7 +456,9 @@ async function main() {
     { title: 'ESP32 Home Automation', category: Category.IoT, creatorId: pedro.id, description: 'Sistema de automação residencial com ESPHome e integração Home Assistant.' },
   ];
 
-  await prisma.project.createMany({ data: projectsData });
+  for (const { category, ...rest } of projectsData) {
+    await prisma.project.create({ data: { ...rest, tags: { create: [{ tag: category }] } } });
+  }
 
   console.log('Projects seeded. Done!');
 }

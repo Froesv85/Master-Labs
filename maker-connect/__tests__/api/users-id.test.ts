@@ -21,6 +21,7 @@ const mockUser = {
   badges: [],
   robots: [],
   projects: [],
+  sharedProjects: [],
   ownedTeams: [],
   teamMemberships: [],
   communities: [],

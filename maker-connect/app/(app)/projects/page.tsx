@@ -50,12 +50,27 @@ const PAGE_SIZE = 9;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function displayCategory(cat: ProjectItem['category']): FeedCategory {
+function displayCategory(cat: ProjectItem['tags'][number]): FeedCategory {
   return cat === 'Printing3D' ? '3D_Printing' : cat as FeedCategory;
 }
 
-function getCategoryOption(cat: ProjectItem['category']) {
+function getCategoryOption(cat: ProjectItem['tags'][number]) {
   return CATEGORY_OPTIONS.find((o) => o.value === displayCategory(cat));
+}
+
+const VISIBILITY_LABEL: Record<string, string> = {
+  public: 'Pública',
+  private_owner: 'Privada · só eu',
+  private_team: 'Privada · equipe',
+};
+
+function VisibilityBadge({ visibility }: { visibility: string }) {
+  const isPublic = visibility === 'public';
+  return (
+    <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase ${isPublic ? 'border-teal-500/30 bg-teal-900/30 text-teal-400' : 'border-violet-500/30 bg-violet-900/30 text-violet-400'}`}>
+      {VISIBILITY_LABEL[visibility] ?? visibility}
+    </span>
+  );
 }
 
 function relativeTime(dateStr: string): string {
@@ -107,15 +122,16 @@ function IconPrinter() {
 
 // ─── CategoryPlaceholder ──────────────────────────────────────────────────────
 
-function CategoryPlaceholder({ category }: { category: ProjectItem['category'] }) {
-  const opt = getCategoryOption(category);
+function CategoryPlaceholder({ tags }: { tags: ProjectItem['tags'] }) {
+  const category = tags[0];
+  const opt = category ? getCategoryOption(category) : undefined;
   const gradients: Record<string, string> = {
     '3D_Printing': 'from-violet-900/80 to-violet-950',
     Robotics: 'from-blue-900/80 to-blue-950',
     IoT: 'from-teal-900/80 to-teal-950',
     Woodworking: 'from-amber-900/80 to-amber-950',
   };
-  const grad = gradients[displayCategory(category)] ?? 'from-slate-800 to-slate-900';
+  const grad = (category ? gradients[displayCategory(category)] : undefined) ?? 'from-slate-800 to-slate-900';
   return (
     <div className={`flex h-full w-full items-center justify-center bg-gradient-to-br ${grad}`}>
       <span className="opacity-20 [&>svg]:h-12 [&>svg]:w-12">{opt?.icon}</span>
@@ -133,7 +149,6 @@ function ProjectCard({ project, onVote, onShare, isVoting, isSharing, isShared }
   isSharing: boolean;
   isShared: boolean;
 }) {
-  const opt = getCategoryOption(project.category);
   const initials = project.creatorName
     ? project.creatorName.split(' ').slice(0, 2).map((n) => n[0]).join('').toUpperCase()
     : '?';
@@ -150,13 +165,20 @@ function ProjectCard({ project, onVote, onShare, isVoting, isSharing, isShared }
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
-          <CategoryPlaceholder category={project.category} />
+          <CategoryPlaceholder tags={project.tags} />
         )}
 
-        {/* Category badge overlaid */}
-        <span className={`absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold backdrop-blur-sm ${opt?.badge ?? 'bg-slate-800/80 text-zinc-300 border border-white/10'}`}>
-          <span className="[&>svg]:h-3 [&>svg]:w-3">{opt?.icon}</span>
-          {opt?.label ?? displayCategory(project.category)}
+        {/* Tag badges overlaid */}
+        <span className="absolute left-3 top-3 flex flex-wrap gap-1.5">
+          {project.tags.map((t) => {
+            const opt = getCategoryOption(t);
+            return (
+              <span key={t} className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold backdrop-blur-sm ${opt?.badge ?? 'bg-slate-800/80 text-zinc-300 border border-white/10'}`}>
+                <span className="[&>svg]:h-3 [&>svg]:w-3">{opt?.icon}</span>
+                {opt?.label ?? displayCategory(t)}
+              </span>
+            );
+          })}
         </span>
 
         {/* Fork badge */}
@@ -174,12 +196,15 @@ function ProjectCard({ project, onVote, onShare, isVoting, isSharing, isShared }
             {project.title}
           </h2>
         </Link>
+        {project.visibility !== 'public' && (
+          <div className="mb-1.5"><VisibilityBadge visibility={project.visibility} /></div>
+        )}
         <p className="flex-1 line-clamp-2 text-xs leading-relaxed text-zinc-500">
           {project.description ?? 'Sem descrição.'}
         </p>
 
         {/* Printer info (Printing3D only) */}
-        {project.category === 'Printing3D' && (project.printerBrand || project.printerMaterial) && (
+        {project.tags.includes('Printing3D') && (project.printerBrand || project.printerMaterial) && (
           <div className="mt-2.5 flex flex-wrap gap-1.5">
             {project.printerBrand && (
               <span className="inline-flex items-center gap-1 rounded-md bg-violet-900/30 px-2 py-0.5 text-[10px] text-violet-300">
@@ -243,7 +268,12 @@ function ProjectCard({ project, onVote, onShare, isVoting, isSharing, isShared }
 function CreateProjectModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('Robotics');
+  const [objective, setObjective] = useState('');
+  const [tags, setTags] = useState<string[]>(['Robotics']);
+  const [componentsList, setComponentsList] = useState<{ name: string; quantity: string; description: string }[]>([]);
+  const [visibility, setVisibility] = useState<'public' | 'private_owner' | 'private_team'>('public');
+  const [teamId, setTeamId] = useState<number | ''>('');
+  const [myTeams, setMyTeams] = useState<{ id: number; name: string }[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -264,7 +294,20 @@ function CreateProjectModal({ onClose, onCreated }: { onClose: () => void; onCre
   const [printerMaterial, setPrinterMaterial] = useState('');
   const [printerLayerHeight, setPrinterLayerHeight] = useState('');
 
-  const is3D = category === 'Printing3D';
+  const is3D = tags.includes('Printing3D');
+
+  function toggleTag(value: string) {
+    setTags((prev) => prev.includes(value) ? prev.filter((t) => t !== value) : [...prev, value]);
+  }
+
+  function addComponent() {
+    setComponentsList((p) => [...p, { name: '', quantity: '1', description: '' }]);
+  }
+
+  useEffect(() => {
+    if (visibility !== 'private_team') return;
+    fetch('/api/teams/mine').then((r) => r.ok ? r.json() : { data: [] }).then((body) => setMyTeams(body.data ?? [])).catch(() => {});
+  }, [visibility]);
 
   function handleCoverChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -301,9 +344,22 @@ function CreateProjectModal({ onClose, onCreated }: { onClose: () => void; onCre
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!title.trim()) { setError('Título obrigatório'); return; }
+    if (tags.length === 0) { setError('Selecione ao menos uma tag'); return; }
+    if (visibility === 'private_team' && !teamId) { setError('Selecione a equipe'); return; }
     setSaving(true); setError(null);
     try {
-      const body: Record<string, unknown> = { title, description, category };
+      const body: Record<string, unknown> = {
+        title, description, objective, tags, visibility,
+        ...(visibility === 'private_team' ? { teamId } : {}),
+      };
+      const validComponents = componentsList.filter((c) => c.name.trim());
+      if (validComponents.length > 0) {
+        body.components = validComponents.map((c) => ({
+          name: c.name.trim(),
+          quantity: Number(c.quantity) || 1,
+          description: c.description.trim() || undefined,
+        }));
+      }
       if (coverB64 && coverContentType) { body.coverImageB64 = coverB64; body.coverImageContentType = coverContentType; }
       if (is3D) {
         if (printerBrand) body.printerBrand = printerBrand;
@@ -371,14 +427,66 @@ function CreateProjectModal({ onClose, onCreated }: { onClose: () => void; onCre
         <Field label="Descrição" hint="(opcional)">
           <textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="O que você está construindo?" className={`${inputCls} resize-none`} />
         </Field>
-        <Field label="Categoria">
-          <select value={category} onChange={(e) => setCategory(e.target.value)} className={selectCls}>
-            <option value="Robotics">Robotics</option>
-            <option value="Printing3D">3D Printing</option>
-            <option value="IoT">IoT</option>
-            <option value="Woodworking">Woodworking</option>
+        <Field label="Objetivo" hint="(opcional)">
+          <textarea rows={2} value={objective} onChange={(e) => setObjective(e.target.value)} placeholder="Qual problema esse projeto resolve?" className={`${inputCls} resize-none`} />
+        </Field>
+        <Field label="Tags">
+          <div className="flex flex-wrap gap-2">
+            {CATEGORY_OPTIONS.map((opt) => {
+              const value = opt.value === '3D_Printing' ? 'Printing3D' : opt.value;
+              const active = tags.includes(value);
+              return (
+                <button key={opt.value} type="button" onClick={() => toggleTag(value)}
+                  className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold uppercase tracking-wide transition-all ${active ? opt.filterActive : opt.filterHover}`}>
+                  <span className="[&>svg]:h-3 [&>svg]:w-3">{opt.icon}</span>{opt.label}
+                </button>
+              );
+            })}
+          </div>
+        </Field>
+
+        {/* Componentes */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-semibold uppercase tracking-wide text-zinc-400">Componentes</label>
+            <button type="button" onClick={addComponent}
+              className="rounded-lg border border-white/10 bg-slate-800 px-3 py-1.5 text-xs text-zinc-400 hover:text-zinc-200">
+              + Adicionar
+            </button>
+          </div>
+          {componentsList.length === 0 && (
+            <p className="text-xs text-zinc-600">Peças, materiais, módulos usados no projeto...</p>
+          )}
+          {componentsList.map((c, i) => (
+            <div key={i} className="flex gap-2">
+              <input value={c.name} onChange={(e) => setComponentsList((p) => p.map((x, j) => j === i ? { ...x, name: e.target.value } : x))}
+                placeholder="Nome do componente" className={`${inputCls} flex-1`} />
+              <input type="number" min="1" value={c.quantity} onChange={(e) => setComponentsList((p) => p.map((x, j) => j === i ? { ...x, quantity: e.target.value } : x))}
+                placeholder="Qtd" className={`${inputCls} w-16 text-center`} />
+              <input value={c.description} onChange={(e) => setComponentsList((p) => p.map((x, j) => j === i ? { ...x, description: e.target.value } : x))}
+                placeholder="Obs." className={`${inputCls} flex-1`} />
+              <button type="button" onClick={() => setComponentsList((p) => p.filter((_, j) => j !== i))}
+                className="rounded-lg border border-white/10 bg-slate-800 px-2 text-zinc-600 hover:text-red-400">x</button>
+            </div>
+          ))}
+        </div>
+
+        <Field label="Visibilidade">
+          <select value={visibility} onChange={(e) => setVisibility(e.target.value as typeof visibility)} className={selectCls}>
+            <option value="public">Pública — aparece para todos</option>
+            <option value="private_owner">Privada — só eu</option>
+            <option value="private_team">Privada — minha equipe</option>
           </select>
         </Field>
+        {visibility === 'private_team' && (
+          <Field label="Equipe">
+            <select value={teamId} onChange={(e) => setTeamId(e.target.value ? Number(e.target.value) : '')} className={selectCls}>
+              <option value="">Selecione a equipe...</option>
+              {myTeams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+            </select>
+            {myTeams.length === 0 && <p className="mt-1 text-xs text-zinc-600">Você não é membro aprovado de nenhuma equipe.</p>}
+          </Field>
+        )}
 
         {/* 3D Printing section */}
         {is3D && (
@@ -475,7 +583,7 @@ export default function ProjectsPage() {
     async function load() {
       setLoading(true); setError(null);
       try {
-        const payload = await fetchProjectsFeed({ page, pageSize: PAGE_SIZE, sort, category: categoryQuery, q: searchQuery, signal: controller.signal });
+        const payload = await fetchProjectsFeed({ page, pageSize: PAGE_SIZE, sort, tag: categoryQuery, q: searchQuery, signal: controller.signal });
         setResponse(payload);
       } catch (err) {
         if ((err as { name?: string }).name === 'AbortError') return;

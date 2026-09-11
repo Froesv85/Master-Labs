@@ -6,7 +6,7 @@ export type ExportData = {
   projectTitle: string;
   projectDescription: string;
   creator: string;
-  category: string;
+  tags: string[];
   difficulties: { description: string; date: string }[];
   technicalRequirements: string[];
   suggestedBom: { quantity: string; item: string; notes: string }[];
@@ -63,7 +63,7 @@ export async function buildPdf(data: ExportData): Promise<Buffer> {
 
   // Metadata
   addText(`Criador: ${data.creator}`, 11);
-  addText(`Categoria: ${data.category}`, 11);
+  addText(`Tags: ${data.tags.join(', ')}`, 11);
   addText(`Data de Exportacao: ${new Date().toLocaleString('pt-BR')}`, 11);
   cursorY += 5;
 

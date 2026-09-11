@@ -7,11 +7,18 @@ import { useState } from 'react';
 type ProjectImage = { id: number; imageUrl: string; position: number };
 type ProjectFile = { id: number; fileName: string; fileUrl: string; fileType: string; fileSizeKb: number };
 
+type ProjectComponentData = { id: number; name: string; quantity: number; description: string | null };
+
 type ProjectHeroData = {
   id: number;
   title: string;
   description: string | null;
-  category: string;
+  objective: string | null;
+  tags: string[];
+  components: ProjectComponentData[];
+  visibility: string;
+  teamId: number | null;
+  teamName: string | null;
   creatorId: number;
   creatorName: string | null;
   creatorEmail: string;
@@ -119,15 +126,18 @@ export default function ProjectHero({ project }: { project: ProjectHeroData }) {
   const [shared, setShared] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const meta = CATEGORY_META[project.category] ?? CATEGORY_META.Robotics;
+  const metas = project.tags.map((t) => CATEGORY_META[t] ?? CATEGORY_META.Robotics);
+  const meta = metas[0] ?? CATEGORY_META.Robotics;
   const creatorProfileHref = `/profile/${project.creatorId}`;
   const initials = project.creatorName
     ? project.creatorName.split(' ').slice(0, 2).map((n) => n[0]).join('').toUpperCase()
     : '?';
 
-  const hasPrinterInfo = project.category === 'Printing3D' && (
+  const hasPrinterInfo = project.tags.includes('Printing3D') && (
     project.printerBrand || project.printerModel || project.printerNozzle || project.printerMaterial || project.printerLayerHeight
   );
+
+  const isPublic = project.visibility === 'public';
 
   async function handleVote() {
     setVoting(true); setError(null);
@@ -232,15 +242,43 @@ export default function ProjectHero({ project }: { project: ProjectHeroData }) {
               {project.description ?? 'Este projeto ainda não possui descrição detalhada.'}
             </p>
           </div>
+
+          {project.objective && (
+            <div className="rounded-xl border border-white/10 bg-slate-900/60 p-5">
+              <h2 className="mb-2 text-xs font-bold uppercase tracking-widest text-zinc-500">Objetivo</h2>
+              <p className="whitespace-pre-line text-sm leading-relaxed text-zinc-300">{project.objective}</p>
+            </div>
+          )}
+
+          {project.components.length > 0 && (
+            <div className="rounded-xl border border-white/10 bg-slate-900/60 p-5">
+              <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-zinc-500">Componentes ({project.components.length})</h2>
+              <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {project.components.map((c) => (
+                  <li key={c.id} className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs">
+                    <span className="font-semibold text-zinc-200">{c.quantity}× {c.name}</span>
+                    {c.description && <p className="mt-0.5 text-zinc-500">{c.description}</p>}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
 
         {/* Right: sidebar */}
         <div className="space-y-4">
           <div className="rounded-xl border border-white/10 bg-slate-900/60 p-5">
-            <span className={`mb-3 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${meta.badge}`}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{meta.icon}</svg>
-              {meta.label}
-            </span>
+            <div className="mb-3 flex flex-wrap items-center gap-1.5">
+              {metas.map((m, i) => (
+                <span key={project.tags[i]} className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${m.badge}`}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{m.icon}</svg>
+                  {m.label}
+                </span>
+              ))}
+              <span className={`rounded-full border px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide ${isPublic ? 'border-teal-500/30 bg-teal-900/30 text-teal-400' : 'border-violet-500/30 bg-violet-900/30 text-violet-400'}`}>
+                {isPublic ? 'Pública' : project.visibility === 'private_owner' ? 'Privada · só eu' : `Privada · ${project.teamName ?? 'equipe'}`}
+              </span>
+            </div>
             <h1 className="text-xl font-black leading-snug text-white sm:text-2xl">{project.title}</h1>
 
             <Link href={creatorProfileHref} className="mt-3 flex items-center gap-2 group/c">
