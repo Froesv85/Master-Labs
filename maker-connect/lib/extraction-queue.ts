@@ -7,6 +7,7 @@ import { queryByEmbedding } from '@/lib/pinecone';
 import { anonymizePii } from '@/lib/lgpd';
 import { createLgpdAuditLog } from '@/lib/lgpd-audit';
 import { buildRagPrompt, normalizeExtractionOutput } from '@/lib/rag-output';
+import { classifyProject, validateBom, auditOutput } from '@/lib/ml-pipeline';
 
 export type ExtractionJobData = {
   logId: number;
@@ -76,7 +77,7 @@ export async function processExtractionJob(job: Job<ExtractionJobData>) {
   });
   const project = await prisma.project.findUnique({
     where: { id: projectId },
-    select: { id: true, title: true, content: true },
+    select: { id: true, title: true, description: true, content: true },
   });
 
   if (!log || !project) {
@@ -92,13 +93,42 @@ export async function processExtractionJob(job: Job<ExtractionJobData>) {
   const input = project.content ?? '';
   const language = log.language || 'pt-BR';
 
+  // Fase 5, estagio 1 - classificacao previa. Nunca lanca: se o ml-pipeline estiver
+  // fora do ar, `classification` fica null e o resto do pipeline segue normalmente.
+  const classification = await classifyProject({
+    title: project.title,
+    description: project.description ?? '',
+    content: input,
+  });
+
   const embeddingPrompt = buildEmbeddingPrompt(keywords, input);
   const embedding = await generateEmbedding(embeddingPrompt);
-  const evidence = await queryByEmbedding(embedding, 3);
+
+  // Fase 5, estagio 3 - tenta restringir a busca vetorial pelos dominios previstos no
+  // estagio 1. Se a base Pinecone nao tiver cobertura pra esses dominios (filtro vazio),
+  // refaz sem filtro - a relevancia validada em 98% no rag-eval.mjs nao pode regredir.
+  let evidence = classification?.domains.length
+    ? await queryByEmbedding(embedding, 3, { category: { $in: classification.domains } })
+    : [];
+  if (evidence.length === 0) {
+    evidence = await queryByEmbedding(embedding, 3);
+  }
 
   const prompt = buildRagPrompt({ language, projectTitle: project.title, input, evidence });
   const rawResponse = await generateCompletion(prompt);
   const normalized = normalizeExtractionOutput(rawResponse, evidence.length, log.embeddingId);
+
+  // Fase 5, estagios 2 e 4 - validacao de BOM e auditoria pos-geracao, em paralelo.
+  // Cada chamada ja e defensiva (retorna null em qualquer falha).
+  const [bomCheck, audit] = await Promise.all([
+    validateBom(normalized.suggestedBOM),
+    auditOutput({
+      bom: normalized.suggestedBOM,
+      technicalRequirementsCount: normalized.technicalRequirements.length,
+      confidenceScore: normalized.confidenceScore,
+      groundingCount: normalized.groundingCount,
+    }),
+  ]);
 
   const outputText = JSON.stringify(normalized);
   const { sanitized, redactions, piiTypes } = anonymizePii(outputText);
@@ -122,6 +152,13 @@ export async function processExtractionJob(job: Job<ExtractionJobData>) {
       latencyMs,
       piiRedactions: redactions,
       piiTypes: piiTypes.length > 0 ? JSON.stringify(piiTypes) : null,
+      predictedCategory: classification?.category ?? null,
+      predictedDifficulty: classification?.difficulty ?? null,
+      predictedDomains: classification?.domains.length ? JSON.stringify(classification.domains) : null,
+      missingComponents: bomCheck?.missingSuggestions.length ? JSON.stringify(bomCheck.missingSuggestions) : null,
+      bomClusterLabel: bomCheck?.clusterLabel ?? null,
+      auditScore: audit?.auditScore ?? null,
+      auditFlags: audit?.flags.length ? JSON.stringify(audit.flags) : null,
     },
   });
 }

@@ -1,12 +1,12 @@
 {
-  "runAt": "2026-04-29T21:16:14.869Z",
+  "runAt": "2026-09-11T22:55:06.138Z",
   "totalProjects": 10,
   "completed": 10,
-  "avgRelevance": 98,
-  "p50Relevance": 99,
+  "avgRelevance": 95,
+  "p50Relevance": 93,
   "p95Relevance": 100,
-  "p50LatencyMs": 58654,
-  "p95LatencyMs": 73286,
+  "p50LatencyMs": 34230,
+  "p95LatencyMs": 45969,
   "pass": true,
   "results": [
     {
@@ -14,70 +14,70 @@
       "title": "LoRaWAN Asset Tracker",
       "status": "done",
       "score": 100,
-      "latencyMs": 61404
+      "latencyMs": 42220
     },
     {
       "id": "H02",
       "title": "Controlador de Estufa Automatizado",
       "status": "done",
-      "score": 99,
-      "latencyMs": 49291
+      "score": 93,
+      "latencyMs": 34230
     },
     {
       "id": "H03",
       "title": "Monitor de Qualidade do Ar",
       "status": "done",
-      "score": 99,
-      "latencyMs": 69565
+      "score": 93,
+      "latencyMs": 24435
     },
     {
       "id": "H04",
       "title": "Fechadura Inteligente com RFID",
       "status": "done",
-      "score": 97,
-      "latencyMs": 58654
+      "score": 100,
+      "latencyMs": 33918
     },
     {
       "id": "H05",
       "title": "Monitor de Energia Residencial",
       "status": "done",
       "score": 93,
-      "latencyMs": 73286
+      "latencyMs": 40916
     },
     {
       "id": "H06",
       "title": "Controlador de Aquário Inteligente",
       "status": "done",
-      "score": 99,
-      "latencyMs": 72804
+      "score": 100,
+      "latencyMs": 32673
     },
     {
       "id": "H07",
       "title": "Sensor de Nível de Caixa D'água",
       "status": "done",
-      "score": 99,
-      "latencyMs": 50955
+      "score": 80,
+      "latencyMs": 45969
     },
     {
       "id": "H08",
       "title": "Gateway Industrial Modbus para MQTT",
       "status": "done",
-      "score": 99,
-      "latencyMs": 54936
+      "score": 93,
+      "latencyMs": 34190
     },
     {
       "id": "H09",
       "title": "Robô de Inspeção com Câmera",
       "status": "done",
-      "score": 99,
-      "latencyMs": 56003
+      "score": 100,
+      "latencyMs": 35503
     },
     {
       "id": "H10",
       "title": "Detector de Fumaça com Evacuação",
       "status": "done",
-      "score": 99,
-      "latencyMs": 66606
+      "score": 100,
+      "latencyMs": 39319
     }
   ]
 }

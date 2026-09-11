@@ -526,6 +526,15 @@ model ProjectExtractionLog {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
+  // Fase 5 — pipeline de estruturacao (ml-pipeline), preenchidos quando o servico responde
+  predictedCategory   String?
+  predictedDifficulty String?
+  predictedDomains    String? @db.Text // JSON array
+  missingComponents   String? @db.Text // JSON array [{item, reason, confidence}]
+  bomClusterLabel     String?
+  auditScore          Int?
+  auditFlags          String? @db.Text // JSON array de strings
+
   @@index([projectId])
   @@index([status])
   @@index([createdAt])

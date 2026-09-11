@@ -45,6 +45,19 @@ services:
       exit 0;
       "
 
+  # Fase 5 - pipeline de estruturacao (classificacao, validacao de BOM, auditoria).
+  # Chamado via HTTP pelo worker BullMQ (lib/ml-pipeline.ts); o app principal continua
+  # funcionando normalmente se esse servico estiver fora do ar.
+  ml-pipeline:
+    build: ./ml-pipeline
+    container_name: maker-ml-pipeline
+    ports:
+      - "8001:8000"
+    environment:
+      DATABASE_URL: mysql://root:root@mysql:3306/maker
+    depends_on:
+      - mysql
+
 volumes:
   redis-data:
   mysql-data:

@@ -119,7 +119,8 @@ SINGH, A.; KUMAR, P. Agentic RAG: Orchestrating Autonomous Generative Agents for
 | Geração PDF | jsPDF / pdfkit |
 | Autenticação | JWT (jose) + bcryptjs |
 | Fila assíncrona | BullMQ + Redis |
-| Testes | Jest + ts-jest |
+| Pipeline de estruturação (Fase 5) | Python + FastAPI + scikit-learn (`ml-pipeline/`) |
+| Testes | Jest + ts-jest, Pytest |
 
 ---
 
@@ -153,25 +154,27 @@ Para atualizar: edite `scripts/diagrams/arquitetura-fluxo.mmd` e rode `node scri
 | Normalização de schema | Regras determinísticas (clamp, fallback, parsing defensivo de JSON) | Garante que a saída do LLM sempre respeite o schema `mc_extract_v2`, mesmo malformada | `normalizeExtractionOutput()` em `lib/rag-output.ts` |
 | Orquestração assíncrona | Fila com backoff exponencial (BullMQ + Redis) | Desacopla a chamada do usuário do tempo de processamento (p50 ~53s) | `lib/extraction-queue.ts`, `lib/pdf-export-queue.ts` |
 
-### Planejados — Fase 5 (pipeline de estruturação, ainda não implementado)
+### Fase 5 — Pipeline de Estruturação (microsserviço Python)
 
-Expansão sugerida com algoritmos clássicos de ML, rodando como microsserviço Python separado (scikit-learn) — começa heurístico/regra e evolui pra modelos treinados conforme dados reais de projetos se acumulam:
+Microsserviço FastAPI + scikit-learn separado (`ml-pipeline/`), chamado via HTTP pelo worker BullMQ. Segue a mesma filosofia do resto do pipeline: começa heurístico/regra e evolui pra modelos treinados conforme dados reais se acumulam — hoje a categoria já é um Naive Bayes treinado nos rótulos reais de `ProjectTag` (com fallback heurístico dado o dataset ainda pequeno), enquanto dificuldade e auditoria seguem heurísticos/baseados em regra por falta de rótulo real ainda (ver `ml-pipeline/README.md` para o detalhamento honesto de cada estágio):
 
 ```mermaid
 graph TD
-    A["Entrada do Maker<br/>Ideia / Rascunho / Fotos"] --> B["1. Classificação Prévia<br/>Naive Bayes · Random Forest · SVM<br/><i>categoria, dificuldade, domínio</i>"]
+    A["Entrada do Maker<br/>Ideia / Rascunho / Fotos"] --> B["1. Classificação Prévia<br/>Naive Bayes (treinado) + heurístico<br/><i>categoria, dificuldade, domínio</i>"]
     B --> C["2. Validação & Agrupamento<br/>K-Means · Apriori<br/><i>peças esquecidas na BOM, topologia similar</i>"]
-    C --> D["3. RAG Especializado<br/>Busca vetorial filtrada (HNSW) + LLM<br/><i>texto técnico e pinagem ancorados em datasheets</i>"]
-    D --> E["4. Auditoria Pós-Geração<br/>Classificador de inconsistência/similaridade"]
+    C --> D["3. RAG Especializado<br/>Busca vetorial filtrada + LLM<br/><i>texto técnico ancorado em datasheets, filtrado por domínio</i>"]
+    D --> E["4. Auditoria Pós-Geração<br/>Regras + associação do estágio 2"]
     E --> F["Documentação Final Estruturada<br/>BOM · Pinagem · Guia de Montagem"]
 ```
 
-| Estágio | Algoritmo | Papel |
-|---|---|---|
-| 1. Classificação Prévia | Naive Bayes / Random Forest / SVM | Define categoria, nível de dificuldade e domínio do projeto antes da geração |
-| 2. Validação & Agrupamento | K-Means / Regras de associação (Apriori) | Detecta peças esquecidas na BOM e agrupa projetos por topologia similar |
-| 3. RAG Especializado | Busca vetorial filtrada (HNSW) + LLM | Gera texto técnico e pinagem ancorados em datasheets, já filtrado pela categoria do estágio 1 |
-| 4. Auditoria Pós-Geração | Classificador de inconsistência/similaridade | Audita a saída gerada contra a BOM e os requisitos antes da entrega final |
+| Estágio | Algoritmo | Papel | Onde no código |
+|---|---|---|---|
+| 1. Classificação Prévia | Naive Bayes (TF-IDF) treinado em `ProjectTag` real, com fallback heurístico por palavra-chave | Define categoria, nível de dificuldade e domínios técnicos do projeto antes da geração | `ml-pipeline/app/stage1_classify.py` |
+| 2. Validação & Agrupamento | K-Means (topologia de BOM) + Apriori (regras de associação) sobre BOMs reais, com regras curadas de omissões clássicas | Detecta peças possivelmente esquecidas na BOM e agrupa projetos por topologia similar | `ml-pipeline/app/stage2_bom.py` |
+| 3. RAG Especializado | Busca vetorial no Pinecone filtrada por domínio (metadata filter), com fallback automático sem filtro | Prioriza evidências técnicas do domínio do projeto (sensor/atuador/protocolo/...) antes da geração via LLM | `queryByEmbedding()` em `lib/pinecone.ts` + `lib/extraction-queue.ts` |
+| 4. Auditoria Pós-Geração | Classificador baseado em regras (reaproveita as regras do estágio 2 + checagens de consistência BOM/requisitos) | Audita a saída gerada e sinaliza inconsistências/omissões antes da entrega final | `ml-pipeline/app/stage4_audit.py` |
+
+O worker BullMQ (`lib/extraction-queue.ts`) chama o `ml-pipeline` via `lib/ml-pipeline.ts` de forma defensiva: se o serviço estiver fora do ar, os campos de previsão ficam `null` e o pipeline principal (Ollama/qwen) continua funcionando normalmente. Previsões e flags ficam disponíveis em `ProjectExtractionLog` (`predictedCategory`, `predictedDifficulty`, `predictedDomains`, `missingComponents`, `bomClusterLabel`, `auditScore`, `auditFlags`), retornados por `GET /api/projects/[id]/extract`.
 
 ---
 
@@ -192,6 +195,7 @@ graph TD
 | Autenticação JWT | Concluído |
 | Cadastro de robôs e equipes | Concluído |
 | Exportação PDF assíncrona (BullMQ) | Em andamento (Semana 7-8) |
+| Fase 5 — pipeline de estruturação (ml-pipeline) | Concluído (dev) — dataset real ainda pequeno, ver `ml-pipeline/README.md` |
 | Gate S1.1 | PASS (28/04/2026) |
 | Gate S1.2 | PASS (13/05/2026) |
 | Gate S1.3 | Partial PASS — relevance 98% ✅, latência ⚠️ (sem GPU) |

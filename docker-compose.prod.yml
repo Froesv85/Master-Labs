@@ -13,6 +13,8 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
+      ml-pipeline:
+        condition: service_started
     networks:
       - maker-net
     healthcheck:
@@ -21,6 +23,23 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+
+  # Fase 5 - pipeline de estruturacao (classificacao, validacao de BOM, auditoria).
+  # depends_on nao-bloqueante de proposito: se esse servico cair ou demorar pra subir,
+  # o maker-connect nao pode ficar preso esperando - o pipeline principal (Ollama/qwen)
+  # ja e resiliente a essa chamada falhar (ver lib/ml-pipeline.ts).
+  # IMPORTANTE: .env.prod (fora do git, SSH-only na VM) precisa ganhar
+  # ML_PIPELINE_URL=http://ml-pipeline:8000 antes do primeiro deploy com esse servico.
+  ml-pipeline:
+    image: ${MAKER_ML_IMAGE:-ghcr.io/froesv85/maker-connect-ml:latest}
+    container_name: maker-ml-pipeline
+    restart: unless-stopped
+    env_file: .env.prod
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - maker-net
 
   mysql:
     image: mysql:8.0

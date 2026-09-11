@@ -19,7 +19,8 @@ export type PineconeMatch = {
 
 export async function queryByEmbedding(
   vector: number[],
-  topK = 5
+  topK = 5,
+  filter?: Record<string, unknown>
 ): Promise<PineconeMatch[]> {
   const indexName = process.env.PINECONE_INDEX ?? 'maker-knowledge';
   const idx = getClient().index(indexName);
@@ -28,6 +29,7 @@ export async function queryByEmbedding(
     vector,
     topK,
     includeMetadata: true,
+    ...(filter ? { filter } : {}),
   });
 
   return (result.matches ?? []).map((m) => ({
