@@ -103,4 +103,8 @@ jobs:
             export MAKER_ML_IMAGE=ghcr.io/froesv85/maker-connect-ml:latest
             docker compose -f docker-compose.prod.yml pull maker-connect ml-pipeline
             docker compose -f docker-compose.prod.yml up -d --no-deps maker-connect ml-pipeline
+            # nginx resolve o hostname do upstream (maker-connect) uma unica vez ao iniciar;
+            # como o container acima e recriado a cada deploy (IP novo), sem reiniciar o
+            # nginx ele fica preso no IP antigo e todo request vira 502 Bad Gateway.
+            docker restart maker-nginx
             docker system prune -f --volumes=false
