@@ -126,7 +126,7 @@ SINGH, A.; KUMAR, P. Agentic RAG: Orchestrating Autonomous Generative Agents for
 
 ## Diagrama da Stack
 
-<p align="center"><img src="assets/diagrams/stack.png" alt="Diagrama da stack: Next.js, MySQL, Redis/BullMQ, n8n, Ollama, Pinecone, MinIO" width="100%" /></p>
+<p align="center"><img src="assets/diagrams/stack.png" alt="Diagrama da stack: Next.js, MySQL, Redis/BullMQ, n8n, Ollama, Pinecone, MinIO, ml-pipeline (Fase 5)" width="100%" /></p>
 
 Para atualizar: edite `scripts/diagrams/stack.mmd` e rode `node scripts/gerar-diagramas.mjs`.
 
@@ -134,7 +134,7 @@ Para atualizar: edite `scripts/diagrams/stack.mmd` e rode `node scripts/gerar-di
 
 ## Arquitetura — Fluxo Principal
 
-<p align="center"><img src="assets/diagrams/arquitetura-fluxo.png" alt="Fluxo de extração e exportação: sanitização, motor n8n/BullMQ, persistência, exportação PDF" width="100%" /></p>
+<p align="center"><img src="assets/diagrams/arquitetura-fluxo.png" alt="Fluxo de extração e exportação: sanitização, motor n8n/BullMQ com classificação e auditoria da Fase 5, persistência, exportação PDF" width="100%" /></p>
 
 Para atualizar: edite `scripts/diagrams/arquitetura-fluxo.mmd` e rode `node scripts/gerar-diagramas.mjs`.
 
