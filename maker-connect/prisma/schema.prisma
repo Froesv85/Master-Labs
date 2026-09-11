@@ -83,6 +83,7 @@ model User {
   createdCommunities Community[]    @relation("community_creator")
   lgpdAuditLogs  LgpdAuditLog[]
   projectComments ProjectComment[]
+  createdCompetitions Competition[]
 
   @@index([email])
 }
@@ -153,6 +154,7 @@ model Robot {
   participations RobotEventParticipation[]
   images         RobotImage[]
   components     RobotComponent[]
+  competitions   Competition[]             @relation("CompetitionRobots")
   createdAt      DateTime                  @default(now())
   updatedAt      DateTime                  @updatedAt
 
@@ -248,11 +250,12 @@ model Team {
   ownerId     Int
   owner       User         @relation("team_owner", fields: [ownerId], references: [id])
   isPublic    Boolean      @default(true)
-  members     TeamMember[]
-  robots      Robot[]
-  projects    Project[]
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  members      TeamMember[]
+  robots       Robot[]
+  projects     Project[]
+  competitions Competition[]
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 
   @@index([ownerId])
 }
@@ -271,6 +274,26 @@ model TeamMember {
   @@index([teamId])
   @@index([userId])
   @@index([teamId, status])
+}
+
+model Competition {
+  id          Int       @id @default(autoincrement())
+  teamId      Int
+  team        Team      @relation(fields: [teamId], references: [id])
+  createdById Int
+  createdBy   User      @relation(fields: [createdById], references: [id])
+  name        String
+  description String?   @db.Text
+  location    String?
+  eventDate   DateTime
+  result      String?   @db.Text
+  placement   Int?
+  publishedAt DateTime?
+  robots      Robot[]   @relation("CompetitionRobots")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([teamId])
 }
 
 model Community {

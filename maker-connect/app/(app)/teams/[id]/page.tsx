@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { use, useEffect, useState } from 'react';
+import { Modal, Field, FormActions, inputCls } from '@/components/modal';
 
 type Member = {
   id: number; role: string; status: string; joinedAt: string;
@@ -17,6 +18,12 @@ type Team = {
   id: number; name: string; description: string | null; isPublic: boolean;
   ownerId: number; owner: { id: number; name: string | null };
   members: Member[]; robots: RobotSummary[]; createdAt: string;
+};
+type Competition = {
+  id: number; name: string; description: string | null; location: string | null;
+  eventDate: string; result: string | null; placement: number | null; publishedAt: string | null;
+  createdBy: { id: number; name: string | null };
+  robots: { id: number; name: string; imageUrl: string | null }[];
 };
 
 const ROLE_CONFIG: Record<string, { label: string; color: string }> = {
@@ -187,17 +194,142 @@ function AddMemberBox({ teamId, onAdded }: { teamId: number; onAdded: (member: M
   );
 }
 
+function CreateCompetitionModal({ teamId, robots, onClose, onCreated }: {
+  teamId: number;
+  robots: RobotSummary[];
+  onClose: () => void;
+  onCreated: (c: Competition) => void;
+}) {
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [location, setLocation] = useState('');
+  const [eventDate, setEventDate] = useState('');
+  const [robotIds, setRobotIds] = useState<number[]>([]);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  function toggleRobot(id: number) {
+    setRobotIds((prev) => prev.includes(id) ? prev.filter((r) => r !== id) : [...prev, id]);
+  }
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!name.trim()) { setError('Nome obrigatório'); return; }
+    if (!eventDate) { setError('Data obrigatória'); return; }
+    setSaving(true); setError(null);
+    try {
+      const res = await fetch(`/api/teams/${teamId}/competitions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, description, location, eventDate, robotIds }),
+      });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error ?? 'Erro ao criar'); }
+      const body = await res.json();
+      onCreated(body.data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao criar competição');
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Modal title="Nova Competição" onClose={onClose}>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Field label="Nome">
+          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: RobôChallenge 2026" className={inputCls} />
+        </Field>
+        <Field label="Descrição" hint="(opcional)">
+          <textarea rows={2} value={description} onChange={(e) => setDescription(e.target.value)} className={`${inputCls} resize-none`} />
+        </Field>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Local" hint="(opcional)">
+            <input value={location} onChange={(e) => setLocation(e.target.value)} className={inputCls} />
+          </Field>
+          <Field label="Data">
+            <input type="date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} className={inputCls} />
+          </Field>
+        </div>
+        {robots.length > 0 && (
+          <Field label="Robôs participantes" hint="(opcional)">
+            <div className="flex flex-wrap gap-2">
+              {robots.map((r) => {
+                const active = robotIds.includes(r.id);
+                return (
+                  <button key={r.id} type="button" onClick={() => toggleRobot(r.id)}
+                    className={`rounded-full border px-3 py-1.5 text-xs font-bold transition-all ${active ? 'border-amber-500 bg-amber-500 text-black' : 'border-white/10 text-zinc-400 hover:border-amber-500/40 hover:text-zinc-200'}`}>
+                    {r.name}
+                  </button>
+                );
+              })}
+            </div>
+          </Field>
+        )}
+        {error && <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-xs text-red-400">{error}</p>}
+        <FormActions onClose={onClose} saving={saving} label="Criar Competição" />
+      </form>
+    </Modal>
+  );
+}
+
+function PublishResultForm({ teamId, competition, onPublished }: {
+  teamId: number;
+  competition: Competition;
+  onPublished: (c: Competition) => void;
+}) {
+  const [result, setResult] = useState('');
+  const [placement, setPlacement] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!result.trim()) { setError('Descreva o resultado'); return; }
+    setSaving(true); setError(null);
+    try {
+      const res = await fetch(`/api/teams/${teamId}/competitions/${competition.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ result, ...(placement ? { placement: Number(placement) } : {}) }),
+      });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error ?? 'Erro ao publicar'); }
+      const body = await res.json();
+      onPublished(body.data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao publicar resultado');
+      setSaving(false);
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="mt-3 flex flex-wrap items-end gap-2 border-t border-white/5 pt-3">
+      <input value={result} onChange={(e) => setResult(e.target.value)} placeholder="Resultado (ex: 3º lugar geral)"
+        className="min-w-[180px] flex-1 h-9 rounded-lg border border-white/10 bg-slate-800 px-3 text-xs text-zinc-200 outline-none placeholder:text-zinc-500 focus:border-amber-500/50" />
+      <input type="number" value={placement} onChange={(e) => setPlacement(e.target.value)} placeholder="Posição"
+        className="h-9 w-20 rounded-lg border border-white/10 bg-slate-800 px-2 text-center text-xs text-zinc-200 outline-none focus:border-amber-500/50" />
+      <button type="submit" disabled={saving}
+        className="h-9 rounded-lg bg-amber-500 px-3 text-xs font-bold text-black transition hover:bg-amber-400 disabled:opacity-50">
+        {saving ? '...' : 'Publicar'}
+      </button>
+      {error && <p className="w-full text-xs text-red-400">{error}</p>}
+    </form>
+  );
+}
+
 export default function TeamDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const [team, setTeam] = useState<Team | null>(null);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<'members' | 'robots' | 'pending'>('members');
+  const [tab, setTab] = useState<'members' | 'robots' | 'pending' | 'competitions'>('members');
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [currentUserName, setCurrentUserName] = useState<string | null>(null);
   const [pendingMembers, setPendingMembers] = useState<Member[]>([]);
   const [pendingLoading, setPendingLoading] = useState(false);
   const [pendingFetched, setPendingFetched] = useState(false);
   const [processingUserId, setProcessingUserId] = useState<number | null>(null);
+  const [competitions, setCompetitions] = useState<Competition[]>([]);
+  const [competitionsLoading, setCompetitionsLoading] = useState(false);
+  const [competitionsFetched, setCompetitionsFetched] = useState(false);
+  const [showCreateCompetition, setShowCreateCompetition] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -258,6 +390,26 @@ export default function TeamDetailPage({ params }: { params: Promise<{ id: strin
       .then((body) => { setPendingMembers(body.data ?? []); setPendingFetched(true); })
       .catch(() => {})
       .finally(() => setPendingLoading(false));
+  }
+
+  function openCompetitionsTab() {
+    setTab('competitions');
+    if (competitionsFetched) return;
+    setCompetitionsLoading(true);
+    fetch(`/api/teams/${id}/competitions`)
+      .then((r) => r.json())
+      .then((body) => { setCompetitions(body.data ?? []); setCompetitionsFetched(true); })
+      .catch(() => {})
+      .finally(() => setCompetitionsLoading(false));
+  }
+
+  function handleCompetitionCreated(c: Competition) {
+    setCompetitions((prev) => [c, ...prev]);
+    setShowCreateCompetition(false);
+  }
+
+  function handleCompetitionPublished(updated: Competition) {
+    setCompetitions((prev) => prev.map((c) => c.id === updated.id ? updated : c));
   }
 
   async function handleMemberAction(userId: number, action: 'approve' | 'reject') {
@@ -355,6 +507,12 @@ export default function TeamDetailPage({ params }: { params: Promise<{ id: strin
         >
           Robôs ({team.robots.length})
         </button>
+        <button
+          onClick={openCompetitionsTab}
+          className={`flex-1 rounded-md py-2 text-xs font-bold uppercase tracking-wide transition-all ${tab === 'competitions' ? 'bg-amber-500 text-black shadow' : 'text-zinc-400 hover:text-zinc-200'}`}
+        >
+          Competições {competitionsFetched ? `(${competitions.length})` : ''}
+        </button>
         {isManager && (
           <button
             onClick={openPendingTab}
@@ -364,6 +522,15 @@ export default function TeamDetailPage({ params }: { params: Promise<{ id: strin
           </button>
         )}
       </div>
+
+      {showCreateCompetition && (
+        <CreateCompetitionModal
+          teamId={team.id}
+          robots={team.robots}
+          onClose={() => setShowCreateCompetition(false)}
+          onCreated={handleCompetitionCreated}
+        />
+      )}
 
       {/* Members */}
       {tab === 'members' && (
@@ -478,6 +645,69 @@ export default function TeamDetailPage({ params }: { params: Promise<{ id: strin
                   Rejeitar
                 </button>
               </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Competitions */}
+      {tab === 'competitions' && (
+        <div className="space-y-3">
+          {isManager && (
+            <div className="flex justify-end">
+              <button
+                onClick={() => setShowCreateCompetition(true)}
+                className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-bold text-black shadow-[0_0_14px_rgba(245,158,11,0.3)] transition hover:bg-amber-400"
+              >
+                + Nova Competição
+              </button>
+            </div>
+          )}
+          {competitionsLoading && (
+            <div className="flex h-32 items-center justify-center">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-amber-500 border-t-transparent" />
+            </div>
+          )}
+          {!competitionsLoading && competitions.length === 0 && (
+            <p className="py-8 text-center text-zinc-500">Nenhuma competição registrada ainda.</p>
+          )}
+          {competitions.map((c) => (
+            <div key={c.id} className="rounded-xl border border-white/10 bg-slate-900/60 p-4">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <p className="font-bold text-zinc-100">{c.name}</p>
+                  <p className="text-xs text-zinc-500">
+                    {new Date(c.eventDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    {c.location ? ` · ${c.location}` : ''}
+                  </p>
+                </div>
+                {c.publishedAt ? (
+                  <span className="shrink-0 rounded-full border border-teal-500/30 bg-teal-900/30 px-2.5 py-0.5 text-[11px] font-bold text-teal-400">
+                    {c.placement ? `${c.placement}º lugar` : 'Resultado publicado'}
+                  </span>
+                ) : (
+                  <span className="shrink-0 rounded-full border border-zinc-600 bg-slate-800 px-2.5 py-0.5 text-[11px] font-bold text-zinc-400">
+                    Aguardando resultado
+                  </span>
+                )}
+              </div>
+              {c.description && <p className="mt-2 text-xs leading-relaxed text-zinc-400">{c.description}</p>}
+              {c.robots.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {c.robots.map((r) => (
+                    <Link key={r.id} href={`/robots/${r.id}`}
+                      className="rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-[11px] text-zinc-300 hover:border-amber-500/40 hover:text-amber-300">
+                      🤖 {r.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+              {c.publishedAt && c.result && (
+                <p className="mt-2 rounded-lg bg-white/5 px-3 py-2 text-xs text-zinc-300">{c.result}</p>
+              )}
+              {isManager && !c.publishedAt && (
+                <PublishResultForm teamId={team.id} competition={c} onPublished={handleCompetitionPublished} />
+              )}
             </div>
           ))}
         </div>
