@@ -1,7 +1,9 @@
 import type { PineconeMatch } from '@/lib/pinecone';
 
-// Ported verbatim from the n8n "Ollama RAG1" prompt (docs/n8n-workflow-v3-rag-ollama-v2-ml66.json)
-// so output quality matches the validated 98%-relevance holdout result (H01-H10).
+// Based on the n8n "Ollama RAG1" prompt (docs/n8n-workflow-v3-rag-ollama-v2-ml66.json), which
+// produced the validated 98%-relevance holdout result (H01-H10) with qwen2.5:7b-instruct.
+// Added an explicit "single line / minified" instruction on top of that baseline to keep
+// verbose models (e.g. llama3.1) inside the token budget instead of truncating mid-JSON.
 export function buildRagPrompt(params: {
   language: string;
   projectTitle: string;
@@ -16,6 +18,7 @@ export function buildRagPrompt(params: {
 
   return `Voce e o MakerBrain v2.
 Responda APENAS JSON valido, sem markdown e sem texto extra.
+Responda em uma unica linha, minificado, sem quebras de linha e sem espacos alem dos obrigatorios do JSON. Seja direto e objetivo em cada campo de texto.
 Idioma: ${language}.
 Projeto: ${projectTitle}.
 Entrada: ${input.slice(0, 900)}
@@ -66,7 +69,55 @@ function normalizeConfidence(v: unknown): number {
   return clamp(Math.round(scaled * 100) / 100, 0, 100);
 }
 
-// Ported verbatim from the n8n "Prep Callback1" code node.
+// Some models (e.g. llama3.1) run past the token budget and get cut off mid-object
+// instead of emitting a clean closing brace. Rather than discard the whole response,
+// walk back to the last point outside a string where every open {/[ can be closed
+// cleanly, close them, and try again — recovers the completed fields, drops the rest.
+function repairTruncatedJson(text: string): Record<string, unknown> | null {
+  const maxBacktrack = Math.min(text.length, 400);
+  for (let cut = 0; cut < maxBacktrack; cut++) {
+    const candidate = text.slice(0, text.length - cut);
+    const stack: string[] = [];
+    let inString = false;
+    let escape = false;
+    for (const ch of candidate) {
+      if (escape) {
+        escape = false;
+        continue;
+      }
+      if (ch === '\\') {
+        escape = true;
+        continue;
+      }
+      if (ch === '"') {
+        inString = !inString;
+        continue;
+      }
+      if (inString) continue;
+      if (ch === '{' || ch === '[') stack.push(ch);
+      else if (ch === '}' && stack[stack.length - 1] === '{') stack.pop();
+      else if (ch === ']' && stack[stack.length - 1] === '[') stack.pop();
+    }
+    if (inString || stack.length === 0) continue;
+
+    const trimmed = candidate.replace(/,\s*$/, '');
+    const closers = stack
+      .slice()
+      .reverse()
+      .map((open) => (open === '{' ? '}' : ']'))
+      .join('');
+
+    try {
+      return JSON.parse(trimmed + closers);
+    } catch {
+      continue;
+    }
+  }
+  return null;
+}
+
+// Ported verbatim from the n8n "Prep Callback1" code node, plus a truncated-JSON
+// recovery pass (see repairTruncatedJson) for models that overrun the token budget.
 export function normalizeExtractionOutput(
   rawResponseText: string,
   groundingCount: number,
@@ -74,11 +125,17 @@ export function normalizeExtractionOutput(
 ): NormalizedExtractionOutput {
   let parsedOutput: Record<string, unknown> = {};
   let parseError: string | null = null;
+  const cleanText = rawResponseText.replace(/```json/g, '').replace(/```/g, '').trim();
   try {
-    const cleanText = rawResponseText.replace(/```json/g, '').replace(/```/g, '').trim();
     parsedOutput = JSON.parse(cleanText);
   } catch {
-    parseError = 'Failed to parse JSON';
+    const repaired = repairTruncatedJson(cleanText);
+    if (repaired) {
+      parsedOutput = repaired;
+      parseError = 'Recovered from truncated JSON';
+    } else {
+      parseError = 'Failed to parse JSON';
+    }
   }
 
   const reqsRaw = Array.isArray(parsedOutput.technicalRequirements) ? parsedOutput.technicalRequirements : [];

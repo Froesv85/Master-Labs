@@ -1,6 +1,11 @@
 const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL ?? 'http://localhost:11434';
 const OLLAMA_EMBED_MODEL = process.env.OLLAMA_EMBED_MODEL ?? 'nomic-embed-text';
 const OLLAMA_GENERATE_MODEL = process.env.OLLAMA_GENERATE_MODEL ?? 'qwen2.5:7b-instruct';
+// qwen2.5 finishes the mc_extract_v2 schema well under 300 tokens, but other models
+// (e.g. llama3.1) write more verbose field values and were hitting the old 300 cap
+// mid-object, truncating the JSON. Raising the ceiling doesn't change qwen's output —
+// it already stops on its own end token before 300 — it only gives verbose models room.
+const OLLAMA_NUM_PREDICT = Number(process.env.OLLAMA_NUM_PREDICT) || 500;
 
 export async function generateEmbedding(text: string): Promise<number[]> {
   const res = await fetch(`${OLLAMA_BASE_URL}/api/embeddings`, {
@@ -33,7 +38,7 @@ export async function generateCompletion(prompt: string): Promise<string> {
       prompt,
       stream: false,
       format: 'json',
-      options: { temperature: 0.1, num_predict: 300 },
+      options: { temperature: 0.1, num_predict: OLLAMA_NUM_PREDICT },
     }),
     signal: AbortSignal.timeout(180000),
   });
