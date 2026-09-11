@@ -50,7 +50,7 @@ Desenvolver a MakerConnect, uma plataforma digital de governança técnica para 
 
 A implementação do pipeline de Inteligência Artificial constituiu o núcleo tecnológico da MakerConnect, sendo estruturada em quatro estágios sequenciais e interdependentes. O primeiro estágio, de extração, é responsável por receber a descrição textual do projeto maker, sanitizar dados pessoais identificáveis (PII) por meio de expressões regulares para e-mail, telefone e CPF, e extrair palavras-chave por frequência com remoção de stopwords. Esse processo garante que nenhuma informação pessoal trafegue pelo pipeline de IA, assegurando conformidade com a LGPD antes mesmo do disparo para o orquestrador.
 
-O segundo estágio opera dentro do workflow n8n, plataforma escolhida para a orquestração dos agentes de IA por sua flexibilidade e capacidade de integração via webhooks. Ao receber o payload sanitizado, o n8n executa a geração de embeddings utilizando o modelo bge-m3 via Ollama, converte o conteúdo textual em vetores semânticos e realiza a recuperação de contexto técnico relevante no banco vetorial Pinecone. Essa abordagem de Retrieval-Augmented Generation (RAG) ancora a geração de conteúdo em dados reais de componentes eletrônicos, eliminando alucinações técnicas que comprometeriam a confiabilidade da documentação gerada.
+O segundo estágio opera dentro do workflow n8n, plataforma escolhida para a orquestração dos agentes de IA por sua flexibilidade e capacidade de integração via webhooks. Ao receber o payload sanitizado, o n8n executa a geração de embeddings utilizando o modelo nomic-embed-text via Ollama, converte o conteúdo textual em vetores semânticos e realiza a recuperação de contexto técnico relevante no banco vetorial Pinecone. Essa abordagem de Retrieval-Augmented Generation (RAG) ancora a geração de conteúdo em dados reais de componentes eletrônicos, eliminando alucinações técnicas que comprometeriam a confiabilidade da documentação gerada.
 
 O terceiro estágio consiste na geração estruturada pelo modelo de linguagem qwen2.5:7b-instruct, que recebe o contexto recuperado e produz saídas organizadas contendo requisitos de software e hardware, lista de materiais (BOM) e recomendações técnicas. Após a geração, o n8n executa validação do output e dispara um callback para a API da MakerConnect, registrando o resultado com status, latência em milissegundos e conteúdo gerado no log de extração do projeto. Todo o ciclo opera de forma assíncrona, com estados rastreáveis: `queued`, `processing`, `done` e `failed`.
 
@@ -113,7 +113,7 @@ SINGH, A.; KUMAR, P. Agentic RAG: Orchestrating Autonomous Generative Agents for
 | Frontend / API | Next.js 16 + React 19 |
 | ORM e banco transacional | Prisma + MySQL |
 | Orquestração IA | n8n |
-| LLM / Embeddings locais | Ollama (`qwen2.5:7b-instruct`, `bge-m3`) |
+| LLM / Embeddings locais | Ollama (`qwen2.5:7b-instruct`, `nomic-embed-text`) |
 | Banco vetorial | Pinecone |
 | Object storage | MinIO / S3 |
 | Geração PDF | jsPDF / pdfkit |
@@ -125,57 +125,53 @@ SINGH, A.; KUMAR, P. Agentic RAG: Orchestrating Autonomous Generative Agents for
 
 ## Diagrama da Stack
 
-```mermaid
-graph TB
-    Browser["Browser<br/>(Next.js 16 + React 19)"]
+<p align="center"><img src="assets/diagrams/stack.png" alt="Diagrama da stack: Next.js, MySQL, Redis/BullMQ, n8n, Ollama, Pinecone, MinIO" width="100%" /></p>
 
-    subgraph App["MakerConnect — Next.js (App Router)"]
-        API["API Routes (/app/api)"]
-        AuthLib["Auth (JWT + bcryptjs)"]
-    end
-
-    subgraph Dados["Persistência"]
-        MySQL[("MySQL<br/>(Prisma ORM)")]
-        Pinecone[("Pinecone<br/>banco vetorial")]
-        Redis[("Redis")]
-        MinIO[("MinIO / S3<br/>object storage")]
-    end
-
-    subgraph IA["Orquestração de IA"]
-        N8N["n8n"]
-        Ollama["Ollama<br/>qwen2.5:7b-instruct · bge-m3"]
-    end
-
-    Worker["Worker BullMQ<br/>(export PDF — jsPDF/pdfkit)"]
-
-    Browser --> API
-    API --> AuthLib
-    API -->|Prisma| MySQL
-    API -->|enfileira job| Redis
-    Redis --> Worker
-    Worker -->|upload PDF| MinIO
-    API -->|webhook: extração sanitizada| N8N
-    N8N -->|embeddings + geração| Ollama
-    N8N -->|retrieval / upsert| Pinecone
-    N8N -->|callback: status + output| API
-```
+Para atualizar: edite `scripts/diagrams/stack.mmd` e rode `node scripts/gerar-diagramas.mjs`.
 
 ---
 
 ## Arquitetura — Fluxo Principal
 
+<p align="center"><img src="assets/diagrams/arquitetura-fluxo.png" alt="Fluxo de extração e exportação: sanitização, motor n8n/BullMQ, persistência, exportação PDF" width="100%" /></p>
+
+Para atualizar: edite `scripts/diagrams/arquitetura-fluxo.mmd` e rode `node scripts/gerar-diagramas.mjs`.
+
+---
+
+## Algoritmos por Estágio
+
+### Implementados hoje
+
+| Estágio | Algoritmo / Técnica | Papel | Onde no código |
+|---|---|---|---|
+| Sanitização de PII | Regex determinístico (e-mail, telefone BR, CPF) | Remove dados pessoais antes de qualquer chamada externa — conformidade LGPD desde a entrada | `lib/lgpd.ts` |
+| Extração de palavras-chave | Frequência de termos (bag-of-words) + stopwords PT-BR | Resume o texto a até 8 termos, usados como prompt de embedding quando presentes | `extractKeywords()` em `app/api/projects/[id]/extract/route.ts` |
+| Embedding semântico | Rede neural pré-treinada `nomic-embed-text` (Ollama) | Converte o texto do projeto em vetor semântico pra busca por similaridade | `generateEmbedding()` em `lib/ollama.ts` |
+| Busca vetorial (retrieval) | k-NN aproximado no índice Pinecone | Recupera as evidências técnicas mais similares que ancoram a geração, reduzindo alucinação | `queryByEmbedding()` em `lib/pinecone.ts` |
+| Geração aumentada por recuperação (RAG) | LLM `qwen2.5:7b-instruct` (Ollama), temperatura 0.1 | Gera requisitos técnicos, BOM sugerida e código a partir do contexto recuperado | `generateCompletion()` em `lib/ollama.ts` + prompt em `lib/rag-output.ts` |
+| Normalização de schema | Regras determinísticas (clamp, fallback, parsing defensivo de JSON) | Garante que a saída do LLM sempre respeite o schema `mc_extract_v2`, mesmo malformada | `normalizeExtractionOutput()` em `lib/rag-output.ts` |
+| Orquestração assíncrona | Fila com backoff exponencial (BullMQ + Redis) | Desacopla a chamada do usuário do tempo de processamento (p50 ~53s) | `lib/extraction-queue.ts`, `lib/pdf-export-queue.ts` |
+
+### Planejados — Fase 5 (pipeline de estruturação, ainda não implementado)
+
+Expansão sugerida com algoritmos clássicos de ML, rodando como microsserviço Python separado (scikit-learn) — começa heurístico/regra e evolui pra modelos treinados conforme dados reais de projetos se acumulam:
+
+```mermaid
+graph TD
+    A["Entrada do Maker<br/>Ideia / Rascunho / Fotos"] --> B["1. Classificação Prévia<br/>Naive Bayes · Random Forest · SVM<br/><i>categoria, dificuldade, domínio</i>"]
+    B --> C["2. Validação & Agrupamento<br/>K-Means · Apriori<br/><i>peças esquecidas na BOM, topologia similar</i>"]
+    C --> D["3. RAG Especializado<br/>Busca vetorial filtrada (HNSW) + LLM<br/><i>texto técnico e pinagem ancorados em datasheets</i>"]
+    D --> E["4. Auditoria Pós-Geração<br/>Classificador de inconsistência/similaridade"]
+    E --> F["Documentação Final Estruturada<br/>BOM · Pinagem · Guia de Montagem"]
 ```
-usuário aciona extração
-  → API: sanitiza PII + extrai keywords + cria log (queued)
-  → API dispara webhook n8n
-    → n8n: embedding (bge-m3) + retrieval (Pinecone) + geração (qwen2.5)
-    → n8n chama callback na API com status + output
-  → API persiste resultado + grava LgpdAuditLog
-  → usuário dispara exportação PDF
-    → job enfileirado no BullMQ
-    → worker gera PDF (pdfkit) + upload MinIO/S3
-    → status: queued → processing → done | failed
-```
+
+| Estágio | Algoritmo | Papel |
+|---|---|---|
+| 1. Classificação Prévia | Naive Bayes / Random Forest / SVM | Define categoria, nível de dificuldade e domínio do projeto antes da geração |
+| 2. Validação & Agrupamento | K-Means / Regras de associação (Apriori) | Detecta peças esquecidas na BOM e agrupa projetos por topologia similar |
+| 3. RAG Especializado | Busca vetorial filtrada (HNSW) + LLM | Gera texto técnico e pinagem ancorados em datasheets, já filtrado pela categoria do estágio 1 |
+| 4. Auditoria Pós-Geração | Classificador de inconsistência/similaridade | Audita a saída gerada contra a BOM e os requisitos antes da entrega final |
 
 ---
 
@@ -219,6 +215,7 @@ Registro das principais entregas por período, com base no histórico de commits
 | 10/09 | Sistema de afiliação de Equipe: entrar direto (pública) ou solicitar afiliação (privada) com aprovação do dono/admin, e opção de adicionar membro diretamente por busca |
 | 11/09 | Projeto passou de categoria única para **múltiplas tags**, com **visibilidade em 3 níveis** (pública / privada-só-eu / privada-para-minha-equipe) e novos campos **Objetivo** e **Componentes** no cadastro |
 | 11/09 | Nova subseção **Competições** dentro da página de Equipe: dono/admin registra a competição, vincula robôs da equipe e publica o resultado depois |
+| 11/09 | Pipeline de extração passa a rodar em **motor duplo** (n8n ou BullMQ, via `EXTRACTION_ENGINE`) — mesmo prompt e normalização do n8n portados verbatim pra `lib/rag-output.ts`, callback do n8n mantido como rede de segurança |
 
 ---
 
@@ -345,7 +342,7 @@ Screenshots capturadas em 04/06/2026 via Playwright (1440×900). Para atualizar:
 - MySQL 8 (ou Docker)
 - MinIO ou bucket S3 configurado
 - n8n rodando e acessível
-- Ollama com modelos `qwen2.5:7b-instruct` e `bge-m3`
+- Ollama com modelos `qwen2.5:7b-instruct` e `nomic-embed-text`
 - Redis (para BullMQ)
 
 ### 2. Clonar e instalar
