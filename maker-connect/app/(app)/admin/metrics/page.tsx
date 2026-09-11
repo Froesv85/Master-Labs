@@ -28,7 +28,7 @@ type PipelineMetrics = {
   p95: number;
   avgLatencyMs: number;
   avgAnonymizeMs: number | null;
-  avgN8nTriggerMs: number | null;
+  avgQueueWaitMs: number | null;
   totalRuns: number;
   sampleSize: number;
   lastRunAt: string | null;
@@ -256,7 +256,7 @@ export default function AdminMetricsPage() {
             <LatencyCard label="p50" value={pipeline.p50} goal={15000} />
             <LatencyCard label="p95" value={pipeline.p95} goal={15000} />
             <LatencyCard label="Anonymize (avg)" value={pipeline.avgAnonymizeMs} />
-            <LatencyCard label="n8n Trigger (avg)" value={pipeline.avgN8nTriggerMs} />
+            <LatencyCard label="Espera na fila (avg)" value={pipeline.avgQueueWaitMs} />
           </div>
         </div>
       )}

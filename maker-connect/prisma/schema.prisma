@@ -506,25 +506,25 @@ model ProjectDifficulty {
 }
 
 model ProjectExtractionLog {
-  id             Int      @id @default(autoincrement())
-  projectId      Int
-  project        Project  @relation(fields: [projectId], references: [id])
-  status         String   @default("queued")
-  source         String   @default("manual")
-  webhookId      String?  @unique
-  piiRedactions  Int      @default(0)
-  piiTypes       String?  @db.LongText
-  keywords       String?  @db.LongText
-  embeddingId    String?
-  latencyMs      Int?
-  anonymizeMs    Int?
-  n8nTriggerMs   Int?
-  output         String?  @db.LongText
-  error          String?  @db.LongText
-  n8nExecutionId String?
-  language       String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id            Int      @id @default(autoincrement())
+  projectId     Int
+  project       Project  @relation(fields: [projectId], references: [id])
+  status        String   @default("queued")
+  source        String   @default("manual")
+  webhookId     String?  @unique
+  piiRedactions Int      @default(0)
+  piiTypes      String?  @db.LongText
+  keywords      String?  @db.LongText
+  embeddingId   String?
+  latencyMs     Int?
+  anonymizeMs   Int?
+  queueWaitMs   Int?
+  output        String?  @db.LongText
+  error         String?  @db.LongText
+  jobId         String?
+  language      String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   @@index([projectId])
   @@index([status])

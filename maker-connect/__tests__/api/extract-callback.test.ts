@@ -95,7 +95,7 @@ describe('POST /api/projects/[id]/extract/callback', () => {
         where: { id: mockLog.id },
         data: expect.objectContaining({
           status: 'done',
-          n8nExecutionId: 'exec_123',
+          jobId: 'exec_123',
           latencyMs: 5000,
         }),
       })

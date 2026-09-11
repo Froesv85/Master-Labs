@@ -15,11 +15,11 @@ import { prisma } from '@/lib/prisma';
 import { getAdminSession } from '@/lib/admin';
 import { GET } from '@/app/api/admin/metrics/route';
 
-const makeLogs = (latencies: number[], extras: Partial<{ anonymizeMs: number; n8nTriggerMs: number }> = {}) =>
+const makeLogs = (latencies: number[], extras: Partial<{ anonymizeMs: number; queueWaitMs: number }> = {}) =>
   latencies.map((ms, i) => ({
     latencyMs: ms,
     anonymizeMs: extras.anonymizeMs ?? null,
-    n8nTriggerMs: extras.n8nTriggerMs ?? null,
+    queueWaitMs: extras.queueWaitMs ?? null,
     updatedAt: new Date(`2026-05-${String(i + 1).padStart(2, '0')}`),
   }));
 
@@ -62,8 +62,8 @@ describe('GET /api/admin/metrics', () => {
     expect(body.lastRunAt).toBeNull();
   });
 
-  it('calcula avgAnonymizeMs e avgN8nTriggerMs quando presentes', async () => {
-    const logs = makeLogs([500, 1000], { anonymizeMs: 10, n8nTriggerMs: 200 });
+  it('calcula avgAnonymizeMs e avgQueueWaitMs quando presentes', async () => {
+    const logs = makeLogs([500, 1000], { anonymizeMs: 10, queueWaitMs: 200 });
     (prisma.projectExtractionLog.findMany as jest.Mock).mockResolvedValue(logs);
     (prisma.projectExtractionLog.count as jest.Mock).mockResolvedValue(2);
 
@@ -71,7 +71,7 @@ describe('GET /api/admin/metrics', () => {
     const body = await res.json();
 
     expect(body.avgAnonymizeMs).toBe(10);
-    expect(body.avgN8nTriggerMs).toBe(200);
+    expect(body.avgQueueWaitMs).toBe(200);
   });
 
   it('retorna null para avgAnonymizeMs quando campos não estão preenchidos', async () => {
@@ -82,7 +82,7 @@ describe('GET /api/admin/metrics', () => {
     const body = await res.json();
 
     expect(body.avgAnonymizeMs).toBeNull();
-    expect(body.avgN8nTriggerMs).toBeNull();
+    expect(body.avgQueueWaitMs).toBeNull();
   });
 
   it('expõe lastRunAt como a data do log mais recente', async () => {

@@ -12,6 +12,10 @@ type CallbackBody = {
   error?: string;
 };
 
+// NOTE: this endpoint is only called back by the n8n engine (EXTRACTION_ENGINE=n8n).
+// Kept intact on purpose as a safety net while the BullMQ engine (lib/extraction-queue.ts)
+// is compared against it in production — see docs/n8n-workflow-code.md.
+
 function parseProjectId(value: string) {
   const parsed = Number(value);
   return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
@@ -77,7 +81,7 @@ export async function POST(
     data: {
       status,
       output: sanitizedOutput,
-      n8nExecutionId: n8nExecutionId ?? null,
+      jobId: n8nExecutionId ?? null,
       latencyMs: latencyMs ?? null,
       error: error ?? null,
       piiRedactions,

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { prisma } from '@/lib/prisma';
 import { anonymizePii } from '@/lib/lgpd';
+import { enqueueExtractionJob } from '@/lib/extraction-queue';
 
 type ExtractRequestBody = {
   input?: string;
@@ -167,6 +168,49 @@ export async function POST(
       data: { content: sanitized, embeddingId },
     });
 
+    const engine = (process.env.EXTRACTION_ENGINE ?? 'n8n').trim().toLowerCase();
+
+    if (engine === 'bullmq') {
+      try {
+        await enqueueExtractionJob({ logId: extractionLog.id, projectId });
+      } catch (error) {
+        const message = formatUnknownError(error);
+        await prisma.projectExtractionLog.update({
+          where: { id: extractionLog.id },
+          data: {
+            status: 'failed',
+            error: `Failed to enqueue extraction job: ${message}`,
+            updatedAt: new Date(),
+          },
+        });
+
+        return NextResponse.json(
+          {
+            data: { logId: extractionLog.id, projectId, webhookId, embeddingId, status: 'failed', source, piiRedactions: redactions, keywords },
+            error: `Failed to enqueue extraction job: ${message}`,
+          },
+          { status: 502 }
+        );
+      }
+
+      return NextResponse.json(
+        {
+          data: {
+            logId: extractionLog.id,
+            projectId,
+            webhookId,
+            embeddingId,
+            status: 'queued',
+            source,
+            piiRedactions: redactions,
+            keywords,
+            message: 'Extracao enfileirada no pipeline BullMQ.',
+          },
+        },
+        { status: 201 }
+      );
+    }
+
     // Trigger n8n webhook and mark failures explicitly to avoid orphan queued logs.
     const n8nWebhookUrl = process.env.N8N_EXTRACTION_WEBHOOK_URL?.trim();
     const callbackBaseUrl = process.env.API_URL?.trim() || req.nextUrl.origin;
@@ -207,7 +251,7 @@ export async function POST(
 
       await prisma.projectExtractionLog.update({
         where: { id: extractionLog.id },
-        data: { n8nTriggerMs },
+        data: { queueWaitMs: n8nTriggerMs },
       });
     } catch (error) {
       const message = formatUnknownError(error);
@@ -293,7 +337,7 @@ export async function GET(
         keywords: true,
         embeddingId: true,
         latencyMs: true,
-        n8nExecutionId: true,
+        jobId: true,
         output: true,
         error: true,
         createdAt: true,

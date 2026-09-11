@@ -16,7 +16,7 @@ export async function GET() {
 
   const logs = await prisma.projectExtractionLog.findMany({
     where: { status: 'done', latencyMs: { not: null } },
-    select: { latencyMs: true, anonymizeMs: true, n8nTriggerMs: true, updatedAt: true },
+    select: { latencyMs: true, anonymizeMs: true, queueWaitMs: true, updatedAt: true },
     orderBy: { updatedAt: 'desc' },
   });
 
@@ -45,12 +45,12 @@ export async function GET() {
       ? Math.round(anonymizeSamples.reduce((a, b) => a + b, 0) / anonymizeSamples.length)
       : null;
 
-  const n8nSamples = logs
-    .map((l) => l.n8nTriggerMs)
+  const queueWaitSamples = logs
+    .map((l) => l.queueWaitMs)
     .filter((v): v is number => v !== null);
-  const avgN8nTriggerMs =
-    n8nSamples.length > 0
-      ? Math.round(n8nSamples.reduce((a, b) => a + b, 0) / n8nSamples.length)
+  const avgQueueWaitMs =
+    queueWaitSamples.length > 0
+      ? Math.round(queueWaitSamples.reduce((a, b) => a + b, 0) / queueWaitSamples.length)
       : null;
 
   return NextResponse.json({
@@ -60,7 +60,7 @@ export async function GET() {
     totalRuns: allLogs,
     lastRunAt,
     avgAnonymizeMs,
-    avgN8nTriggerMs,
+    avgQueueWaitMs,
     sampleSize: latencies.length,
   });
 }
