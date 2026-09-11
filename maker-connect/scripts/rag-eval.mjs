@@ -168,7 +168,6 @@ async function main() {
       data: {
         title: `[EVAL] ${sample.title}`,
         description: `RAG eval holdout — ${sample.id}`,
-        category: 'IoT',
         creatorId: creator.id,
       },
     });
