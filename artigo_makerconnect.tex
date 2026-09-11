@@ -30,11 +30,11 @@
 \maketitle
 
 \begin{abstract-pt}
-Este trabalho apresenta a MakerConnect, uma rede social tecnica para a cultura Maker e Internet das Coisas (IoT) que integra um pipeline funcional de IA Generativa orquestrado via n8n. A plataforma aplica \textit{Retrieval-Augmented Generation} (RAG) com agentes baseados em modelos de linguagem de grande porte para extrair requisitos de entradas nao estruturadas e gerar automaticamente documentacao tecnica em PDF. A base de conhecimento vetorial (Pinecone) e populada com dados reais de componentes eletronicos, eliminando alucinacoes tecnicas. Mecanismos sociais --- \textit{forks}, \textit{upvotes} e logs de dificuldades --- promovem reprodutibilidade e rastreabilidade. A conformidade com a LGPD e garantida por anonimizacao de PII antes do processamento pela IA. Resultados empiricos obtidos com 10 projetos IoT reais indicam relevancia semantica de 98\%, superando a meta de 85\%, com suite de 161 testes automatizados sem falhas.
+Este trabalho apresenta a MakerConnect, uma rede social tecnica para a cultura Maker e Internet das Coisas (IoT) que integra um pipeline funcional de IA Generativa orquestrado via n8n. A plataforma aplica \textit{Retrieval-Augmented Generation} (RAG) com agentes baseados em modelos de linguagem de grande porte para extrair requisitos de entradas nao estruturadas e gerar automaticamente documentacao tecnica em PDF. A base de conhecimento vetorial (Pinecone) e populada com dados reais de componentes eletronicos, eliminando alucinacoes tecnicas. Mecanismos sociais --- \textit{forks}, \textit{upvotes} e logs de dificuldades --- promovem reprodutibilidade e rastreabilidade. A conformidade com a LGPD e garantida por anonimizacao de PII antes do processamento pela IA. Resultados empiricos obtidos com 10 projetos IoT reais indicam relevancia semantica de 98\%, superando a meta de 85\%, com suite de 263 testes automatizados sem falhas.
 \end{abstract-pt}
 
 \begin{abstract-en}
-This work presents MakerConnect, a technical social network for Maker culture and IoT that integrates a functional Generative AI pipeline orchestrated via n8n. The platform applies Retrieval-Augmented Generation (RAG) with large language model-based agents to extract requirements from unstructured inputs and automatically generate PDF technical documentation. The vector knowledge base (Pinecone) is populated with real electronic component data, preventing technical hallucinations. Social mechanisms --- forks, upvotes, and error logs --- promote reproducibility and traceability. LGPD compliance is ensured by anonymizing PII before AI processing. Empirical results obtained with 10 real IoT projects indicate 98\% semantic relevance, surpassing the 85\% target, with a suite of 161 automated tests passing without failures.
+This work presents MakerConnect, a technical social network for Maker culture and IoT that integrates a functional Generative AI pipeline orchestrated via n8n. The platform applies Retrieval-Augmented Generation (RAG) with large language model-based agents to extract requirements from unstructured inputs and automatically generate PDF technical documentation. The vector knowledge base (Pinecone) is populated with real electronic component data, preventing technical hallucinations. Social mechanisms --- forks, upvotes, and error logs --- promote reproducibility and traceability. LGPD compliance is ensured by anonymizing PII before AI processing. Empirical results obtained with 10 real IoT projects indicate 98\% semantic relevance, surpassing the 85\% target, with a suite of 263 automated tests passing without failures.
 \end{abstract-en}
 
 \begin{pchaves}
@@ -63,7 +63,7 @@ A MakerConnect responde a essa questao integrando tres pilares: (i)~camada socia
 
 \textbf{Objetivo Geral:} Desenvolver a MakerConnect, integrando agentes de IA Generativa e orquestracao n8n para automatizar a documentacao tecnica e gerenciar o ciclo de vida de projetos IoT.
 
-\textbf{Objetivos Especificos:}~(i)~Implementar pipeline funcional de IA com estagios de Extracao, RAG e Pos-processamento; (ii)~Orquestrar workflows via n8n com embeddings locais via Ollama/bge-m3; (iii)~Construir base de conhecimento vetorial com dados reais de componentes eletronicos no Pinecone; (iv)~Modelar estrutura social com \textit{forks}, \textit{upvotes}, log de dificuldades e BOM via MySQL; (v)~Garantir conformidade LGPD com anonimizacao de PII; (vi)~Validar reducao do esforco documental por metricas objetivas de relevancia e latencia.
+\textbf{Objetivos Especificos:}~(i)~Implementar pipeline funcional de IA com estagios de Extracao, RAG e Pos-processamento; (ii)~Orquestrar workflows via n8n com embeddings locais via Ollama/nomic-embed-text; (iii)~Construir base de conhecimento vetorial com dados reais de componentes eletronicos no Pinecone; (iv)~Modelar estrutura social com \textit{forks}, \textit{upvotes}, log de dificuldades e BOM via MySQL; (v)~Garantir conformidade LGPD com anonimizacao de PII; (vi)~Validar reducao do esforco documental por metricas objetivas de relevancia e latencia.
 
 % ============================================================
 \section{Metodologia}
@@ -81,7 +81,7 @@ A avaliacao do pipeline utiliza protocolo estruturado com \textit{holdout datase
 
 \subsection{Garantia de Qualidade e Testes}
 
-A qualidade do software e garantida por suite de 161 testes distribuidos em 22 suites (unitarios, de integracao e \textit{end-to-end}), cobrindo endpoints da API REST, pipeline de anonimizacao LGPD, fluxos de fork/upvote e ciclo assincrono de exportacao PDF. A execucao e integrada ao pipeline de CI/CD via GitHub Actions.
+A qualidade do software e garantida por suite de 263 testes distribuidos em 39 suites (unitarios, de integracao e \textit{end-to-end}), cobrindo endpoints da API REST, pipeline de anonimizacao LGPD, fluxos de fork/upvote e ciclo assincrono de exportacao PDF. A execucao e integrada ao pipeline de CI/CD via GitHub Actions.
 
 % ============================================================
 \section{Proposta de Portfolio}
@@ -90,9 +90,9 @@ A qualidade do software e garantida por suite de 161 testes distribuidos em 22 s
 A MakerConnect configura um portfolio tecnico de alta complexidade que demonstra, em producao, a integracao de competencias centrais da Engenharia de Software: desenvolvimento \textit{full-stack} (Next.js, Prisma, MySQL), arquitetura de microservicos, pipeline de IA aplicada, orquestracao de agentes e conformidade regulatoria (LGPD). O portfolio e estruturado em quatro camadas:
 
 \begin{itemize}
-  \item \textbf{Infraestrutura:} API REST em Next.js com Prisma ORM; banco relacional MySQL; servico de \textit{object storage} MinIO compativel com S3; orquestrador n8n com Ollama local; banco vetorial Pinecone.
-  \item \textbf{IA:} pipeline RAG com embeddings bge-m3; modelo generativo qwen2.5:7b-instruct; middleware LGPD com anonimizacao de PII; metricas de relevancia e latencia; \textit{endpoint} de metricas p50/p95.
-  \item \textbf{Social:} feed com filtros por categoria; fork com rastreamento de linhagem (\texttt{parentId}); upvote idempotente; log de dificuldades tecnicas; comunidades publicas/privadas; perfis de usuario; comentarios e reacoes.
+  \item \textbf{Infraestrutura:} API REST em Next.js com Prisma ORM; banco relacional MySQL; servico de \textit{object storage} MinIO compativel com S3; orquestrador n8n com Ollama local; fila BullMQ/Redis como motor alternativo do pipeline de IA (\texttt{EXTRACTION\_ENGINE}); banco vetorial Pinecone.
+  \item \textbf{IA:} pipeline RAG com embeddings nomic-embed-text; modelo generativo qwen2.5:7b-instruct; middleware LGPD com anonimizacao de PII; metricas de relevancia e latencia; \textit{endpoint} de metricas p50/p95.
+  \item \textbf{Social:} feed de projetos com tags multiplas e visibilidade granular (publico / privado-dono / privado-equipe); fork com rastreamento de linhagem (\texttt{parentId}); upvote idempotente; log de dificuldades tecnicas; comunidades publicas/privadas; equipes com afiliacao mediante aprovacao e subsecao de competicoes; perfis de usuario; comentarios e reacoes.
   \item \textbf{Documental:} exportacao assincrona de PDF tecnico via BullMQ + Redis; \textit{template} com BOM, requisitos SW/HW e rodape LGPD; historico de exportacoes auditavel; rastreamento de status em tempo real (\textit{queued}, \textit{processing}, \textit{done}, \textit{failed}).
 \end{itemize}
 
@@ -131,7 +131,7 @@ row{1}={bg=gray!20, font=\bfseries},
 Estagio & Tecnica / Ferramenta & Saida \\
 \hline
 Extracao & Upload via React; regex PII (LGPD); NLP para parsing e extracao de palavras-chave & Texto normalizado + metadados anonimizados \\
-Pre-proc. & Embeddings bge-m3 via Ollama; similaridade coseno; indexacao Pinecone & Vetores semanticos indexados \\
+Pre-proc. & Embeddings nomic-embed-text via Ollama; similaridade coseno; indexacao Pinecone & Vetores semanticos indexados \\
 Modelo IA & RAG: recuperacao vetorial + geracao com qwen2.5:7b-instruct; \textit{prompt engineering} com contexto tecnico & Requisitos SW/HW estruturados + BOM \\
 Pos-proc. & Renderizacao PDF (jsPDF + BullMQ); metricas de cobertura; logs de validacao; armazenamento MinIO & Documentacao tecnica auditavel \\
 \hline
@@ -157,16 +157,16 @@ row{1}={bg=gray!20, font=\bfseries},
 \hline
 Componente & Tecnologia & Funcao \\
 \hline
-Frontend & Next.js 14 / React 18 & Interface maker: feed, projetos, pipeline de IA, comunidades \\
+Frontend & Next.js 16 / React 19 & Interface maker: projetos, equipes, comunidades, pipeline de IA \\
 Backend/ORM & Node.js + Prisma + MySQL & API REST; persistencia transacional; migracoes \\
-Orquestrador & n8n + Ollama (local) & Coordenacao de agentes; integracao de modelos LLM \\
+Orquestrador & n8n + BullMQ + Ollama (local) & Coordenacao de agentes (motor duplo via \texttt{EXTRACTION\_ENGINE}); integracao de modelos LLM \\
 Modelo LLM & qwen2.5:7b-instruct & Extracao de requisitos e geracao documental \\
-Embeddings & bge-m3 via Ollama & Geracao de vetores semanticos multi-lingua \\
+Embeddings & nomic-embed-text via Ollama & Geracao de vetores semanticos para busca por similaridade \\
 Vector DB & Pinecone & Base de conhecimento tecnico para RAG \\
-Fila/Worker & BullMQ + Redis & Exportacao PDF assincrona com rastreamento de estado \\
+Fila/Worker & BullMQ + Redis & Exportacao PDF assincrona e motor alternativo do pipeline de extracao, ambos com rastreamento de estado \\
 Object Storage & MinIO (S3-compatible) & Armazenamento de PDFs gerados \\
 Seguranca & LGPD Middleware & Anonimizacao de PII pre-processamento \\
-CI/CD & GitHub Actions & Suite automatizada de 161 testes em cada push \\
+CI/CD & GitHub Actions & Suite automatizada de 263 testes em cada push \\
 \hline
 \end{tblr}
 \label{tab:arch}
@@ -269,7 +269,7 @@ A principal limitacao identificada e a latencia em ambiente sem GPU: p95 de 137 
 
 \subsection{Contribuicoes}
 
-Este trabalho contribui com: (i)~pipeline RAG funcional e avaliado empiricamente para o dominio IoT/maker, com base vetorial propria; (ii)~o mecanismo de fork com linhagem como instrumento de governanca tecnica em plataformas colaborativas; (iii)~modelo de conformidade LGPD-first integrado ao pipeline de IA desde a concepcao; (iv)~suite de 161 testes automatizados como referencia de qualidade para projetos academicos full-stack de alta complexidade.
+Este trabalho contribui com: (i)~pipeline RAG funcional e avaliado empiricamente para o dominio IoT/maker, com base vetorial propria; (ii)~o mecanismo de fork com linhagem como instrumento de governanca tecnica em plataformas colaborativas; (iii)~modelo de conformidade LGPD-first integrado ao pipeline de IA desde a concepcao; (iv)~suite de 263 testes automatizados como referencia de qualidade para projetos academicos full-stack de alta complexidade.
 
 \subsection{Trabalhos Futuros}
 
@@ -377,7 +377,7 @@ Ferramenta / Versao & Emprego no Trabalho \\
 \hline
 Claude (Anthropic) --- claude-sonnet-4-6 & Auxilio na redacao e revisao de secoes do artigo; geracao e formatacao de tabelas comparativas; revisao gramatical e coesao textual; suporte ao desenvolvimento de scripts de avaliacao (\texttt{rag-eval.mjs}) e geracao de documentos Word (.docx). \\
 Ollama + qwen2.5:7b-instruct & Componente funcional do pipeline de IA da plataforma: geracao de requisitos SW/HW e documentacao tecnica a partir de contexto RAG. Nao foi utilizado para escrita do artigo. \\
-Ollama + bge-m3 & Componente funcional do pipeline: geracao de embeddings semanticos para indexacao no Pinecone. Nao foi utilizado para escrita do artigo. \\
+Ollama + nomic-embed-text & Componente funcional do pipeline: geracao de embeddings semanticos para indexacao no Pinecone. Nao foi utilizado para escrita do artigo. \\
 \hline
 \end{tblr}
 \end{table}
