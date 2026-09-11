@@ -1,10 +1,10 @@
-# MakerConnect — PAC Extensionista
+# MakerConnect 
 
 > **Universidade Católica de Santa Catarina — Jaraguá do Sul**
 >  
 > Curso: Engenharia de Software | Fase:8ª
 > 
-> Professora: Tassiana Kautzmann e Jessica Karsten
+> Professor orientador: Rodrigo Otavio Ribeiro Hagstrom
 >
 > Acadêmico: Vinicius Froes
 >

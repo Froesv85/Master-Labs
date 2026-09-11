@@ -154,7 +154,7 @@ export default async function Home() {
                 <span className="font-semibold text-zinc-200">Aluno:</span> Vinicius Froes
               </p>
               <p className="mt-3">
-                <span className="font-semibold text-zinc-200">Orientação:</span> Rodrigo Otavio Ribeiro Hagstrom, Tassiana Kautzmann e Jessica Aline Karsten
+                <span className="font-semibold text-zinc-200">Professor orientador:</span> Rodrigo Otavio Ribeiro Hagstrom
               </p>
               <p className="mt-3">
                 Com participação e patrocínio da{' '}
