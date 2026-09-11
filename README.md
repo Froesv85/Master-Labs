@@ -123,6 +123,45 @@ SINGH, A.; KUMAR, P. Agentic RAG: Orchestrating Autonomous Generative Agents for
 
 ---
 
+## Diagrama da Stack
+
+```mermaid
+graph TB
+    Browser["Browser<br/>(Next.js 16 + React 19)"]
+
+    subgraph App["MakerConnect — Next.js (App Router)"]
+        API["API Routes (/app/api)"]
+        AuthLib["Auth (JWT + bcryptjs)"]
+    end
+
+    subgraph Dados["Persistência"]
+        MySQL[("MySQL<br/>(Prisma ORM)")]
+        Pinecone[("Pinecone<br/>banco vetorial")]
+        Redis[("Redis")]
+        MinIO[("MinIO / S3<br/>object storage")]
+    end
+
+    subgraph IA["Orquestração de IA"]
+        N8N["n8n"]
+        Ollama["Ollama<br/>qwen2.5:7b-instruct · bge-m3"]
+    end
+
+    Worker["Worker BullMQ<br/>(export PDF — jsPDF/pdfkit)"]
+
+    Browser --> API
+    API --> AuthLib
+    API -->|Prisma| MySQL
+    API -->|enfileira job| Redis
+    Redis --> Worker
+    Worker -->|upload PDF| MinIO
+    API -->|webhook: extração sanitizada| N8N
+    N8N -->|embeddings + geração| Ollama
+    N8N -->|retrieval / upsert| Pinecone
+    N8N -->|callback: status + output| API
+```
+
+---
+
 ## Arquitetura — Fluxo Principal
 
 ```
@@ -163,6 +202,23 @@ usuário aciona extração
 | Gate S1.4 | Previsto 25/06/2026 |
 | Suite de testes | 174 testes / 24 suites / 0 falhas |
 | RAG relevance (holdout H01-H10) | 98% (meta: ≥ 85%) |
+
+---
+
+## Evolução do Projeto
+
+Registro das principais entregas por período, com base no histórico de commits do repositório.
+
+**Fundação (até Ago/2026)** — autenticação JWT e login social (Google/GitHub), feed social com fork de linhagem e upvote idempotente, log de dificuldades, pipeline de IA (extração + RAG + callback) com conformidade LGPD, comunidades públicas/privadas, cadastro de robôs e equipes, deploy inicial em produção (Azure, CI/CD via GitHub Actions).
+
+| Data | Entrega |
+|------|---------|
+| 04/09 | Landing pública com dados reais e origem acadêmica; `/admin/metrics` restrito a administrador, com visão geral de Redis, MinIO e Pinecone |
+| 10/09 | Bug corrigido: criador de Comunidade/Equipe deixou de cair em usuário fixo — passou a usar a sessão autenticada real |
+| 10/09 | "Feed" renomeado para **Projetos** (rota `/feed` → `/projects`, com redirect de compatibilidade); "Robôs" saiu do menu principal e passou a ser uma aba dentro da página de Equipe |
+| 10/09 | Sistema de afiliação de Equipe: entrar direto (pública) ou solicitar afiliação (privada) com aprovação do dono/admin, e opção de adicionar membro diretamente por busca |
+| 11/09 | Projeto passou de categoria única para **múltiplas tags**, com **visibilidade em 3 níveis** (pública / privada-só-eu / privada-para-minha-equipe) e novos campos **Objetivo** e **Componentes** no cadastro |
+| 11/09 | Nova subseção **Competições** dentro da página de Equipe: dono/admin registra a competição, vincula robôs da equipe e publica o resultado depois |
 
 ---
 
