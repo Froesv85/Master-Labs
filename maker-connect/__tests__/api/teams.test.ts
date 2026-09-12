@@ -5,14 +5,18 @@ jest.mock('@/lib/prisma', () => ({
     team: {
       findMany: jest.fn(),
       create: jest.fn(),
+      update: jest.fn(),
     },
   },
 }));
 
 jest.mock('@/lib/auth', () => ({ getSession: jest.fn() }));
 
+jest.mock('@/lib/avatar-upload', () => ({ uploadCover: jest.fn() }));
+
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
+import { uploadCover } from '@/lib/avatar-upload';
 import { GET, POST } from '@/app/api/teams/route';
 
 const mockSession = { userId: 7, email: 'maker@test.com', name: 'Alice Maker' };
@@ -119,5 +123,56 @@ describe('POST /api/teams', () => {
 
     const res = await POST(req);
     expect(res.status).toBe(500);
+  });
+
+  it('cria equipe com capa pré-carregada válida', async () => {
+    (getSession as jest.Mock).mockResolvedValue(mockSession);
+    (prisma.team.create as jest.Mock).mockResolvedValue({ ...mockTeam, coverUrl: '/covers/preset-4.png' });
+
+    const req = makeRequest('http://localhost:3000/api/teams', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Equipe X', coverPresetUrl: '/covers/preset-4.png' }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(201);
+    expect(prisma.team.create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ coverUrl: '/covers/preset-4.png' }) })
+    );
+    expect(uploadCover).not.toHaveBeenCalled();
+  });
+
+  it('retorna 400 quando a capa pré-carregada não é um preset conhecido', async () => {
+    (getSession as jest.Mock).mockResolvedValue(mockSession);
+
+    const req = makeRequest('http://localhost:3000/api/teams', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Equipe X', coverPresetUrl: 'https://evil.example.com/x.png' }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+    expect(prisma.team.create).not.toHaveBeenCalled();
+  });
+
+  it('cria equipe e faz upload de capa customizada usando o id real', async () => {
+    (getSession as jest.Mock).mockResolvedValue(mockSession);
+    (prisma.team.create as jest.Mock).mockResolvedValue(mockTeam);
+    (uploadCover as jest.Mock).mockResolvedValue({ url: 'https://minio.local/teams/1/cover-123.png' });
+    (prisma.team.update as jest.Mock).mockResolvedValue({ ...mockTeam, coverUrl: 'https://minio.local/teams/1/cover-123.png' });
+
+    const req = makeRequest('http://localhost:3000/api/teams', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Equipe X', coverImageB64: 'aGVsbG8=', coverImageContentType: 'image/png' }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(201);
+    expect(uploadCover).toHaveBeenCalledWith('aGVsbG8=', 'image/png', 'teams/1');
+    const body = await res.json();
+    expect(body.coverUrl).toBe('https://minio.local/teams/1/cover-123.png');
   });
 });

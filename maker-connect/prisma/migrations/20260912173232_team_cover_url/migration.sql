@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `Team` ADD COLUMN `coverUrl` VARCHAR(2048) NULL;

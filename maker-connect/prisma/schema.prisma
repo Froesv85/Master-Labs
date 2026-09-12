@@ -246,6 +246,7 @@ model Team {
   name        String
   description String?      @db.LongText
   avatarUrl   String?      @db.VarChar(2048)
+  coverUrl    String?      @db.VarChar(2048)
   videoUrl    String?      @db.VarChar(512)
   ownerId     Int
   owner       User         @relation("team_owner", fields: [ownerId], references: [id])

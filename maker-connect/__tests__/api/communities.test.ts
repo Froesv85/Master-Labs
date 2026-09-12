@@ -5,14 +5,18 @@ jest.mock('@/lib/prisma', () => ({
     community: {
       findMany: jest.fn(),
       create: jest.fn(),
+      update: jest.fn(),
     },
   },
 }));
 
 jest.mock('@/lib/auth', () => ({ getSession: jest.fn() }));
 
+jest.mock('@/lib/avatar-upload', () => ({ uploadCover: jest.fn() }));
+
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
+import { uploadCover } from '@/lib/avatar-upload';
 import { GET, POST } from '@/app/api/communities/route';
 
 const mockSession = { userId: 7, email: 'maker@test.com', name: 'Alice Maker' };
@@ -121,5 +125,56 @@ describe('POST /api/communities', () => {
     expect(res.status).toBe(400);
     const body = await res.json();
     expect(body.error).toMatch(/categoria/i);
+  });
+
+  it('cria comunidade com capa pré-carregada válida', async () => {
+    (getSession as jest.Mock).mockResolvedValue(mockSession);
+    (prisma.community.create as jest.Mock).mockResolvedValue({ ...mockCommunity, coverUrl: '/covers/preset-2.png' });
+
+    const req = makeRequest('http://localhost:3000/api/communities', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Comunidade X', category: 'Robotics', coverPresetUrl: '/covers/preset-2.png' }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(201);
+    expect(prisma.community.create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ coverUrl: '/covers/preset-2.png' }) })
+    );
+    expect(uploadCover).not.toHaveBeenCalled();
+  });
+
+  it('retorna 400 quando a capa pré-carregada não é um preset conhecido', async () => {
+    (getSession as jest.Mock).mockResolvedValue(mockSession);
+
+    const req = makeRequest('http://localhost:3000/api/communities', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Comunidade X', category: 'Robotics', coverPresetUrl: '/covers/nao-existe.png' }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+    expect(prisma.community.create).not.toHaveBeenCalled();
+  });
+
+  it('cria comunidade e faz upload de capa customizada usando o id real', async () => {
+    (getSession as jest.Mock).mockResolvedValue(mockSession);
+    (prisma.community.create as jest.Mock).mockResolvedValue(mockCommunity);
+    (uploadCover as jest.Mock).mockResolvedValue({ url: 'https://minio.local/communities/1/cover-123.png' });
+    (prisma.community.update as jest.Mock).mockResolvedValue({ ...mockCommunity, coverUrl: 'https://minio.local/communities/1/cover-123.png' });
+
+    const req = makeRequest('http://localhost:3000/api/communities', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Comunidade X', category: 'Robotics', coverImageB64: 'aGVsbG8=', coverImageContentType: 'image/png' }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(201);
+    expect(uploadCover).toHaveBeenCalledWith('aGVsbG8=', 'image/png', 'communities/1');
+    const body = await res.json();
+    expect(body.coverUrl).toBe('https://minio.local/communities/1/cover-123.png');
   });
 });

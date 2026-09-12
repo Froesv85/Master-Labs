@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Modal, Field, FormActions, inputCls } from '@/components/modal';
+import { CoverPicker, CoverSelection } from '@/components/cover-picker';
 
 type Member = { id: number; role: string; user: { id: number; name: string | null } };
 type Team = { id: number; name: string; description: string | null; isPublic: boolean; ownerId: number; owner: { id: number; name: string | null }; members: Member[]; createdAt: string };
@@ -21,6 +22,7 @@ function CreateTeamModal({ onClose, onCreated }: { onClose: () => void; onCreate
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [isPublic, setIsPublic] = useState(true);
+  const [cover, setCover] = useState<CoverSelection>({ kind: 'none' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,7 +34,11 @@ function CreateTeamModal({ onClose, onCreated }: { onClose: () => void; onCreate
       const res = await fetch('/api/teams', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, description, isPublic }),
+        body: JSON.stringify({
+          name, description, isPublic,
+          ...(cover.kind === 'preset' ? { coverPresetUrl: cover.url } : {}),
+          ...(cover.kind === 'upload' ? { coverImageB64: cover.imageB64, coverImageContentType: cover.contentType } : {}),
+        }),
       });
       if (!res.ok) { const d = await res.json(); throw new Error(d.error ?? 'Erro ao criar'); }
       const team = await res.json();
@@ -51,6 +57,9 @@ function CreateTeamModal({ onClose, onCreated }: { onClose: () => void; onCreate
         </Field>
         <Field label="Descrição" hint="(opcional)">
           <textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Missão, foco tecnológico, competições..." className={`${inputCls} resize-none`} />
+        </Field>
+        <Field label="Capa" hint="(opcional)">
+          <CoverPicker value={cover} onChange={setCover} />
         </Field>
         <Field label="Visibilidade">
           <label className="flex cursor-pointer items-center gap-3">

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Modal, Field, FormActions, inputCls, selectCls } from '@/components/modal';
+import { CoverPicker, CoverSelection } from '@/components/cover-picker';
 
 type Community = {
   id: number; name: string; description: string | null; category: string; isPublic: boolean;
@@ -23,6 +24,7 @@ function CreateCommunityModal({ onClose, onCreated }: { onClose: () => void; onC
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('Robotics');
   const [isPublic, setIsPublic] = useState(true);
+  const [cover, setCover] = useState<CoverSelection>({ kind: 'none' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,7 +36,11 @@ function CreateCommunityModal({ onClose, onCreated }: { onClose: () => void; onC
       const res = await fetch('/api/communities', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, description, category, isPublic }),
+        body: JSON.stringify({
+          name, description, category, isPublic,
+          ...(cover.kind === 'preset' ? { coverPresetUrl: cover.url } : {}),
+          ...(cover.kind === 'upload' ? { coverImageB64: cover.imageB64, coverImageContentType: cover.contentType } : {}),
+        }),
       });
       if (!res.ok) { const d = await res.json(); throw new Error(d.error ?? 'Erro ao criar'); }
       const community = await res.json();
@@ -61,6 +67,9 @@ function CreateCommunityModal({ onClose, onCreated }: { onClose: () => void; onC
             <option value="IoT">IoT</option>
             <option value="Woodworking">Marcenaria</option>
           </select>
+        </Field>
+        <Field label="Capa" hint="(opcional)">
+          <CoverPicker value={cover} onChange={setCover} />
         </Field>
         <Field label="Visibilidade">
           <label className="flex cursor-pointer items-center gap-3">
