@@ -7,6 +7,7 @@ import { CoverPicker, CoverSelection } from '@/components/cover-picker';
 
 type Community = {
   id: number; name: string; description: string | null; category: string; isPublic: boolean;
+  avatarUrl: string | null; coverUrl: string | null;
   creator: { id: number; name: string | null };
   _count: { members: number; posts: number };
   createdAt: string;
@@ -176,11 +177,18 @@ export default function CommunitiesPage() {
               <Link
                 key={c.id}
                 href={`/communities/${c.id}`}
-                className={`group flex flex-col gap-4 rounded-xl border bg-slate-900/60 p-5 transition-all hover:bg-slate-800/80 hover:shadow-[0_0_16px_rgba(245,158,11,0.08)] ${cfg.color}`}
+                className={`group flex flex-col gap-4 overflow-hidden rounded-xl border bg-slate-900/60 p-5 transition-all hover:bg-slate-800/80 hover:shadow-[0_0_16px_rgba(245,158,11,0.08)] ${cfg.color}`}
               >
+                {c.coverUrl && (
+                  <img
+                    src={c.coverUrl}
+                    alt=""
+                    className="-mx-5 -mt-5 h-24 w-[calc(100%+2.5rem)] max-w-none object-cover"
+                  />
+                )}
                 <div className="flex items-start gap-4">
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-slate-800 text-xs font-black text-zinc-400 uppercase tracking-wider">
-                    {cfg.label.slice(0, 2)}
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-slate-800 text-xs font-black text-zinc-400 uppercase tracking-wider">
+                    {c.avatarUrl ? <img src={c.avatarUrl} alt="" className="h-full w-full object-cover" /> : cfg.label.slice(0, 2)}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="mb-1 flex items-center gap-2">

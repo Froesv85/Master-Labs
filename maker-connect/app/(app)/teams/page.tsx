@@ -6,7 +6,7 @@ import { Modal, Field, FormActions, inputCls } from '@/components/modal';
 import { CoverPicker, CoverSelection } from '@/components/cover-picker';
 
 type Member = { id: number; role: string; user: { id: number; name: string | null } };
-type Team = { id: number; name: string; description: string | null; isPublic: boolean; ownerId: number; owner: { id: number; name: string | null }; members: Member[]; createdAt: string };
+type Team = { id: number; name: string; description: string | null; isPublic: boolean; ownerId: number; avatarUrl: string | null; coverUrl: string | null; owner: { id: number; name: string | null }; members: Member[]; createdAt: string };
 
 function Avatar({ name, size = 'sm' }: { name: string | null; size?: 'sm' | 'md' }) {
   const initials = name ? name.split(' ').slice(0, 2).map((n) => n[0]).join('').toUpperCase() : '?';
@@ -125,11 +125,18 @@ export default function TeamsPage() {
             <Link
               key={team.id}
               href={`/teams/${team.id}`}
-              className="group flex flex-col gap-4 rounded-xl border border-white/10 bg-slate-900/60 p-5 transition-all hover:border-amber-500/30 hover:bg-slate-800/80 hover:shadow-[0_0_16px_rgba(245,158,11,0.1)]"
+              className="group flex flex-col gap-4 overflow-hidden rounded-xl border border-white/10 bg-slate-900/60 p-5 transition-all hover:border-amber-500/30 hover:bg-slate-800/80 hover:shadow-[0_0_16px_rgba(245,158,11,0.1)]"
             >
+              {team.coverUrl && (
+                <img
+                  src={team.coverUrl}
+                  alt=""
+                  className="-mx-5 -mt-5 h-24 w-[calc(100%+2.5rem)] max-w-none object-cover"
+                />
+              )}
               <div className="flex items-start gap-3">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-amber-500/20 bg-amber-500/10 text-xl">
-                  👥
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-amber-500/20 bg-amber-500/10 text-xl">
+                  {team.avatarUrl ? <img src={team.avatarUrl} alt="" className="h-full w-full object-cover" /> : '👥'}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="mb-1 flex items-center gap-2">

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { use, useEffect, useState } from 'react';
 import { Modal, Field, FormActions, inputCls } from '@/components/modal';
 
@@ -16,6 +17,7 @@ type Member = {
 type Community = {
   id: number; name: string; description: string | null; category: string;
   isPublic: boolean;
+  avatarUrl: string | null; coverUrl: string | null;
   creator: { id: number; name: string | null };
   members: Member[];
   posts: Post[];
@@ -252,8 +254,10 @@ function CreatePostModal({
 
 export default function CommunityDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const router = useRouter();
   const [community, setCommunity] = useState<Community | null>(null);
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
   const [tab, setTab] = useState<'posts' | 'members' | 'pending'>('posts');
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [currentUserName, setCurrentUserName] = useState<string | null>(null);
@@ -305,6 +309,23 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
     if (myMembership.status === 'pending') return 'pending';
     return myMembership.role as JoinStatus;
   })();
+
+  async function handleDeleteCommunity() {
+    if (!community) return;
+    if (!window.confirm(`Excluir a comunidade "${community.name}"? Essa ação não pode ser desfeita — todos os posts e membros serão removidos.`)) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/communities/${community.id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const d = await res.json().catch(() => null);
+        throw new Error(d?.error ?? 'Falha ao excluir comunidade.');
+      }
+      router.push('/communities');
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Erro inesperado ao excluir comunidade.');
+      setDeleting(false);
+    }
+  }
 
   function handleJoined(newStatus: string) {
     if (!currentUserId || !community) return;
@@ -373,11 +394,15 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
 
       {/* Hero */}
       <div className={`overflow-hidden rounded-xl border border-amber-500/20 bg-gradient-to-br ${catCfg.color}`}>
-        <div className="h-2 w-full bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600" />
+        {community.coverUrl ? (
+          <img src={community.coverUrl} alt="" className="h-32 w-full object-cover" />
+        ) : (
+          <div className="h-2 w-full bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600" />
+        )}
         <div className="p-6 sm:p-8">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
-            <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-sm font-black text-zinc-300 uppercase tracking-wider">
-              {catCfg.label.slice(0, 3)}
+            <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-white/5 text-sm font-black text-zinc-300 uppercase tracking-wider">
+              {community.avatarUrl ? <img src={community.avatarUrl} alt="" className="h-full w-full object-cover" /> : catCfg.label.slice(0, 3)}
             </div>
             <div className="flex-1 space-y-2">
               <div className="flex flex-wrap items-center gap-3">
@@ -415,6 +440,16 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
                   isPublic={community.isPublic}
                   onJoined={handleJoined}
                 />
+              )}
+              {joinStatus === 'founder' && (
+                <button
+                  type="button"
+                  onClick={handleDeleteCommunity}
+                  disabled={deleting}
+                  className="text-xs font-semibold text-red-400 hover:text-red-300 hover:underline disabled:opacity-50"
+                >
+                  {deleting ? 'Excluindo…' : 'Excluir comunidade'}
+                </button>
               )}
             </div>
           </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { use, useEffect, useState } from 'react';
 import { Modal, Field, FormActions, inputCls } from '@/components/modal';
 
@@ -17,6 +18,7 @@ type RobotSummary = {
 type Team = {
   id: number; name: string; description: string | null; isPublic: boolean;
   ownerId: number; owner: { id: number; name: string | null };
+  avatarUrl: string | null; coverUrl: string | null;
   members: Member[]; robots: RobotSummary[]; createdAt: string;
 };
 type Competition = {
@@ -317,8 +319,10 @@ function PublishResultForm({ teamId, competition, onPublished }: {
 
 export default function TeamDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const router = useRouter();
   const [team, setTeam] = useState<Team | null>(null);
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
   const [tab, setTab] = useState<'members' | 'robots' | 'pending' | 'competitions'>('members');
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [currentUserName, setCurrentUserName] = useState<string | null>(null);
@@ -361,6 +365,23 @@ export default function TeamDetailPage({ params }: { params: Promise<{ id: strin
   })();
 
   const isManager = joinStatus === 'owner' || joinStatus === 'admin';
+
+  async function handleDeleteTeam() {
+    if (!team) return;
+    if (!window.confirm(`Excluir a equipe "${team.name}"? Essa ação não pode ser desfeita. Robôs e projetos vinculados ficarão sem equipe.`)) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/teams/${team.id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const d = await res.json().catch(() => null);
+        throw new Error(d?.error ?? 'Falha ao excluir equipe.');
+      }
+      router.push('/teams');
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Erro inesperado ao excluir equipe.');
+      setDeleting(false);
+    }
+  }
 
   function handleJoined(newStatus: string) {
     if (!currentUserId || !team) return;
@@ -447,11 +468,15 @@ export default function TeamDetailPage({ params }: { params: Promise<{ id: strin
 
       {/* Hero */}
       <div className="overflow-hidden rounded-xl border border-amber-500/20 bg-gradient-to-br from-slate-900 to-[#0f1829]">
-        <div className="h-2 w-full bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600" />
+        {team.coverUrl ? (
+          <img src={team.coverUrl} alt="" className="h-32 w-full object-cover" />
+        ) : (
+          <div className="h-2 w-full bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600" />
+        )}
         <div className="p-6 sm:p-8">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
-            <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl border border-amber-500/30 bg-amber-500/10 text-4xl">
-              👥
+            <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-amber-500/30 bg-amber-500/10 text-4xl">
+              {team.avatarUrl ? <img src={team.avatarUrl} alt="" className="h-full w-full object-cover" /> : '👥'}
             </div>
             <div className="flex-1 space-y-2">
               <div className="flex flex-wrap items-center gap-3">
@@ -487,6 +512,16 @@ export default function TeamDetailPage({ params }: { params: Promise<{ id: strin
                   isPublic={team.isPublic}
                   onJoined={handleJoined}
                 />
+              )}
+              {joinStatus === 'owner' && (
+                <button
+                  type="button"
+                  onClick={handleDeleteTeam}
+                  disabled={deleting}
+                  className="text-xs font-semibold text-red-400 hover:text-red-300 hover:underline disabled:opacity-50"
+                >
+                  {deleting ? 'Excluindo…' : 'Excluir equipe'}
+                </button>
               )}
             </div>
           </div>
