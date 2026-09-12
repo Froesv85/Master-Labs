@@ -16,7 +16,7 @@
 
 Muito se discute a importância da documentação técnica como base para a reprodutibilidade e o reuso de projetos tecnológicos. No universo Maker e da Internet das Coisas (IoT), no entanto, essa prática ainda é negligenciada: projetos inovadores se perdem pela ausência de registros estruturados, gerando o que se pode chamar de "documentação fantasma". Plataformas como GitHub e Instructables permitem o compartilhamento de projetos, mas não automatizam nem orientam ativamente a produção documental.
 
-Ao observar o cenário das comunidades Maker, percebe-se que documentar um protótipo de forma completa exige tempo e esforço que muitos desenvolvedores não têm disponíveis. Segundo pesquisa realizada por Dong et al. (2025), abordagens baseadas em Retrieval-Augmented Generation (RAG) demonstram resultados promissores na extração e organização de conhecimento técnico a partir de descrições não estruturadas, reduzindo erros comuns em sistemas de IA sem ancoragem em dados reais. Diante disso, surge a pergunta central deste projeto: **como agentes de IA Generativa, orquestrados via n8n, podem reduzir a lacuna documental em projetos Maker IoT, promovendo reprodutibilidade e rastreabilidade?**
+Ao observar o cenário das comunidades Maker, percebe-se que documentar um protótipo de forma completa exige tempo e esforço que muitos desenvolvedores não têm disponíveis. Segundo pesquisa realizada por Dong et al. (2025), abordagens baseadas em Retrieval-Augmented Generation (RAG) demonstram resultados promissores na extração e organização de conhecimento técnico a partir de descrições não estruturadas, reduzindo erros comuns em sistemas de IA sem ancoragem em dados reais. Diante disso, surge a pergunta central deste projeto: **como agentes de IA Generativa, orquestrados via processamento assíncrono, podem reduzir a lacuna documental em projetos Maker IoT, promovendo reprodutibilidade e rastreabilidade?**
 
 A MakerConnect responde a essa questão integrando três pilares: uma camada social com feed, fork e log de dificuldades; um pipeline de IA com RAG; e uma camada documental com exportação em PDF auditável. Para os makers beneficiados, a plataforma democratiza boas práticas de engenharia, permitindo gerar documentação padronizada e reutilizável independentemente do nível de experiência. Para os acadêmicos envolvidos, o projeto mobiliza competências centrais do curso — desenvolvimento full-stack, arquitetura de sistemas, IA aplicada e conformidade com a LGPD — conectando formação teórica a um problema real com impacto mensurável.
 
@@ -34,7 +34,7 @@ Por se tratar de uma plataforma digital, o alcance do projeto não se limita a u
 
 ### 3.1 Objetivo Geral
 
-Desenvolver a MakerConnect, uma plataforma digital de governança técnica para projetos Maker e IoT, integrando mecanismos de colaboração social, pipeline de Inteligência Artificial Generativa com Retrieval-Augmented Generation (RAG) orquestrado via n8n e exportação automatizada de documentação técnica em PDF, com o propósito de reduzir a lacuna documental em comunidades makers, promovendo reprodutibilidade, rastreabilidade e reuso de conhecimento técnico em conformidade com a LGPD.
+Desenvolver a MakerConnect, uma plataforma digital de governança técnica para projetos Maker e IoT, integrando mecanismos de colaboração social, pipeline de Inteligência Artificial Generativa com Retrieval-Augmented Generation (RAG) orquestrado via fila assíncrona (BullMQ) e exportação automatizada de documentação técnica em PDF, com o propósito de reduzir a lacuna documental em comunidades makers, promovendo reprodutibilidade, rastreabilidade e reuso de conhecimento técnico em conformidade com a LGPD.
 
 ### 3.2 Objetivos Específicos
 
@@ -50,11 +50,11 @@ Desenvolver a MakerConnect, uma plataforma digital de governança técnica para 
 
 A implementação do pipeline de Inteligência Artificial constituiu o núcleo tecnológico da MakerConnect, sendo estruturada em quatro estágios sequenciais e interdependentes. O primeiro estágio, de extração, é responsável por receber a descrição textual do projeto maker, sanitizar dados pessoais identificáveis (PII) por meio de expressões regulares para e-mail, telefone e CPF, e extrair palavras-chave por frequência com remoção de stopwords. Esse processo garante que nenhuma informação pessoal trafegue pelo pipeline de IA, assegurando conformidade com a LGPD antes mesmo do disparo para o orquestrador.
 
-O segundo estágio opera dentro do workflow n8n, plataforma escolhida para a orquestração dos agentes de IA por sua flexibilidade e capacidade de integração via webhooks. Ao receber o payload sanitizado, o n8n executa a geração de embeddings utilizando o modelo nomic-embed-text via Ollama, converte o conteúdo textual em vetores semânticos e realiza a recuperação de contexto técnico relevante no banco vetorial Pinecone. Essa abordagem de Retrieval-Augmented Generation (RAG) ancora a geração de conteúdo em dados reais de componentes eletrônicos, eliminando alucinações técnicas que comprometeriam a confiabilidade da documentação gerada.
+O segundo estágio foi originalmente orquestrado pelo workflow n8n, escolhido pela flexibilidade e integração via webhooks. Ao longo do projeto, esse estágio migrou para uma fila assíncrona própria (BullMQ + Redis), que hoje é o motor padrão em produção — o worker chama o Ollama e o Pinecone diretamente, sem o n8n como intermediário; o workflow n8n permanece no código como motor legado, disponível via variável de ambiente. Independentemente do motor, a geração de embeddings usa o modelo nomic-embed-text via Ollama, convertendo o conteúdo textual em vetores semânticos e recuperando contexto técnico relevante no banco vetorial Pinecone. Essa abordagem de Retrieval-Augmented Generation (RAG) ancora a geração de conteúdo em dados reais de componentes eletrônicos, eliminando alucinações técnicas que comprometeriam a confiabilidade da documentação gerada.
 
-O terceiro estágio consiste na geração estruturada pelo modelo de linguagem qwen2.5:7b-instruct, que recebe o contexto recuperado e produz saídas organizadas contendo requisitos de software e hardware, lista de materiais (BOM) e recomendações técnicas. Após a geração, o n8n executa validação do output e dispara um callback para a API da MakerConnect, registrando o resultado com status, latência em milissegundos e conteúdo gerado no log de extração do projeto. Todo o ciclo opera de forma assíncrona, com estados rastreáveis: `queued`, `processing`, `done` e `failed`.
+O terceiro estágio consiste na geração estruturada pelo modelo de linguagem qwen2.5:7b-instruct, que recebe o contexto recuperado e produz saídas organizadas contendo requisitos de software e hardware, lista de materiais (BOM), etapas de montagem e recomendações técnicas. O resultado é persistido na API da MakerConnect com status, latência em milissegundos e conteúdo gerado no log de extração do projeto. Todo o ciclo opera de forma assíncrona, com estados rastreáveis: `queued`, `processing`, `done` e `failed`. Um microsserviço complementar em Python (Fase 5, `ml-pipeline/`) classifica categoria/dificuldade/domínio do projeto antes da geração — filtrando a busca vetorial por domínio — e audita a saída gerada depois, sinalizando peças possivelmente esquecidas na BOM.
 
-O quarto e último estágio é a exportação documental em PDF. Após a conclusão da extração, o usuário pode acionar a geração do documento técnico, que é montado de forma assíncrona utilizando a biblioteca jsPDF e armazenado no MinIO, serviço de object storage compatível com S3. O histórico de exportações fica registrado na base de dados transacional MySQL, permitindo auditoria técnica por versão de documento. Para acompanhamento operacional do pipeline, foi implementado um endpoint de métricas que expõe indicadores de desempenho como p50 e p95 de latência, média de relevância RAG e total de execuções, acessíveis por meio de um painel administrativo na própria plataforma.
+O quarto e último estágio é a exportação documental em PDF. Após a conclusão da extração, o dono do projeto pode revisar e editar livremente o resultado no Dossiê Técnico (requisitos, BOM, etapas de montagem, vídeo e imagens) sem alterar a saída original da IA, preservada para auditoria. A exportação em si é montada de forma assíncrona a partir desse dossiê, utilizando a biblioteca jsPDF, com logo, link do projeto e conteúdo organizado por tópicos, e armazenada no MinIO, serviço de object storage compatível com S3. O histórico de exportações fica registrado na base de dados transacional MySQL, permitindo auditoria técnica por versão de documento. Para acompanhamento operacional do pipeline, foi implementado um endpoint de métricas que expõe indicadores de desempenho como p50 e p95 de latência, média de relevância RAG e total de execuções, acessíveis por meio de um painel administrativo na própria plataforma.
 
 A camada social da MakerConnect foi desenvolvida com o objetivo de criar um ambiente colaborativo onde makers pudessem não apenas compartilhar projetos, mas também construir sobre o trabalho uns dos outros de forma rastreável e auditável. O feed principal da plataforma oferece filtros por categoria, busca textual, paginação e ordenação por mais recentes, mais antigos e mais votados, permitindo que o usuário navegue pelo acervo de projetos de forma eficiente e personalizada.
 
@@ -68,7 +68,7 @@ A validação do pipeline de IA foi conduzida por meio de um processo estruturad
 
 O script de avaliação `rag-eval.mjs` calculou um score composto para cada projeto considerando três critérios ponderados: cobertura de palavras-chave (40%), pontuação de confiança do modelo (30%) e completude da saída gerada (30%). Na primeira rodada de avaliação, a média de relevância foi de 79%, abaixo da meta de 85%. A análise dos casos com pontuação inferior a 80% revelou duas causas: inconsistência no tratamento de acentuação em português e baixa completude para projetos com componentes altamente especializados.
 
-Após aplicação de três ajustes — normalização Unicode NFD, correção da escala do `confidenceScore` e detecção automática de escala 0–1 vs 0–10 — a média de relevância alcançou **98%**, superando expressivamente a meta de 85%. Em relação à latência, as medições em ambiente de desenvolvimento local sem GPU registraram p50 de 53 segundos e p95 de 137 segundos, valores esperados para execução em CPU com modelos locais via Ollama. A suite de testes automatizados, composta por **174 testes distribuídos em 24 suites**, foi executada sem registrar falhas, garantindo a estabilidade e a confiabilidade das entregas em cada gate de validação.
+Após aplicação de três ajustes — normalização Unicode NFD, correção da escala do `confidenceScore` e detecção automática de escala 0–1 vs 0–10 — a média de relevância alcançou **98%**, superando expressivamente a meta de 85%. Em relação à latência, as medições em ambiente de desenvolvimento local sem GPU registraram p50 de 53 segundos e p95 de 137 segundos, valores esperados para execução em CPU com modelos locais via Ollama. Uma rodada posterior do mesmo holdout, já com o motor BullMQ e a Fase 5 (filtro de domínio na busca vetorial) ativos, manteve 95% de relevância com latência p50 de 34,2s e p95 de 46,0s — melhora relevante sobre o gate original, ainda sem depender de GPU. A suite de testes automatizados, composta por **300 testes distribuídos em 43 suites** (Jest + Pytest), é executada sem registrar falhas, garantindo a estabilidade e a confiabilidade das entregas em cada gate de validação.
 
 ---
 
@@ -84,11 +84,11 @@ Para a etapa formal de coleta, será utilizado um formulário de avaliação com
 
 ## 6. Considerações Finais
 
-O objetivo geral do projeto foi alcançado. A MakerConnect foi desenvolvida como uma plataforma funcional de governança técnica para projetos Maker e IoT, integrando camada social, pipeline de IA com RAG e exportação automatizada de documentação em PDF. Os três objetivos específicos também foram cumpridos: o pipeline de IA foi implementado e validado com 98% de relevância semântica na avaliação final; a camada social foi construída com feed, fork com linhagem, upvote, log de dificuldades, comunidades e perfis de usuário; e a validação por métricas objetivas confirmou a estabilidade do sistema com 174 testes automatizados sem falhas.
+O objetivo geral do projeto foi alcançado. A MakerConnect foi desenvolvida como uma plataforma funcional de governança técnica para projetos Maker e IoT, integrando camada social, pipeline de IA com RAG e exportação automatizada de documentação em PDF. Os três objetivos específicos também foram cumpridos: o pipeline de IA foi implementado e validado com 95–98% de relevância semântica nas avaliações realizadas; a camada social foi construída com feed, fork com linhagem, upvote, log de dificuldades, comunidades e perfis de usuário; e a validação por métricas objetivas confirmou a estabilidade do sistema com 300 testes automatizados sem falhas.
 
-Os pontos fortes do projeto residem na solidez da arquitetura adotada, na integração funcional entre tecnologias modernas como Next.js, n8n, Ollama e Pinecone, e na aderência à LGPD desde as primeiras etapas do desenvolvimento. A rastreabilidade técnica garantida pelos mecanismos de fork com linhagem, estados assíncronos e logs de extração conferem ao projeto maturidade de engenharia acima do esperado para um trabalho acadêmico. Como ponto frágil, destaca-se a ausência de validação formal junto ao público beneficiado até o encerramento deste relatório, e a latência do pipeline em ambiente sem GPU, que ainda está acima do ideal para uma experiência fluida em produção.
+Os pontos fortes do projeto residem na solidez da arquitetura adotada, na integração funcional entre tecnologias modernas como Next.js, BullMQ, Ollama e Pinecone, e na aderência à LGPD desde as primeiras etapas do desenvolvimento. A rastreabilidade técnica garantida pelos mecanismos de fork com linhagem, estados assíncronos e logs de extração conferem ao projeto maturidade de engenharia acima do esperado para um trabalho acadêmico. Como ponto frágil, destaca-se a ausência de validação formal junto ao público beneficiado até o encerramento deste relatório. Quanto à latência do pipeline em ambiente sem GPU — antes um ponto frágil relevante (p95 de 137s) —, a migração do motor de extração para BullMQ combinada à busca vetorial filtrada por domínio (Fase 5) já reduziu o p95 para ~46s sem depender de GPU; o patamar ideal para uso fluido em produção ainda depende de infraestrutura dedicada, mas a lacuna diminuiu substancialmente.
 
-Os pontos frágeis identificados podem ser corrigidos nas próximas edições do projeto por dois caminhos complementares. A coleta formal de percepções do público deve ser estruturada desde o início do ciclo, com formulários aplicados em momentos intermediários do desenvolvimento. Quanto à latência, a migração do pipeline para infraestrutura com suporte a GPU — ou a adoção de modelos hospedados em nuvem como o Gemini, já prevista na arquitetura do projeto — reduziria o tempo de resposta para patamares compatíveis com uso em produção real.
+Os pontos frágeis identificados podem ser corrigidos nas próximas edições do projeto por dois caminhos complementares. A coleta formal de percepções do público deve ser estruturada desde o início do ciclo, com formulários aplicados em momentos intermediários do desenvolvimento. Quanto à latência restante, a migração do pipeline para infraestrutura com suporte a GPU — ou a adoção de modelos hospedados em nuvem como o Gemini, já prevista na arquitetura do projeto — reduziria o tempo de resposta para patamares ainda mais compatíveis com uso em produção real.
 
 Os principais aprendizados estão ligados à complexidade de integrar múltiplas tecnologias em um sistema coeso. A modelagem do banco de dados e a definição da arquitetura geral foram os maiores desafios enfrentados: decisões aparentemente simples — como a separação entre persistência transacional, vetorial e de artefatos, ou a estrutura das relações entre projetos, forks e logs — revelaram-se determinantes para a estabilidade e a escalabilidade de todo o sistema. Esse processo ensinou que arquitetar bem desde o início economiza retrabalho e que a documentação das próprias decisões técnicas é tão importante quanto o código produzido.
 
@@ -116,7 +116,7 @@ SINGH, A.; KUMAR, P. Agentic RAG: Orchestrating Autonomous Generative Agents for
 | LLM / Embeddings locais | Ollama (`qwen2.5:7b-instruct`, `nomic-embed-text`) |
 | Banco vetorial | Pinecone |
 | Object storage | MinIO / S3 |
-| Geração PDF | jsPDF / pdfkit |
+| Geração PDF | jsPDF |
 | Autenticação | JWT (jose) + bcryptjs |
 | Fila assíncrona | BullMQ + Redis |
 | Pipeline de estruturação (Fase 5) | Python + FastAPI + scikit-learn (`ml-pipeline/`) |
@@ -178,7 +178,7 @@ O worker BullMQ (`lib/extraction-queue.ts`) chama o `ml-pipeline` via `lib/ml-pi
 
 ---
 
-## Status (04/06/2026)
+## Status (12/09/2026)
 
 | Entrega | Status |
 |---------|--------|
@@ -194,14 +194,16 @@ O worker BullMQ (`lib/extraction-queue.ts`) chama o `ml-pipeline` via `lib/ml-pi
 | Posts com mídia + membership approval | Concluído |
 | Autenticação JWT | Concluído |
 | Cadastro de robôs e equipes | Concluído |
-| Exportação PDF assíncrona (BullMQ) | Em andamento (Semana 7-8) |
-| Fase 5 — pipeline de estruturação (ml-pipeline) | Concluído (dev) — dataset real ainda pequeno, ver `ml-pipeline/README.md` |
+| Exportação PDF assíncrona (BullMQ) — logo, link do projeto, tópicos (Dossiê) | Concluído |
+| Motor de extração BullMQ como padrão em produção (n8n mantido como legado) | Concluído |
+| Dossiê Técnico editável (requisitos/BOM/etapas, vídeo, galeria de imagens) | Concluído |
+| Fase 5 — pipeline de estruturação (ml-pipeline) | Concluído — dataset real ainda pequeno, ver `ml-pipeline/README.md` |
 | Gate S1.1 | PASS (28/04/2026) |
 | Gate S1.2 | PASS (13/05/2026) |
 | Gate S1.3 | Partial PASS — relevance 98% ✅, latência ⚠️ (sem GPU) |
-| Gate S1.4 | Previsto 25/06/2026 |
-| Suite de testes | 174 testes / 24 suites / 0 falhas |
-| RAG relevance (holdout H01-H10) | 98% (meta: ≥ 85%) |
+| Gate S1.4 | latência sem GPU melhorou pra p95 ~46s (era 137s) com BullMQ + Fase 5; ainda acima da meta de <15s |
+| Suite de testes | 300 testes / 43 suites / 0 falhas |
+| RAG relevance (holdout H01-H10) | 95–98% conforme motor/rodada (meta: ≥ 85%) |
 
 ---
 
@@ -220,6 +222,10 @@ Registro das principais entregas por período, com base no histórico de commits
 | 11/09 | Projeto passou de categoria única para **múltiplas tags**, com **visibilidade em 3 níveis** (pública / privada-só-eu / privada-para-minha-equipe) e novos campos **Objetivo** e **Componentes** no cadastro |
 | 11/09 | Nova subseção **Competições** dentro da página de Equipe: dono/admin registra a competição, vincula robôs da equipe e publica o resultado depois |
 | 11/09 | Pipeline de extração passa a rodar em **motor duplo** (n8n ou BullMQ, via `EXTRACTION_ENGINE`) — mesmo prompt e normalização do n8n portados verbatim pra `lib/rag-output.ts`, callback do n8n mantido como rede de segurança |
+| 11/09 | **Fase 5** implementada: microsserviço Python (`ml-pipeline/`) com classificação prévia (Naive Bayes treinado), validação/agrupamento de BOM (K-Means + Apriori), filtro de domínio no RAG e auditoria pós-geração — chamado de forma defensiva pelo worker BullMQ |
+| 12/09 | **BullMQ vira o motor padrão em produção** (antes era n8n) — Ollama passou a ser chamado direto via Tailscale, sem passar pelo n8n; corrigido bug de deploy em que o nginx ficava com o IP antigo do container após cada release |
+| 12/09 | **Dossiê Técnico** deixou de ser um placeholder estático: vira editável (requisitos, BOM e **etapas de montagem** — novo campo gerado pela IA), com link de vídeo (YouTube) e galeria de imagens; edição do dono nunca sobrescreve a saída original da IA, preservada para auditoria em um registro `ProjectDossier` separado |
+| 12/09 | **PDF exportado** passa a puxar do Dossiê (não mais do output bruto da extração): logo atualizado pra bater com a marca atual, link clicável do projeto e do vídeo, conteúdo organizado em tópicos (Visão Geral, Requisitos, BOM, Etapas de Montagem, Código) |
 
 ---
 
@@ -343,11 +349,12 @@ Screenshots capturadas em 04/06/2026 via Playwright (1440×900). Para atualizar:
 ### 1. Pré-requisitos
 
 - Node.js 20+
+- Python 3.12+ (pipeline de estruturação — `ml-pipeline/`)
 - MySQL 8 (ou Docker)
 - MinIO ou bucket S3 configurado
-- n8n rodando e acessível
 - Ollama com modelos `qwen2.5:7b-instruct` e `nomic-embed-text`
 - Redis (para BullMQ)
+- n8n rodando e acessível — opcional, só necessário se `EXTRACTION_ENGINE=n8n` (motor legado; o padrão é `bullmq`)
 
 ### 2. Clonar e instalar
 
@@ -361,8 +368,9 @@ npm install
 
 ```bash
 cp .env.example .env.local
-# preencher: DATABASE_URL, JWT_SECRET, N8N_WEBHOOK_URL, PINECONE_API_KEY,
-#            AWS_* (MinIO), OLLAMA_HOST, REDIS_URL
+# preencher: DATABASE_URL, JWT_SECRET, PINECONE_API_KEY, AWS_* (MinIO),
+#            OLLAMA_BASE_URL, REDIS_URL, ML_PIPELINE_URL
+# opcional (só se EXTRACTION_ENGINE=n8n): N8N_EXTRACTION_WEBHOOK_URL
 ```
 
 ### 4. Banco de dados
@@ -376,13 +384,13 @@ npx prisma db seed
 
 ```bash
 npm run dev        # dev server em http://localhost:3000
-npm test           # suite de testes (174 testes)
+npm test           # suite de testes (300 testes)
 ```
 
 ### 6. Infra local (Docker)
 
 ```bash
-docker compose up -d   # MySQL + MinIO
+docker compose up -d   # MySQL + Redis + MinIO + ml-pipeline
 ```
 
 ---
@@ -393,13 +401,15 @@ docker compose up -d   # MySQL + MinIO
 Master-Labs/
 ├── maker-connect/          # aplicação principal (Next.js + API + Prisma)
 │   ├── app/                # rotas Next.js (páginas e API routes)
-│   ├── lib/                # serviços: auth, prisma, lgpd, s3, pdf, ollama
-│   ├── workers/            # BullMQ workers (PDF export)
-│   ├── __tests__/          # 24 suites de testes (Jest)
+│   ├── lib/                # serviços: auth, prisma, lgpd, s3, pdf, ollama,
+│   │                       #   extraction-queue.ts e pdf-export-queue.ts
+│   │                       #   (workers BullMQ, in-process, sem pasta dedicada)
+│   ├── ml-pipeline/        # Fase 5 — microsserviço Python (FastAPI + scikit-learn)
+│   ├── __tests__/          # 43 suites de testes (Jest)
 │   ├── prisma/             # schema, migrations, seed
-│   └── scripts/            # rag-eval, seed-passwords, etc.
-├── docs/                   # documentação: planning, architecture, ai, tcc
-├── scripts/                # automações operacionais (Jira, deploy)
+│   └── scripts/            # rag-eval, seed-passwords, etc. (local-only, fora do git)
+├── docs/                   # documentação: planning, architecture, ai, tcc (local-only, fora do git)
+├── scripts/                # automações operacionais: Jira, diagramas (local-only, fora do git)
 └── README.md               # este arquivo
 ```
 
