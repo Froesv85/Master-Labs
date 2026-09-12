@@ -28,6 +28,7 @@ const rawDossier = {
   technicalRequirements: JSON.stringify([{ id: 'TR-1', name: 'WiFi', detail: '', priority: 'high' }]),
   suggestedBOM: JSON.stringify([{ item: 'ESP32', quantity: '1', notes: '' }]),
   assemblySteps: JSON.stringify([{ step: 1, title: 'Montar', detail: '' }]),
+  videoUrl: null,
   sourceExtractionLogId: 10,
   createdAt: new Date(),
   updatedAt: new Date(),
@@ -95,6 +96,34 @@ describe('PATCH /api/projects/[id]/dossier', () => {
     const req = makeRequest('http://localhost:3000/api/projects/1/dossier', { method: 'PATCH', body: '{}' });
     const res = await PATCH(req, { params });
     expect(res.status).toBe(403);
+  });
+
+  it('retorna 400 quando videoUrl nao e um link valido do YouTube', async () => {
+    (getSession as jest.Mock).mockResolvedValue(mockSession);
+    (prisma.project.findUnique as jest.Mock).mockResolvedValue({ creatorId: 1 });
+
+    const req = makeRequest('http://localhost:3000/api/projects/1/dossier', {
+      method: 'PATCH',
+      body: JSON.stringify({ videoUrl: 'https://example.com/not-youtube' }),
+    });
+    const res = await PATCH(req, { params });
+    expect(res.status).toBe(400);
+  });
+
+  it('aceita videoUrl valido e limpa o campo quando recebe null', async () => {
+    (getSession as jest.Mock).mockResolvedValue(mockSession);
+    (prisma.project.findUnique as jest.Mock).mockResolvedValue({ creatorId: 1 });
+    (prisma.projectDossier.upsert as jest.Mock).mockResolvedValue({ ...rawDossier, videoUrl: null });
+
+    const req = makeRequest('http://localhost:3000/api/projects/1/dossier', {
+      method: 'PATCH',
+      body: JSON.stringify({ videoUrl: null }),
+    });
+    const res = await PATCH(req, { params });
+    expect(res.status).toBe(200);
+    expect(prisma.projectDossier.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({ update: expect.objectContaining({ videoUrl: null }) })
+    );
   });
 
   it('atualiza o dossie quando o dono edita', async () => {

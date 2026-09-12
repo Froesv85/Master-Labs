@@ -5,12 +5,15 @@ import path from 'path';
 export type ExportData = {
   projectTitle: string;
   projectDescription: string;
+  projectUrl: string;
   creator: string;
   tags: string[];
   difficulties: { description: string; date: string }[];
   technicalRequirements: string[];
   suggestedBom: { quantity: string; item: string; notes: string }[];
+  assemblySteps: { step: number; title: string; detail: string }[];
   suggestedCode?: string;
+  videoUrl?: string | null;
 };
 
 export async function buildPdf(data: ExportData): Promise<Buffer> {
@@ -44,6 +47,16 @@ export async function buildPdf(data: ExportData): Promise<Buffer> {
     cursorY += 2; // Padding after block
   };
 
+  const addLink = (label: string, url: string) => {
+    if (!url) return;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.setTextColor(37, 99, 235); // Blue-600
+    checkPage(6);
+    doc.textWithLink(label, marginLeft, cursorY, { url });
+    cursorY += 6;
+  };
+
   // HEADER LOGO (Canto Superior Direito)
   try {
     const logoPath = path.join(process.cwd(), 'public', 'maker-logo-pdf.png');
@@ -65,16 +78,30 @@ export async function buildPdf(data: ExportData): Promise<Buffer> {
   addText(`Criador: ${data.creator}`, 11);
   addText(`Tags: ${data.tags.join(', ')}`, 11);
   addText(`Data de Exportacao: ${new Date().toLocaleString('pt-BR')}`, 11);
+  if (data.projectUrl) addLink('Ver projeto online', data.projectUrl);
+  if (data.videoUrl) addLink('Assistir video do projeto', data.videoUrl);
   cursorY += 5;
 
   if (data.projectDescription) {
+    addText('Visao Geral', 14, true, [16, 185, 129]);
+    cursorY += 2;
     addText(data.projectDescription, 10, false, [100, 100, 100]);
+    cursorY += 5;
+  }
+
+  // Tech Reqs
+  if (data.technicalRequirements && data.technicalRequirements.length > 0) {
+    addText('Requisitos Tecnicos', 14, true, [16, 185, 129]);
+    cursorY += 2;
+    data.technicalRequirements.forEach((req) => {
+      addText(`• ${req}`, 10);
+    });
     cursorY += 5;
   }
 
   // BOM
   if (data.suggestedBom && data.suggestedBom.length > 0) {
-    addText('Bill of Materials (BOM) sugerido pela IA', 14, true, [16, 185, 129]); // Emerald 500
+    addText('Lista de Materiais (BOM)', 14, true, [16, 185, 129]); // Emerald 500
     cursorY += 2;
     data.suggestedBom.forEach((bom) => {
       addText(`• ${bom.quantity}x ${bom.item} - ${bom.notes}`, 10);
@@ -82,12 +109,13 @@ export async function buildPdf(data: ExportData): Promise<Buffer> {
     cursorY += 5;
   }
 
-  // Tech Reqs
-  if (data.technicalRequirements && data.technicalRequirements.length > 0) {
-    addText('Requisitos Tecnicos (via RAG)', 14, true, [16, 185, 129]);
+  // Etapas de Montagem
+  if (data.assemblySteps && data.assemblySteps.length > 0) {
+    addText('Etapas de Montagem', 14, true, [16, 185, 129]);
     cursorY += 2;
-    data.technicalRequirements.forEach((req) => {
-      addText(`• ${req}`, 10);
+    data.assemblySteps.forEach((step) => {
+      addText(`${step.step}. ${step.title}`, 10, true);
+      if (step.detail) addText(step.detail, 10, false, [80, 80, 80]);
     });
     cursorY += 5;
   }

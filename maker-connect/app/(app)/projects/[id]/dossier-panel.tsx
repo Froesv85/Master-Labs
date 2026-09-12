@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { YoutubeEmbed } from '@/components/youtube-embed';
+import { isValidYoutubeUrl } from '@/lib/youtube';
 
 type TechnicalRequirement = { id: string; name: string; detail: string; priority: string };
 type BomItem = { item: string; quantity: string; notes: string };
@@ -10,6 +12,7 @@ type DossierData = {
   technicalRequirements: TechnicalRequirement[];
   suggestedBOM: BomItem[];
   assemblySteps: AssemblyStep[];
+  videoUrl: string | null;
   sourceExtractionLogId: number | null;
 } | null;
 
@@ -337,6 +340,23 @@ export default function DossierPanel({ projectId, refreshSignal }: { projectId: 
         >
           + adicionar etapa
         </button>
+      </SectionCard>
+
+      <SectionCard title="Vídeo do Projeto">
+        <input
+          className={inputClass}
+          value={dossier.videoUrl ?? ''}
+          placeholder="https://youtube.com/watch?v=..."
+          onChange={(e) => setDossier({ ...dossier, videoUrl: e.target.value || null })}
+        />
+        {dossier.videoUrl && isValidYoutubeUrl(dossier.videoUrl) && (
+          <div className="mt-3 max-w-md">
+            <YoutubeEmbed url={dossier.videoUrl} title="Vídeo do projeto" />
+          </div>
+        )}
+        {dossier.videoUrl && !isValidYoutubeUrl(dossier.videoUrl) && (
+          <p className="mt-2 text-xs text-red-600">Link inválido — use um link do YouTube.</p>
+        )}
       </SectionCard>
 
       {error && <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>}

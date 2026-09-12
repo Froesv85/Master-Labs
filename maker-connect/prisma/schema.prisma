@@ -401,6 +401,7 @@ model ProjectDossier {
   technicalRequirements String?  @db.LongText // JSON, copia editavel do output da IA
   suggestedBOM          String?  @db.LongText // JSON, copia editavel do output da IA
   assemblySteps         String?  @db.LongText // JSON, copia editavel do output da IA
+  videoUrl              String?  @db.VarChar(512) // link de video (YouTube), nao vem da IA, so o dono edita
   sourceExtractionLogId Int? // de qual ProjectExtractionLog isso foi semeado/re-sincronizado
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt

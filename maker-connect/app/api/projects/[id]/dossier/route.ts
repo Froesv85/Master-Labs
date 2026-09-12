@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { requireOwnedProject } from '@/lib/project-access';
+import { isValidYoutubeUrl } from '@/lib/youtube';
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -27,6 +28,7 @@ function serializeDossier(dossier: {
   technicalRequirements: string | null;
   suggestedBOM: string | null;
   assemblySteps: string | null;
+  videoUrl: string | null;
   sourceExtractionLogId: number | null;
   updatedAt: Date;
   createdAt: Date;
@@ -37,6 +39,7 @@ function serializeDossier(dossier: {
     technicalRequirements: parseJsonArray(dossier.technicalRequirements),
     suggestedBOM: parseJsonArray(dossier.suggestedBOM),
     assemblySteps: parseJsonArray(dossier.assemblySteps),
+    videoUrl: dossier.videoUrl,
     sourceExtractionLogId: dossier.sourceExtractionLogId,
     updatedAt: dossier.updatedAt,
     createdAt: dossier.createdAt,
@@ -103,16 +106,22 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     technicalRequirements?: unknown[];
     suggestedBOM?: unknown[];
     assemblySteps?: unknown[];
+    videoUrl?: string | null;
   } | null;
 
   if (!body) {
     return NextResponse.json({ error: 'Corpo da requisição inválido.' }, { status: 400 });
   }
 
-  const data: Record<string, string> = {};
+  if (body.videoUrl && !isValidYoutubeUrl(body.videoUrl)) {
+    return NextResponse.json({ error: 'Link de vídeo inválido. Use um link do YouTube.' }, { status: 400 });
+  }
+
+  const data: Record<string, string | null> = {};
   if (Array.isArray(body.technicalRequirements)) data.technicalRequirements = JSON.stringify(body.technicalRequirements);
   if (Array.isArray(body.suggestedBOM)) data.suggestedBOM = JSON.stringify(body.suggestedBOM);
   if (Array.isArray(body.assemblySteps)) data.assemblySteps = JSON.stringify(body.assemblySteps);
+  if ('videoUrl' in body) data.videoUrl = body.videoUrl?.trim() || null;
 
   const dossier = await prisma.projectDossier.upsert({
     where: { projectId },

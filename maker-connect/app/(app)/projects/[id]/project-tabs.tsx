@@ -7,6 +7,7 @@ import ExportPanel from './export-panel';
 import CommentsPanel from './comments-panel';
 import DossierPanel from './dossier-panel';
 import CodeFilesPanel from './code-files-panel';
+import ImagesPanel from './images-panel';
 
 type Difficulty = {
   id: number;
@@ -112,6 +113,7 @@ export default function ProjectTabs({
             </p>
           </div>
           <DossierPanel projectId={projectId} refreshSignal={dossierRefreshKey} />
+          <ImagesPanel projectId={projectId} />
           <CodeFilesPanel projectId={projectId} />
         </div>
 

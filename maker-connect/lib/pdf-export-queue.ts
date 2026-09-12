@@ -11,6 +11,7 @@ type PdfExportJobData = {
 };
 
 const QUEUE_NAME = 'pdf-export-jobs';
+const PUBLIC_SITE_URL = (process.env.PUBLIC_SITE_URL || 'https://makerconnect.com.br').replace(/\/$/, '');
 
 type QueueGlobals = {
   redis?: IORedis;
@@ -57,7 +58,7 @@ function getQueue() {
   return queueGlobals.queue;
 }
 
-async function processPdfExportJob(jobData: PdfExportJobData) {
+export async function processPdfExportJob(jobData: PdfExportJobData) {
   const { exportId, projectId } = jobData;
 
   await prisma.projectExport.update({
@@ -74,6 +75,7 @@ async function processPdfExportJob(jobData: PdfExportJobData) {
       creator: true,
       tags: { select: { tag: true } },
       difficulties: { orderBy: { createdAt: 'desc' } },
+      dossier: true,
       extractionLogs: {
         where: { status: 'done' },
         orderBy: { createdAt: 'desc' },
@@ -86,10 +88,23 @@ async function processPdfExportJob(jobData: PdfExportJobData) {
     throw new Error(`Projeto ${projectId} nao encontrado para exportacao ${exportId}.`);
   }
 
-  let techReqs: string[] = [];
+  let techReqsRaw: unknown[] = [];
   let bom: Array<{ quantity: string; item: string; notes: string }> = [];
+  let assemblyStepsRaw: unknown[] = [];
   let suggestedCode = '';
   const latestExtraction = project.extractionLogs[0];
+
+  // Prefer a saved ProjectDossier (o dono pode ter editado os dados) e cai para o
+  // output bruto da extracao mais recente quando o dossie ainda nao foi gerado.
+  if (project.dossier) {
+    try {
+      techReqsRaw = project.dossier.technicalRequirements ? JSON.parse(project.dossier.technicalRequirements) : [];
+      bom = project.dossier.suggestedBOM ? JSON.parse(project.dossier.suggestedBOM) : [];
+      assemblyStepsRaw = project.dossier.assemblySteps ? JSON.parse(project.dossier.assemblySteps) : [];
+    } catch (error) {
+      console.error('Falha ao parsear dossie do projeto:', error);
+    }
+  }
 
   if (latestExtraction?.output) {
     try {
@@ -98,21 +113,36 @@ async function processPdfExportJob(jobData: PdfExportJobData) {
           ? JSON.parse(latestExtraction.output)
           : latestExtraction.output;
 
-      techReqs = (parsed.technicalRequirements || []).map((r: Record<string, unknown> | string) => {
-        if (typeof r === 'string') return r;
-        return String(r.detail || r.description || r.name || JSON.stringify(r));
-      });
-
-      bom = parsed.suggestedBOM || [];
+      if (!project.dossier) {
+        techReqsRaw = parsed.technicalRequirements || [];
+        bom = parsed.suggestedBOM || [];
+        assemblyStepsRaw = parsed.assemblySteps || [];
+      }
       suggestedCode = parsed.suggestedCode || '';
     } catch (error) {
       console.error('Falha ao parsear extracao AI:', error);
     }
   }
 
+  const techReqs = techReqsRaw.map((r) => {
+    if (typeof r === 'string') return r;
+    const req = r as Record<string, unknown>;
+    return String(req.detail || req.description || req.name || JSON.stringify(req));
+  });
+
+  const assemblySteps = assemblyStepsRaw.map((s, i) => {
+    const step = s as Record<string, unknown>;
+    return {
+      step: Number.isFinite(Number(step.step)) ? Number(step.step) : i + 1,
+      title: String(step.title || `Etapa ${i + 1}`),
+      detail: String(step.detail || ''),
+    };
+  });
+
   const exportData: ExportData = {
     projectTitle: project.title,
     projectDescription: project.description || '',
+    projectUrl: `${PUBLIC_SITE_URL}/projects/${project.id}`,
     creator: project.creator.name || project.creator.email,
     tags: project.tags.map((t) => t.tag),
     difficulties: project.difficulties.map((difficulty) => ({
@@ -121,7 +151,9 @@ async function processPdfExportJob(jobData: PdfExportJobData) {
     })),
     technicalRequirements: techReqs,
     suggestedBom: bom,
+    assemblySteps,
     suggestedCode,
+    videoUrl: project.dossier?.videoUrl ?? null,
   };
 
   const pdfBuffer = await buildPdf(exportData);
