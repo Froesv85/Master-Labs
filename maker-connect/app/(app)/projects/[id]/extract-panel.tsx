@@ -32,10 +32,12 @@ export default function ExtractPanel({
   projectId,
   initialInput,
   currentEmbeddingId,
+  onExtractionDone,
 }: {
   projectId: number;
   initialInput: string;
   currentEmbeddingId: string | null;
+  onExtractionDone?: () => void;
 }) {
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -73,10 +75,11 @@ export default function ExtractPanel({
         const currentLog = logs.find((l) => l.webhookId === webhookId);
         if (currentLog && currentLog.status === 'done') {
           setResult((prev) => (prev ? { ...prev, status: 'done', output: typeof currentLog.output === 'string' ? JSON.parse(currentLog.output) : currentLog.output } : null));
+          onExtractionDone?.();
           return true; // Stop polling
         }
         if (currentLog && currentLog.status === 'failed') {
-          setError('Ocorreu um erro no pipeline do n8n.');
+          setError('Ocorreu um erro no pipeline de extração.');
           setResult((prev) => (prev ? { ...prev, status: 'failed' } : null));
           return true; // Stop polling
         }
@@ -216,7 +219,7 @@ export default function ExtractPanel({
           
           {result.status === 'queued' && (
             <div className="mt-4 animate-pulse text-emerald-600 font-medium">
-              ⏳ Processando Inteligência Artificial no n8n (RAG)...
+              ⏳ Processando extração (pipeline de IA, RAG)...
             </div>
           )}
 

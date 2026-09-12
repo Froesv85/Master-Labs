@@ -31,6 +31,28 @@ export async function projectVisibilityWhere(userId: number | null): Promise<Pri
   };
 }
 
+export type OwnershipGuardResult = { error: null; project: { creatorId: number } } | { error: string; status: number };
+
+export async function requireOwnedProject(
+  projectId: number,
+  userId: number | null | undefined
+): Promise<OwnershipGuardResult> {
+  if (!Number.isInteger(projectId) || projectId <= 0) {
+    return { error: 'ID inválido', status: 400 };
+  }
+  if (!userId) {
+    return { error: 'Não autorizado', status: 401 };
+  }
+  const project = await prisma.project.findUnique({ where: { id: projectId }, select: { creatorId: true } });
+  if (!project) {
+    return { error: 'Projeto não encontrado', status: 404 };
+  }
+  if (project.creatorId !== userId) {
+    return { error: 'Sem permissão', status: 403 };
+  }
+  return { error: null, project };
+}
+
 export async function canAccessProject(
   project: { visibility: string; creatorId: number; teamId: number | null },
   userId: number | null

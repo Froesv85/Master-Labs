@@ -15,6 +15,7 @@ describe('buildRagPrompt', () => {
     expect(prompt).toContain('Idioma: pt-BR');
     expect(prompt).toContain('Projeto: ESP32 Weather Station');
     expect(prompt).toContain('mc_extract_v2');
+    expect(prompt).toContain('assemblySteps');
     expect(prompt).toContain('DHT22 sensor datasheet');
     expect(prompt).toContain('ESP32 pinout');
     // input deve ser truncado a 900 chars dentro do prompt
@@ -81,5 +82,31 @@ describe('normalizeExtractionOutput', () => {
     const raw = JSON.stringify({ technicalRequirements: [{ name: 'X', priority: 'urgent' }] });
     const result = normalizeExtractionOutput(raw, 0, null);
     expect(result.technicalRequirements[0].priority).toBe('medium');
+  });
+
+  it('normaliza assemblySteps quando presente', () => {
+    const raw = JSON.stringify({
+      assemblySteps: [
+        { step: 1, title: 'Montar chassi', detail: 'Fixar os parafusos' },
+        { step: 2, title: 'Conectar sensores', detail: 'ESP32 aos sensores via I2C' },
+      ],
+    });
+    const result = normalizeExtractionOutput(raw, 0, null);
+    expect(result.assemblySteps).toHaveLength(2);
+    expect(result.assemblySteps[0]).toEqual({ step: 1, title: 'Montar chassi', detail: 'Fixar os parafusos' });
+  });
+
+  it('assemblySteps vem vazio quando ausente do output', () => {
+    const result = normalizeExtractionOutput(JSON.stringify({ confidenceScore: 50 }), 0, null);
+    expect(result.assemblySteps).toEqual([]);
+  });
+
+  it('limita assemblySteps a 8 itens e preenche title/step ausentes', () => {
+    const many = Array.from({ length: 12 }, () => ({ detail: 'algum detalhe' }));
+    const raw = JSON.stringify({ assemblySteps: many });
+    const result = normalizeExtractionOutput(raw, 0, null);
+    expect(result.assemblySteps).toHaveLength(8);
+    expect(result.assemblySteps[0].step).toBe(1);
+    expect(result.assemblySteps[0].title).toBe('Etapa 1');
   });
 });

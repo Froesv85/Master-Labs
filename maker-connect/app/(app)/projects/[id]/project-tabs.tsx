@@ -5,6 +5,8 @@ import DifficultiesPanel from './difficulties-panel';
 import ExtractPanel from './extract-panel';
 import ExportPanel from './export-panel';
 import CommentsPanel from './comments-panel';
+import DossierPanel from './dossier-panel';
+import CodeFilesPanel from './code-files-panel';
 
 type Difficulty = {
   id: number;
@@ -54,6 +56,7 @@ export default function ProjectTabs({
 }: ProjectTabsProps) {
   const [ownerTab, setOwnerTab] = useState<'ai' | 'docs' | 'gov'>('ai');
   const [guestTab, setGuestTab] = useState<'docs' | 'comments'>('docs');
+  const [dossierRefreshKey, setDossierRefreshKey] = useState(0);
 
   if (!isOwner) {
     return (
@@ -91,20 +94,25 @@ export default function ProjectTabs({
             projectId={projectId}
             initialInput={initialInput}
             currentEmbeddingId={currentEmbeddingId}
+            onExtractionDone={() => {
+              setOwnerTab('docs');
+              setDossierRefreshKey((k) => k + 1);
+            }}
           />
         </div>
 
         <div className={ownerTab === 'docs' ? 'block' : 'hidden'}>
-          <div className="rounded-xl border border-blue-200 bg-blue-50 p-6 text-blue-900 mb-6">
+          <div className="rounded-xl border border-blue-200 bg-blue-50 p-6 text-blue-900">
             <h3 className="font-semibold text-lg flex items-center gap-2">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
               Dossiê Vivo
             </h3>
             <p className="mt-2 text-sm opacity-90">
-              O dossiê consolida silenciosamente os resultados da Extração IA.
-              Para gerar a versão imprimível/PDF com todos os dados da plataforma preenchidos, acesse a aba Governança.
+              Requisitos, BOM e etapas de montagem gerados pela IA — edite livremente, suas alterações não afetam a saída original da extração. Para gerar a versão imprimível/PDF, acesse a aba Governança.
             </p>
           </div>
+          <DossierPanel projectId={projectId} refreshSignal={dossierRefreshKey} />
+          <CodeFilesPanel projectId={projectId} />
         </div>
 
         <div className={ownerTab === 'gov' ? 'block' : 'hidden'}>

@@ -27,20 +27,22 @@ Evidencias tecnicas (top 3):
 ${evidenceText}
 
 Schema unico obrigatorio:
-{"schemaVersion":"mc_extract_v2","technicalRequirements":[{"id":"TR-1","name":"string","detail":"string","priority":"high|medium|low"}],"suggestedBOM":[{"item":"string","quantity":"string","notes":"string"}],"suggestedCode":"string","confidenceScore":0}
+{"schemaVersion":"mc_extract_v2","technicalRequirements":[{"id":"TR-1","name":"string","detail":"string","priority":"high|medium|low"}],"suggestedBOM":[{"item":"string","quantity":"string","notes":"string"}],"assemblySteps":[{"step":1,"title":"string","detail":"string"}],"suggestedCode":"string","confidenceScore":0}
 
 Regras:
 1) schemaVersion deve ser exatamente mc_extract_v2
 2) confidenceScore entre 0 e 100
 3) technicalRequirements e suggestedBOM com maximo 6 itens
-4) Se nao houver informacao, mantenha a chave e use string vazia
-5) Nao incluir chaves fora do schema`;
+4) assemblySteps com maximo 8 etapas, numeradas em ordem a partir de 1
+5) Se nao houver informacao, mantenha a chave e use string vazia
+6) Nao incluir chaves fora do schema`;
 }
 
 export type NormalizedExtractionOutput = {
   schemaVersion: 'mc_extract_v2';
   technicalRequirements: { id: string; name: string; detail: string; priority: string }[];
   suggestedBOM: { item: string; quantity: string; notes: string }[];
+  assemblySteps: { step: number; title: string; detail: string }[];
   suggestedCode: string;
   confidenceScore: number;
   parseError: string | null;
@@ -153,10 +155,18 @@ export function normalizeExtractionOutput(
     notes: ensureString(b?.notes ?? b?.detail ?? b?.description, ''),
   }));
 
+  const stepsRaw = Array.isArray(parsedOutput.assemblySteps) ? parsedOutput.assemblySteps : [];
+  const assemblySteps = stepsRaw.slice(0, 8).map((s: Record<string, unknown>, i: number) => ({
+    step: Number.isFinite(Number(s?.step)) ? Number(s?.step) : i + 1,
+    title: ensureString(s?.title ?? s?.name, `Etapa ${i + 1}`),
+    detail: ensureString(s?.detail ?? s?.description, ''),
+  }));
+
   return {
     schemaVersion: 'mc_extract_v2',
     technicalRequirements,
     suggestedBOM,
+    assemblySteps,
     suggestedCode: ensureString(parsedOutput.suggestedCode, ''),
     confidenceScore: normalizeConfidence(parsedOutput.confidenceScore),
     parseError,

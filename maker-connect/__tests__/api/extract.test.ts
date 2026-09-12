@@ -3,7 +3,7 @@ import { NextRequest } from 'next/server';
 jest.mock('@/lib/prisma', () => ({
   prisma: {
     project: { findUnique: jest.fn(), update: jest.fn() },
-    projectExtractionLog: { create: jest.fn(), update: jest.fn() },
+    projectExtractionLog: { create: jest.fn(), update: jest.fn(), findMany: jest.fn() },
   },
 }));
 
@@ -13,7 +13,7 @@ jest.mock('@/lib/extraction-queue', () => ({
 
 import { prisma } from '@/lib/prisma';
 import { enqueueExtractionJob } from '@/lib/extraction-queue';
-import { POST } from '@/app/api/projects/[id]/extract/route';
+import { GET, POST } from '@/app/api/projects/[id]/extract/route';
 
 const mockProject = { id: 1, title: 'ESP32 Weather Station', description: '', creator: { language: 'pt-BR' } };
 const mockLog = {
@@ -106,5 +106,77 @@ describe('POST /api/projects/[id]/extract', () => {
       );
       expect(enqueueExtractionJob).not.toHaveBeenCalled();
     });
+  });
+});
+
+describe('GET /api/projects/[id]/extract', () => {
+  function makeGetRequest() {
+    return new NextRequest('http://localhost:3000/api/projects/1/extract');
+  }
+
+  it('retorna 404 quando o projeto nao existe', async () => {
+    (prisma.project.findUnique as jest.Mock).mockResolvedValue(null);
+    const res = await GET(makeGetRequest(), { params });
+    expect(res.status).toBe(404);
+  });
+
+  it('inclui e faz parse dos campos da Fase 5 (ml-pipeline)', async () => {
+    (prisma.project.findUnique as jest.Mock).mockResolvedValue({ id: 1 });
+    (prisma.projectExtractionLog.findMany as jest.Mock).mockResolvedValue([
+      {
+        id: 24,
+        status: 'done',
+        keywords: '["esp32"]',
+        output: JSON.stringify({ confidenceScore: 90 }),
+        predictedCategory: 'IoT',
+        predictedDifficulty: 'expert',
+        predictedDomains: JSON.stringify(['MCU', 'Sensor']),
+        missingComponents: JSON.stringify([{ item: 'bateria', reason: 'x', confidence: 0.6 }]),
+        bomClusterLabel: 'esp32-sensor',
+        auditScore: 88,
+        auditFlags: JSON.stringify(['Possivel peca esquecida: bateria']),
+      },
+    ]);
+
+    const res = await GET(makeGetRequest(), { params });
+    const payload = await res.json();
+
+    expect(res.status).toBe(200);
+    const log = payload.data[0];
+    expect(log.predictedCategory).toBe('IoT');
+    expect(log.predictedDifficulty).toBe('expert');
+    expect(log.predictedDomains).toEqual(['MCU', 'Sensor']);
+    expect(log.missingComponents).toEqual([{ item: 'bateria', reason: 'x', confidence: 0.6 }]);
+    expect(log.bomClusterLabel).toBe('esp32-sensor');
+    expect(log.auditScore).toBe(88);
+    expect(log.auditFlags).toEqual(['Possivel peca esquecida: bateria']);
+  });
+
+  it('usa defaults vazios quando os campos da Fase 5 sao null', async () => {
+    (prisma.project.findUnique as jest.Mock).mockResolvedValue({ id: 1 });
+    (prisma.projectExtractionLog.findMany as jest.Mock).mockResolvedValue([
+      {
+        id: 23,
+        status: 'done',
+        keywords: null,
+        output: null,
+        predictedCategory: null,
+        predictedDifficulty: null,
+        predictedDomains: null,
+        missingComponents: null,
+        bomClusterLabel: null,
+        auditScore: null,
+        auditFlags: null,
+      },
+    ]);
+
+    const res = await GET(makeGetRequest(), { params });
+    const payload = await res.json();
+    const log = payload.data[0];
+
+    expect(log.predictedDomains).toEqual([]);
+    expect(log.missingComponents).toEqual([]);
+    expect(log.auditFlags).toEqual([]);
+    expect(log.output).toBeNull();
   });
 });

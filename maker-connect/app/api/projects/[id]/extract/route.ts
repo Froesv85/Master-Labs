@@ -342,6 +342,13 @@ export async function GET(
         error: true,
         createdAt: true,
         updatedAt: true,
+        predictedCategory: true,
+        predictedDifficulty: true,
+        predictedDomains: true,
+        missingComponents: true,
+        bomClusterLabel: true,
+        auditScore: true,
+        auditFlags: true,
       },
     });
 
@@ -349,6 +356,9 @@ export async function GET(
       ...log,
       keywords: log.keywords ? JSON.parse(log.keywords) : [],
       output: log.output ? JSON.parse(log.output) : null,
+      predictedDomains: log.predictedDomains ? JSON.parse(log.predictedDomains) : [],
+      missingComponents: log.missingComponents ? JSON.parse(log.missingComponents) : [],
+      auditFlags: log.auditFlags ? JSON.parse(log.auditFlags) : [],
     }));
 
     return NextResponse.json({
