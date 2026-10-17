@@ -43,9 +43,6 @@ export default function AppNav({ userId, userName, isAdmin }: Props) {
             <span className="text-base font-black tracking-tight text-white">
               MAKER<span className="text-amber-400">CONNECT</span>
             </span>
-            <span className="ml-2 rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-amber-400">
-              BETA
-            </span>
           </div>
         </Link>
 
