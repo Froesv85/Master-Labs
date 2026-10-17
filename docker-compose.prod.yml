@@ -35,6 +35,8 @@ services:
     container_name: maker-ml-pipeline
     restart: unless-stopped
     env_file: .env.prod
+    volumes:
+      - ./data/ml-pipeline:/srv/data
     depends_on:
       mysql:
         condition: service_healthy
@@ -74,7 +76,12 @@ services:
       retries: 5
 
   minio:
-    image: minio/minio:latest
+    # minio/minio foi removido do Docker Hub (e do Quay) pela MinIO Inc. em
+    # setembro de 2026 - cgr.dev/chainguard/minio e o mesmo binario, mantido
+    # pela Chainguard, ainda com pull anonimo. Essa imagem roda sempre como
+    # UID 65532 (nao-root) e nao tem curl/wget - healthcheck usa /dev/tcp do
+    # bash (que a imagem tem) em vez de curl. Ver passo-a-passo-deploy-hostinger.md.
+    image: cgr.dev/chainguard/minio:latest
     container_name: maker-minio
     restart: unless-stopped
     environment:
@@ -86,7 +93,7 @@ services:
     networks:
       - maker-net
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/127.0.0.1/9000'"]
       interval: 10s
       timeout: 5s
       retries: 5
