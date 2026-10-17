@@ -15,10 +15,11 @@ const ADMIN_NAV_ITEM = { href: '/admin/metrics', label: 'Métricas' };
 type Props = {
   userId: number;
   userName: string | null;
+  avatarUrl: string | null;
   isAdmin: boolean;
 };
 
-export default function AppNav({ userId, userName, isAdmin }: Props) {
+export default function AppNav({ userId, userName, avatarUrl, isAdmin }: Props) {
   const pathname = usePathname();
   const router = useRouter();
   const NAV_ITEMS = isAdmin ? [...BASE_NAV_ITEMS, ADMIN_NAV_ITEM] : BASE_NAV_ITEMS;
@@ -74,9 +75,14 @@ export default function AppNav({ userId, userName, isAdmin }: Props) {
             href={`/profile/${userId}`}
             className="flex items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-400 transition-all hover:bg-amber-500/20"
           >
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-[10px] font-black text-black">
-              {initials}
-            </span>
+            {avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={avatarUrl} alt={userName ?? 'Avatar'} className="h-5 w-5 rounded-full object-cover" />
+            ) : (
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-[10px] font-black text-black">
+                {initials}
+              </span>
+            )}
             <span className="hidden sm:block">{userName ?? 'Maker'}</span>
           </Link>
           <button

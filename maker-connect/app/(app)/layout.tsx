@@ -10,12 +10,17 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
 
   const user = await prisma.user.findUnique({
     where: { id: session.userId },
-    select: { role: true },
+    select: { role: true, profile: { select: { avatarUrl: true } } },
   });
 
   return (
     <div className="min-h-screen bg-[#0a0f1e] text-zinc-50">
-      <AppNav userId={session.userId} userName={session.name} isAdmin={user?.role === 'admin'} />
+      <AppNav
+        userId={session.userId}
+        userName={session.name}
+        avatarUrl={user?.profile?.avatarUrl ?? null}
+        isAdmin={user?.role === 'admin'}
+      />
       <main className="mx-auto max-w-7xl px-4 py-6">{children}</main>
     </div>
   );
