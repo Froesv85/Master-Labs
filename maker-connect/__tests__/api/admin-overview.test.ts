@@ -13,10 +13,6 @@ jest.mock('@/lib/admin', () => ({
   getAdminSession: jest.fn().mockResolvedValue({ userId: 1, email: 'admin@test.com', name: 'Admin' }),
 }));
 
-jest.mock('@/lib/azure-cost', () => ({
-  getAzureCost: jest.fn().mockResolvedValue({ configured: false }),
-}));
-
 jest.mock('@/lib/infra-stats', () => ({
   getRedisStats: jest.fn().mockResolvedValue({ configured: false }),
   getMinioStats: jest.fn().mockResolvedValue({ configured: false }),
@@ -54,7 +50,8 @@ describe('GET /api/admin/overview', () => {
     expect(body.counts).toEqual({ users: 5, projects: 64, robots: 5, competitions: 3, teams: 3 });
     expect(body.databases).toEqual([{ schema: 'maker', sizeMb: 1.44, tables: 27 }]);
     expect(body.topTables).toEqual([{ table: 'Project', sizeMb: 0.11, rowsEstimate: 64 }]);
-    expect(body.azure).toEqual({ configured: false });
+    expect(body.vps.host).toBe('VPS Hostinger');
+    expect(typeof body.vps.totalMemMb).toBe('number');
     expect(body.redis).toEqual({ configured: false });
     expect(body.minio).toEqual({ configured: false });
     expect(body.pinecone).toEqual({ configured: false });

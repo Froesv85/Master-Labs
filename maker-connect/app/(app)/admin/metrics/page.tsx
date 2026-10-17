@@ -38,7 +38,7 @@ type Overview = {
   counts: { users: number; projects: number; robots: number; competitions: number; teams: number };
   databases: Array<{ schema: string; sizeMb: number; tables: number }>;
   topTables: Array<{ table: string; sizeMb: number; rowsEstimate: number | null }>;
-  azure: { configured: boolean; monthToDateCost?: number; currency?: string; asOf?: string; error?: string };
+  vps: { host: string; totalMemMb: number; usedMemMb: number; usedMemPercent: number; loadAvg1: number; uptimeHours: number };
   redis: { configured: boolean; usedMemoryMb?: number; keys?: number; error?: string };
   minio: { configured: boolean; bucket?: string; objects?: number; sizeMb?: number; error?: string };
   pinecone: { configured: boolean; index?: string; vectors?: number; dimension?: number | null; error?: string };
@@ -117,31 +117,15 @@ export default function AdminMetricsPage() {
           </div>
 
           <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
-            {/* AZURE COST */}
+            {/* INFRAESTRUTURA (VPS HOSTINGER) */}
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 shadow-xl">
-              <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-zinc-400">Consumo Azure (mês atual)</h3>
-              {!overview.azure.configured ? (
-                <div className="text-sm text-zinc-500">
-                  <p className="text-zinc-400">Integração não configurada.</p>
-                  <p className="mt-2 text-xs leading-relaxed">
-                    Defina <code className="text-amber-400">AZURE_TENANT_ID</code>, <code className="text-amber-400">AZURE_CLIENT_ID</code>,{' '}
-                    <code className="text-amber-400">AZURE_CLIENT_SECRET</code> e <code className="text-amber-400">AZURE_SUBSCRIPTION_ID</code>{' '}
-                    no ambiente (App Registration com papel &quot;Cost Management Reader&quot; na subscription).
-                  </p>
-                </div>
-              ) : overview.azure.error ? (
-                <p className="text-sm text-rose-400">{overview.azure.error}</p>
-              ) : (
-                <>
-                  <p className="text-3xl font-bold text-amber-400">
-                    {overview.azure.monthToDateCost?.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}{' '}
-                    <span className="text-lg text-zinc-500">{overview.azure.currency}</span>
-                  </p>
-                  <p className="mt-1 text-xs text-zinc-500">
-                    Atualizado em {overview.azure.asOf ? new Date(overview.azure.asOf).toLocaleString('pt-BR') : '--'}
-                  </p>
-                </>
-              )}
+              <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-zinc-400">Infraestrutura ({overview.vps.host})</h3>
+              <p className="text-3xl font-bold text-amber-400">
+                {overview.vps.usedMemPercent}% <span className="text-lg text-zinc-500">RAM</span>
+              </p>
+              <p className="mt-1 text-xs text-zinc-500">
+                {overview.vps.usedMemMb} MB / {overview.vps.totalMemMb} MB · load {overview.vps.loadAvg1} · uptime {overview.vps.uptimeHours}h
+              </p>
             </div>
 
             {/* DB SIZE BY SCHEMA */}
@@ -201,6 +185,9 @@ export default function AdminMetricsPage() {
               title="Pinecone (vetores)"
               envHint="PINECONE_API_KEY"
               stats={overview.pinecone}
+              unconfiguredMessage={
+                <p className="text-sm text-zinc-500">Busca semântica (RAG) — fase 2, ainda não habilitada.</p>
+              }
               render={(s) => (
                 <>
                   <p className="text-3xl font-bold text-amber-400">{s.vectors} <span className="text-lg text-zinc-500">vetores</span></p>
@@ -394,22 +381,26 @@ function InfraCard<T extends { configured: boolean; error?: string }>({
   envHint,
   stats,
   render,
+  unconfiguredMessage,
 }: {
   title: string;
   envHint: string;
   stats: T;
   render: (stats: T) => ReactNode;
+  unconfiguredMessage?: ReactNode;
 }) {
   return (
     <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 shadow-xl">
       <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-zinc-400">{title}</h3>
       {!stats.configured ? (
-        <div className="text-sm text-zinc-500">
-          <p className="text-zinc-400">Integração não configurada.</p>
-          <p className="mt-2 text-xs leading-relaxed">
-            Defina <code className="text-amber-400">{envHint}</code> no ambiente.
-          </p>
-        </div>
+        unconfiguredMessage ?? (
+          <div className="text-sm text-zinc-500">
+            <p className="text-zinc-400">Integração não configurada.</p>
+            <p className="mt-2 text-xs leading-relaxed">
+              Defina <code className="text-amber-400">{envHint}</code> no ambiente.
+            </p>
+          </div>
+        )
       ) : stats.error ? (
         <p className="text-sm text-rose-400">{stats.error}</p>
       ) : (
