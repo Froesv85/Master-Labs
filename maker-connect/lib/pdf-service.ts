@@ -63,7 +63,11 @@ export async function buildPdf(data: ExportData): Promise<Buffer> {
     if (fs.existsSync(logoPath)) {
       const logoBuffer = fs.readFileSync(logoPath);
       const logoBase64 = `data:image/png;base64,${logoBuffer.toString('base64')}`;
-      doc.addImage(logoBase64, 'PNG', 170, 10, 20, 20); // Top Right corner
+      // maker-logo-pdf.png e 700x180 (wordmark horizontal) - largura fixa com altura
+      // proporcional evita esticar o logo num quadrado e distorce-lo.
+      const logoWidth = 20;
+      const logoHeight = logoWidth * (180 / 700);
+      doc.addImage(logoBase64, 'PNG', 170, 10, logoWidth, logoHeight); // Top Right corner
     }
   } catch (e) {
     console.error('Erro ao injetar logo no PDF:', e);
