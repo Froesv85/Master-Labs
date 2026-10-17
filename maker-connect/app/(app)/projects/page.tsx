@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Modal, Field, FormActions, inputCls, selectCls } from '@/components/modal';
 import { fetchProjectsFeed, shareProject, voteProject } from '@/features/social/projects/api';
 import type { FeedCategory, FeedSort, ProjectItem, ProjectsFeedResponse } from '@/features/social/projects/types';
+import { isValidYoutubeUrl } from '@/lib/youtube';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -271,11 +272,17 @@ function CreateProjectModal({ onClose, onCreated }: { onClose: () => void; onCre
   const [objective, setObjective] = useState('');
   const [tags, setTags] = useState<string[]>(['Robotics']);
   const [componentsList, setComponentsList] = useState<{ name: string; quantity: string; description: string }[]>([]);
+  const [assemblySteps, setAssemblySteps] = useState<{ title: string; detail: string }[]>([]);
+  const [videoUrl, setVideoUrl] = useState('');
   const [visibility, setVisibility] = useState<'public' | 'private_owner' | 'private_team'>('public');
   const [teamId, setTeamId] = useState<number | ''>('');
   const [myTeams, setMyTeams] = useState<{ id: number; name: string }[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Sugestão por IA (description + BOM + etapas, via MakerBrain/Ollama)
+  const [suggesting, setSuggesting] = useState(false);
+  const [suggestError, setSuggestError] = useState<string | null>(null);
 
   // Cover image
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
@@ -302,6 +309,50 @@ function CreateProjectModal({ onClose, onCreated }: { onClose: () => void; onCre
 
   function addComponent() {
     setComponentsList((p) => [...p, { name: '', quantity: '1', description: '' }]);
+  }
+
+  function addStep() {
+    setAssemblySteps((p) => [...p, { title: '', detail: '' }]);
+  }
+
+  async function handleSuggest() {
+    if (title.trim().length < 3) {
+      setSuggestError('Preencha o título (mínimo 3 caracteres) antes de pedir sugestão.');
+      return;
+    }
+    setSuggesting(true);
+    setSuggestError(null);
+    try {
+      const categoryLabel = CATEGORY_OPTIONS.find((o) => {
+        const value = o.value === '3D_Printing' ? 'Printing3D' : o.value;
+        return tags.includes(value);
+      })?.label;
+      const res = await fetch('/api/projects/draft', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, objective, category: categoryLabel }),
+      });
+      const payload = await res.json();
+      if (!res.ok) throw new Error(payload.error ?? 'Erro ao gerar sugestão');
+
+      const draft = payload.data as {
+        description: string;
+        suggestedBOM: { item: string; quantity: string; notes: string }[];
+        assemblySteps: { step: number; title: string; detail: string }[];
+      };
+
+      if (draft.description) setDescription(draft.description);
+      if (draft.suggestedBOM.length > 0) {
+        setComponentsList(draft.suggestedBOM.map((b) => ({ name: b.item, quantity: b.quantity, description: b.notes })));
+      }
+      if (draft.assemblySteps.length > 0) {
+        setAssemblySteps(draft.assemblySteps.map((s) => ({ title: s.title, detail: s.detail })));
+      }
+    } catch (err) {
+      setSuggestError(err instanceof Error ? err.message : 'Erro ao gerar sugestão');
+    } finally {
+      setSuggesting(false);
+    }
   }
 
   useEffect(() => {
@@ -346,6 +397,7 @@ function CreateProjectModal({ onClose, onCreated }: { onClose: () => void; onCre
     if (!title.trim()) { setError('Título obrigatório'); return; }
     if (tags.length === 0) { setError('Selecione ao menos uma tag'); return; }
     if (visibility === 'private_team' && !teamId) { setError('Selecione a equipe'); return; }
+    if (videoUrl.trim() && !isValidYoutubeUrl(videoUrl.trim())) { setError('Link de vídeo inválido. Use um link do YouTube.'); return; }
     setSaving(true); setError(null);
     try {
       const body: Record<string, unknown> = {
@@ -385,6 +437,22 @@ function CreateProjectModal({ onClose, onCreated }: { onClose: () => void; onCre
         );
       }
 
+      // Dossiê (BOM/etapas/vídeo) alimenta o PDF exportado e a página do projeto -
+      // já popula com o que foi preenchido na criação, sem esperar uma extração.
+      const dossierBOM = validComponents.map((c) => ({ item: c.name.trim(), quantity: c.quantity, notes: c.description.trim() }));
+      const validSteps = assemblySteps.filter((s) => s.title.trim());
+      if (dossierBOM.length > 0 || validSteps.length > 0 || videoUrl.trim()) {
+        await fetch(`/api/projects/${project.id}/dossier`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            suggestedBOM: dossierBOM,
+            assemblySteps: validSteps.map((s, i) => ({ step: i + 1, title: s.title.trim(), detail: s.detail.trim() })),
+            videoUrl: videoUrl.trim() || null,
+          }),
+        }).catch(() => {}); // não bloqueia a criação do projeto se isso falhar
+      }
+
       onCreated();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao criar projeto');
@@ -393,13 +461,15 @@ function CreateProjectModal({ onClose, onCreated }: { onClose: () => void; onCre
   }
 
   return (
-    <Modal title="Criar Projeto" onClose={onClose}>
-      <form onSubmit={handleSubmit} className="space-y-5">
-        {/* Cover image */}
-        <div>
-          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-zinc-400">
-            Imagem de capa
-          </label>
+    <Modal title="Criar Projeto" onClose={onClose} maxWidth="max-w-2xl">
+      <form onSubmit={handleSubmit} className="space-y-7">
+        <p className="-mt-1 text-sm text-zinc-400">
+          Preencha o essencial e publique — você pode editar BOM, etapas e vídeo depois na página do projeto.
+        </p>
+
+        {/* 1. Capa */}
+        <section className="space-y-2">
+          <h3 className="text-xs font-bold uppercase tracking-widest text-amber-400">1. Imagem de capa <span className="font-normal normal-case text-zinc-600">(opcional)</span></h3>
           {coverPreview ? (
             <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl border border-white/10">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -418,44 +488,66 @@ function CreateProjectModal({ onClose, onCreated }: { onClose: () => void; onCre
             </button>
           )}
           <input ref={coverRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={handleCoverChange} />
-        </div>
+        </section>
 
-        {/* Basic fields */}
-        <Field label="Título">
-          <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Nome do projeto" className={inputCls} />
-        </Field>
-        <Field label="Descrição" hint="(opcional)">
-          <textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="O que você está construindo?" className={`${inputCls} resize-none`} />
-        </Field>
-        <Field label="Objetivo" hint="(opcional)">
-          <textarea rows={2} value={objective} onChange={(e) => setObjective(e.target.value)} placeholder="Qual problema esse projeto resolve?" className={`${inputCls} resize-none`} />
-        </Field>
-        <Field label="Tags">
-          <div className="flex flex-wrap gap-2">
-            {CATEGORY_OPTIONS.map((opt) => {
-              const value = opt.value === '3D_Printing' ? 'Printing3D' : opt.value;
-              const active = tags.includes(value);
-              return (
-                <button key={opt.value} type="button" onClick={() => toggleTag(value)}
-                  className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold uppercase tracking-wide transition-all ${active ? opt.filterActive : opt.filterHover}`}>
-                  <span className="[&>svg]:h-3 [&>svg]:w-3">{opt.icon}</span>{opt.label}
-                </button>
-              );
-            })}
+        {/* 2. Sobre o projeto */}
+        <section className="space-y-4">
+          <h3 className="text-xs font-bold uppercase tracking-widest text-amber-400">2. Sobre o projeto</h3>
+
+          <Field label="Título" hint="o nome do seu projeto">
+            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex.: Alimentador automático de ração" className={inputCls} />
+          </Field>
+
+          <Field label="Tags" hint="escolha a(s) categoria(s) — ajuda outros makers a encontrar seu projeto">
+            <div className="flex flex-wrap gap-2">
+              {CATEGORY_OPTIONS.map((opt) => {
+                const value = opt.value === '3D_Printing' ? 'Printing3D' : opt.value;
+                const active = tags.includes(value);
+                return (
+                  <button key={opt.value} type="button" onClick={() => toggleTag(value)}
+                    className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold uppercase tracking-wide transition-all ${active ? opt.filterActive : opt.filterHover}`}>
+                    <span className="[&>svg]:h-3 [&>svg]:w-3">{opt.icon}</span>{opt.label}
+                  </button>
+                );
+              })}
+            </div>
+          </Field>
+
+          <Field label="Objetivo" hint="(opcional) — que problema esse projeto resolve?">
+            <textarea rows={2} value={objective} onChange={(e) => setObjective(e.target.value)} placeholder="Ex.: Alimentar o pet automaticamente enquanto estou fora" className={`${inputCls} resize-none`} />
+          </Field>
+
+          {/* Sugestão por IA */}
+          <div className="rounded-xl border border-teal-500/20 bg-teal-500/5 p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <p className="text-xs font-bold text-teal-300">✨ Sugestão com IA</p>
+                <p className="text-xs text-zinc-500">Gera um rascunho de descrição, lista de materiais e etapas de montagem a partir do título/objetivo — você revisa e edita antes de publicar.</p>
+              </div>
+              <button type="button" onClick={handleSuggest} disabled={suggesting || title.trim().length < 3}
+                className="shrink-0 rounded-lg border border-teal-500/40 bg-teal-500/10 px-3 py-1.5 text-xs font-bold text-teal-300 transition hover:bg-teal-500/20 disabled:cursor-not-allowed disabled:opacity-40">
+                {suggesting ? 'Gerando…' : 'Sugerir com IA'}
+              </button>
+            </div>
+            {suggestError && <p className="mt-2 text-xs text-red-400">{suggestError}</p>}
           </div>
-        </Field>
 
-        {/* Componentes */}
-        <div className="space-y-3">
+          <Field label="Descrição" hint="(opcional) — ou use a sugestão com IA acima">
+            <textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="O que você está construindo?" className={`${inputCls} resize-none`} />
+          </Field>
+        </section>
+
+        {/* 3. Lista de materiais */}
+        <section className="space-y-3">
           <div className="flex items-center justify-between">
-            <label className="text-xs font-semibold uppercase tracking-wide text-zinc-400">Componentes</label>
+            <h3 className="text-xs font-bold uppercase tracking-widest text-amber-400">3. Lista de materiais (BOM) <span className="font-normal normal-case text-zinc-600">(opcional)</span></h3>
             <button type="button" onClick={addComponent}
               className="rounded-lg border border-white/10 bg-slate-800 px-3 py-1.5 text-xs text-zinc-400 hover:text-zinc-200">
               + Adicionar
             </button>
           </div>
           {componentsList.length === 0 && (
-            <p className="text-xs text-zinc-600">Peças, materiais, módulos usados no projeto...</p>
+            <p className="text-xs text-zinc-600">Peças, materiais, módulos usados no projeto — ex.: &quot;Arduino Uno&quot;, qtd 1.</p>
           )}
           {componentsList.map((c, i) => (
             <div key={i} className="flex gap-2">
@@ -469,24 +561,62 @@ function CreateProjectModal({ onClose, onCreated }: { onClose: () => void; onCre
                 className="rounded-lg border border-white/10 bg-slate-800 px-2 text-zinc-600 hover:text-red-400">x</button>
             </div>
           ))}
-        </div>
+        </section>
 
-        <Field label="Visibilidade">
-          <select value={visibility} onChange={(e) => setVisibility(e.target.value as typeof visibility)} className={selectCls}>
-            <option value="public">Pública — aparece para todos</option>
-            <option value="private_owner">Privada — só eu</option>
-            <option value="private_team">Privada — minha equipe</option>
-          </select>
-        </Field>
-        {visibility === 'private_team' && (
-          <Field label="Equipe">
-            <select value={teamId} onChange={(e) => setTeamId(e.target.value ? Number(e.target.value) : '')} className={selectCls}>
-              <option value="">Selecione a equipe...</option>
-              {myTeams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
-            </select>
-            {myTeams.length === 0 && <p className="mt-1 text-xs text-zinc-600">Você não é membro aprovado de nenhuma equipe.</p>}
+        {/* 4. Etapas de montagem */}
+        <section className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-bold uppercase tracking-widest text-amber-400">4. Etapas de montagem <span className="font-normal normal-case text-zinc-600">(opcional)</span></h3>
+            <button type="button" onClick={addStep}
+              className="rounded-lg border border-white/10 bg-slate-800 px-3 py-1.5 text-xs text-zinc-400 hover:text-zinc-200">
+              + Adicionar
+            </button>
+          </div>
+          {assemblySteps.length === 0 && (
+            <p className="text-xs text-zinc-600">O passo a passo de montagem, em ordem — ou use a sugestão com IA acima.</p>
+          )}
+          {assemblySteps.map((s, i) => (
+            <div key={i} className="flex gap-2">
+              <span className="flex h-10 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-xs font-bold text-zinc-500">{i + 1}</span>
+              <div className="flex-1 space-y-1.5">
+                <input value={s.title} onChange={(e) => setAssemblySteps((p) => p.map((x, j) => j === i ? { ...x, title: e.target.value } : x))}
+                  placeholder="Título da etapa" className={inputCls} />
+                <input value={s.detail} onChange={(e) => setAssemblySteps((p) => p.map((x, j) => j === i ? { ...x, detail: e.target.value } : x))}
+                  placeholder="Detalhes (opcional)" className={inputCls} />
+              </div>
+              <button type="button" onClick={() => setAssemblySteps((p) => p.filter((_, j) => j !== i))}
+                className="shrink-0 rounded-lg border border-white/10 bg-slate-800 px-2 text-zinc-600 hover:text-red-400">x</button>
+            </div>
+          ))}
+        </section>
+
+        {/* 5. Vídeo */}
+        <section className="space-y-3">
+          <h3 className="text-xs font-bold uppercase tracking-widest text-amber-400">5. Vídeo <span className="font-normal normal-case text-zinc-600">(opcional)</span></h3>
+          <Field label="Link do YouTube" hint="mostra o vídeo do projeto na página e no PDF exportado">
+            <input value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} placeholder="https://youtube.com/watch?v=..." className={inputCls} />
           </Field>
-        )}
+        </section>
+
+        <section className="space-y-4">
+          <h3 className="text-xs font-bold uppercase tracking-widest text-amber-400">6. Visibilidade</h3>
+          <Field label="Quem pode ver">
+            <select value={visibility} onChange={(e) => setVisibility(e.target.value as typeof visibility)} className={selectCls}>
+              <option value="public">Pública — aparece para todos</option>
+              <option value="private_owner">Privada — só eu</option>
+              <option value="private_team">Privada — minha equipe</option>
+            </select>
+          </Field>
+          {visibility === 'private_team' && (
+            <Field label="Equipe">
+              <select value={teamId} onChange={(e) => setTeamId(e.target.value ? Number(e.target.value) : '')} className={selectCls}>
+                <option value="">Selecione a equipe...</option>
+                {myTeams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+              </select>
+              {myTeams.length === 0 && <p className="mt-1 text-xs text-zinc-600">Você não é membro aprovado de nenhuma equipe.</p>}
+            </Field>
+          )}
+        </section>
 
         {/* 3D Printing section */}
         {is3D && (
