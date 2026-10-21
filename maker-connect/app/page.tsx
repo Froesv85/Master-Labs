@@ -325,6 +325,10 @@ export default async function Home() {
         <footer className="border-t border-white/5 bg-[#080c17] px-8 py-8">
           <div className="mx-auto max-w-7xl flex flex-col sm:flex-row items-center justify-between gap-4">
             <Logo size={28} />
+            <nav className="flex gap-5 text-xs text-zinc-500">
+              <Link href="/termos" className="transition-colors hover:text-amber-400">Termos de Uso</Link>
+              <Link href="/privacidade" className="transition-colors hover:text-amber-400">Política de Privacidade</Link>
+            </nav>
             <p className="text-xs text-zinc-600">
               Desenvolvido pela Engenharia de Inovação da{' '}
               <a href="https://masterbytech.com.br/master-labs" target="_blank" rel="noreferrer" className="text-amber-500/70 hover:text-amber-400 transition-colors">
