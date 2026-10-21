@@ -3,7 +3,7 @@ import { verifySession } from '@/lib/auth';
 
 // /historia/: imagens da secao de historia da home (publica), em public/historia/
 const PUBLIC_PATHS = ['/login', '/signup', '/api/auth/login', '/api/auth/signup', '/historia/'];
-const PUBLIC_EXACT_PATHS = ['/'];
+const PUBLIC_EXACT_PATHS = ['/', '/termos', '/privacidade'];
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
