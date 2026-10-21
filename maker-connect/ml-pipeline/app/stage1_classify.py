@@ -14,6 +14,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
 
+from app.components import normalize_text
 from app.db import CategorySample
 
 MIN_TRAINING_SAMPLES = 8
@@ -50,11 +51,20 @@ DIFFICULTY_LEVELS = ["beginner", "intermediate", "advanced", "expert"]
 
 
 def _normalize(text: str) -> str:
-    return text.lower()
+    # sem acento: as palavras-chave sao escritas sem acento ("robo", "impressao 3d"),
+    # entao "robô" e "impressão 3D" nao casavam antes
+    return normalize_text(text)
+
+
+def _keyword_hit(keyword: str, text_norm: str) -> bool:
+    # palavra-chave curta exige palavra inteira ("pla" nao pode casar "placa", "ble" nao
+    # pode casar "problema"); as longas casam como prefixo ("robo" -> "robotica", "robos")
+    suffix = r"\b" if len(keyword) <= 3 else ""
+    return re.search(rf"\b{re.escape(keyword)}{suffix}", text_norm) is not None
 
 
 def _keyword_score(text_norm: str, keywords: dict[str, list[str]]) -> dict[str, int]:
-    return {label: sum(1 for kw in kws if kw in text_norm) for label, kws in keywords.items()}
+    return {label: sum(1 for kw in kws if _keyword_hit(kw, text_norm)) for label, kws in keywords.items()}
 
 
 def heuristic_category(text_norm: str) -> tuple[str, float]:

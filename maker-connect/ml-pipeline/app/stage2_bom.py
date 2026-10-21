@@ -7,7 +7,9 @@ para sinalizar peca provavelmente esquecida. Com poucas transacoes reais hoje
 isso complementamos com um conjunto curado de omissoes classicas - o mesmo
 padrao "heuristico agora, aprende sozinho conforme mais dado real chega".
 """
+import json
 from dataclasses import dataclass
+from pathlib import Path
 
 import pandas as pd
 from mlxtend.frequent_patterns import apriori, association_rules
@@ -15,9 +17,11 @@ from mlxtend.preprocessing import TransactionEncoder
 from sklearn.cluster import KMeans
 from sklearn.feature_extraction.text import TfidfVectorizer
 
+from app.components import canonical_items, display_name
 from app.db import BomTransaction
 
 MIN_TRANSACTIONS_FOR_RULES = 5
+EXTERNAL_RULES_PATH = Path(__file__).resolve().parent / "external_bom_rules.json"
 MIN_SUPPORT_FLOOR = 0.15
 
 # Omissoes classicas conhecidas do dominio maker/IoT, usadas enquanto o dado real
@@ -38,8 +42,30 @@ class MinedRule:
     confidence: float
 
 
+@dataclass
+class ExternalRule:
+    """Co-ocorrencia minerada fora do produto (artigos da Hackaday), em nomes canonicos
+    de app/components.py. Gerada por ml-pipeline/data/external/hackaday/build_derived.py.
+    Artigo nao e BOM completa, entao a confianca bruta e baixa; a regra so existe porque
+    o lift e alto e o consequente e uma peca de apoio do antecedente.
+    """
+    antecedent: str
+    consequent: str
+    posts: int
+    confidence: float
+    lift: float
+
+
+def load_external_rules(path: Path = EXTERNAL_RULES_PATH) -> list[ExternalRule]:
+    if not path.exists():
+        return []
+    data = json.loads(path.read_text(encoding="utf-8"))
+    return [ExternalRule(**rule) for rule in data.get("rules", [])]
+
+
 class BomEngine:
-    def __init__(self):
+    def __init__(self, external_rules: list[ExternalRule] | None = None):
+        self._external_rules = load_external_rules() if external_rules is None else external_rules
         self._rules: list[MinedRule] = []
         self._vectorizer: TfidfVectorizer | None = None
         self._kmeans: KMeans | None = None
@@ -121,13 +147,30 @@ class BomEngine:
                 if not existing or rule.confidence > existing[1]:
                     suggestions[rule.consequent] = ("Regra de associacao aprendida dos dados reais", rule.confidence)
 
+        present = canonical_items(items)
         for antecedent_keywords, missing_item, reason in CURATED_RULES:
             has_antecedent = any(
                 any(kw in item for item in items_norm) for kw in antecedent_keywords
             )
-            already_present = any(missing_item.split(" ")[0] in item for item in items_norm)
+            # "Ponte H TB6612FNG" ja satisfaz "driver de motor": compara pelo nome canonico tambem
+            already_present = any(missing_item.split(" ")[0] in item for item in items_norm) or bool(
+                canonical_items([missing_item]) & present
+            )
             if has_antecedent and not already_present and missing_item not in suggestions:
                 suggestions[missing_item] = (reason, 0.6)
+
+        already_suggested = canonical_items(list(suggestions))
+        for rule in self._external_rules:
+            if rule.antecedent not in present or rule.consequent in present | already_suggested:
+                continue
+            name = display_name(rule.consequent)
+            if name in suggestions and suggestions[name][1] >= rule.confidence:
+                continue
+            reason = (
+                f"Em {rule.posts} projetos publicados com {display_name(rule.antecedent)}, "
+                f"{name} aparece {rule.lift:.0f}x mais que o esperado"
+            )
+            suggestions[name] = (reason, rule.confidence)
 
         ranked = sorted(suggestions.items(), key=lambda kv: kv[1][1], reverse=True)[:5]
         return [(item, reason, confidence) for item, (reason, confidence) in ranked]
