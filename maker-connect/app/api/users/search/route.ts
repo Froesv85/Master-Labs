@@ -13,11 +13,14 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ data: [] });
   }
 
+  // Busca parcial so por nome; e-mail so por igualdade. Antes, buscar "@gmail" listava
+  // os e-mails de outros usuarios. O e-mail so volta para quem ja digitou o endereco exato.
+  const qLower = q.toLowerCase();
   const users = await prisma.user.findMany({
     where: {
       OR: [
         { name: { contains: q } },
-        { email: { contains: q } },
+        { email: qLower },
       ],
     },
     select: { id: true, name: true, email: true },
@@ -25,5 +28,7 @@ export async function GET(req: NextRequest) {
     orderBy: { name: 'asc' },
   });
 
-  return NextResponse.json({ data: users });
+  return NextResponse.json({
+    data: users.map((u) => ({ id: u.id, name: u.name, email: u.email.toLowerCase() === qLower ? u.email : null })),
+  });
 }

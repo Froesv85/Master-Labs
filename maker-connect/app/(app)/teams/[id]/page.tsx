@@ -122,7 +122,7 @@ function JoinButton({
 
 function AddMemberBox({ teamId, onAdded }: { teamId: number; onAdded: (member: Member) => void }) {
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<{ id: number; name: string | null; email: string }[]>([]);
+  const [results, setResults] = useState<{ id: number; name: string | null; email: string | null }[]>([]);
   const [searching, setSearching] = useState(false);
   const [addingUserId, setAddingUserId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -180,7 +180,7 @@ function AddMemberBox({ teamId, onAdded }: { teamId: number; onAdded: (member: M
         <ul className="mt-2 space-y-1.5">
           {results.map((u) => (
             <li key={u.id} className="flex items-center justify-between rounded-lg bg-slate-800 px-3 py-2 text-xs">
-              <span className="min-w-0 truncate text-zinc-300">{u.name ?? u.email}</span>
+              <span className="min-w-0 truncate text-zinc-300">{u.name ?? u.email ?? `Maker #${u.id}`}</span>
               <button
                 onClick={() => handleAdd(u.id)}
                 disabled={addingUserId === u.id}

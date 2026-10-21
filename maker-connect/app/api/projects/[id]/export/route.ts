@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
+import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { enqueuePdfExportJob } from '@/lib/pdf-export-queue';
+import { canAccessProject, requireOwnedProject } from '@/lib/project-access';
+import { RATE_LIMITS, checkRateLimit, tooManyRequests } from '@/lib/rate-limit';
 
 export async function GET(
   request: Request,
@@ -9,6 +12,19 @@ export async function GET(
   try {
     const { id } = await params;
     const projectId = Number(id);
+    if (!Number.isInteger(projectId) || projectId <= 0) {
+      return NextResponse.json({ error: 'ID inválido' }, { status: 400 });
+    }
+
+    // a lista de PDFs segue a visibilidade do projeto (quem nao e dono ve, mas nao gera)
+    const session = await getSession();
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+      select: { visibility: true, creatorId: true, teamId: true },
+    });
+    if (!project || !(await canAccessProject(project, session?.userId ?? null))) {
+      return NextResponse.json({ error: 'Projeto não encontrado' }, { status: 404 });
+    }
 
     const exportsList = await prisma.projectExport.findMany({
       where: { projectId },
@@ -30,11 +46,14 @@ export async function POST(
     const { id } = await params;
     const projectId = Number(id);
 
-    const project = await prisma.project.findUnique({ where: { id: projectId } });
-
-    if (!project) {
-      return NextResponse.json({ error: 'Projeto não encontrado' }, { status: 404 });
+    // gerar PDF consome CPU do worker: so o dono, com limite por hora
+    const session = await getSession();
+    const guard = await requireOwnedProject(projectId, session?.userId ?? null);
+    if (guard.error) {
+      return NextResponse.json({ error: guard.error }, { status: guard.status });
     }
+    const limit = await checkRateLimit(RATE_LIMITS.exportByUser, String(session!.userId));
+    if (!limit.allowed) return tooManyRequests(limit.retryAfterSeconds);
 
     // Cria registro de log assincrono no banco como queued.
     const exportRecord = await prisma.projectExport.create({
@@ -50,7 +69,7 @@ export async function POST(
     });
 
     // Responde imediatamente para UI; processamento segue no worker BullMQ.
-    return NextResponse.json({ 
+    return NextResponse.json({
         message: 'Geração de PDF enfileirada com sucesso.',
         exportId: exportRecord.id,
         queueJobId: job.id,

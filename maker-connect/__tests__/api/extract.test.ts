@@ -11,11 +11,20 @@ jest.mock('@/lib/extraction-queue', () => ({
   enqueueExtractionJob: jest.fn(),
 }));
 
+jest.mock('@/lib/auth', () => ({ getSession: jest.fn() }));
+jest.mock('@/lib/rate-limit', () => ({
+  RATE_LIMITS: { extractByUser: { name: 'extract-user', limit: 10, windowSeconds: 3600 } },
+  checkRateLimit: jest.fn(),
+  tooManyRequests: jest.requireActual('@/lib/rate-limit').tooManyRequests,
+}));
+
 import { prisma } from '@/lib/prisma';
+import { getSession } from '@/lib/auth';
+import { checkRateLimit } from '@/lib/rate-limit';
 import { enqueueExtractionJob } from '@/lib/extraction-queue';
 import { GET, POST } from '@/app/api/projects/[id]/extract/route';
 
-const mockProject = { id: 1, title: 'ESP32 Weather Station', description: '', creator: { language: 'pt-BR' } };
+const mockProject = { id: 1, creatorId: 1, title: 'ESP32 Weather Station', description: '', creator: { language: 'pt-BR' } };
 const mockLog = {
   id: 10, projectId: 1, status: 'queued', webhookId: 'webhook_1', piiRedactions: 0,
   keywords: '[]', language: 'pt-BR', createdAt: new Date(),
@@ -34,6 +43,11 @@ function makeRequest(body: unknown) {
   });
 }
 
+beforeEach(() => {
+  (getSession as jest.Mock).mockResolvedValue({ userId: 1, email: 'me@test.com', name: 'Me' });
+  (checkRateLimit as jest.Mock).mockResolvedValue({ allowed: true, retryAfterSeconds: 0 });
+});
+
 afterEach(() => {
   jest.clearAllMocks();
   global.fetch = originalFetch;
@@ -43,6 +57,7 @@ afterEach(() => {
 
 describe('POST /api/projects/[id]/extract', () => {
   it('retorna 400 quando input tem menos de 20 caracteres', async () => {
+    (prisma.project.findUnique as jest.Mock).mockResolvedValue(mockProject);
     const res = await POST(makeRequest({ input: 'curto' }), { params });
     expect(res.status).toBe(400);
   });
@@ -121,7 +136,7 @@ describe('GET /api/projects/[id]/extract', () => {
   });
 
   it('inclui e faz parse dos campos da Fase 5 (ml-pipeline)', async () => {
-    (prisma.project.findUnique as jest.Mock).mockResolvedValue({ id: 1 });
+    (prisma.project.findUnique as jest.Mock).mockResolvedValue({ id: 1, creatorId: 1 });
     (prisma.projectExtractionLog.findMany as jest.Mock).mockResolvedValue([
       {
         id: 24,
@@ -153,7 +168,7 @@ describe('GET /api/projects/[id]/extract', () => {
   });
 
   it('usa defaults vazios quando os campos da Fase 5 sao null', async () => {
-    (prisma.project.findUnique as jest.Mock).mockResolvedValue({ id: 1 });
+    (prisma.project.findUnique as jest.Mock).mockResolvedValue({ id: 1, creatorId: 1 });
     (prisma.projectExtractionLog.findMany as jest.Mock).mockResolvedValue([
       {
         id: 23,
@@ -178,5 +193,37 @@ describe('GET /api/projects/[id]/extract', () => {
     expect(log.missingComponents).toEqual([]);
     expect(log.auditFlags).toEqual([]);
     expect(log.output).toBeNull();
+  });
+});
+
+describe('permissões e limite em /api/projects/[id]/extract', () => {
+  it('POST sem sessão responde 401 sem enfileirar', async () => {
+    (getSession as jest.Mock).mockResolvedValue(null);
+    const res = await POST(makeRequest({ input: 'a'.repeat(30) }), { params });
+    expect(res.status).toBe(401);
+    expect(enqueueExtractionJob).not.toHaveBeenCalled();
+  });
+
+  it('POST de quem não é dono responde 403', async () => {
+    (prisma.project.findUnique as jest.Mock).mockResolvedValue({ ...mockProject, creatorId: 2 });
+    const res = await POST(makeRequest({ input: 'a'.repeat(30) }), { params });
+    expect(res.status).toBe(403);
+    expect(prisma.projectExtractionLog.create).not.toHaveBeenCalled();
+  });
+
+  it('POST acima do limite responde 429 com Retry-After', async () => {
+    (prisma.project.findUnique as jest.Mock).mockResolvedValue(mockProject);
+    (checkRateLimit as jest.Mock).mockResolvedValue({ allowed: false, retryAfterSeconds: 120 });
+    const res = await POST(makeRequest({ input: 'a'.repeat(30) }), { params });
+    expect(res.status).toBe(429);
+    expect(res.headers.get('Retry-After')).toBe('120');
+    expect(prisma.projectExtractionLog.create).not.toHaveBeenCalled();
+  });
+
+  it('GET de quem não é dono responde 403 (os logs trazem o webhookId do callback)', async () => {
+    (prisma.project.findUnique as jest.Mock).mockResolvedValue({ id: 1, creatorId: 2 });
+    const res = await GET(new NextRequest('http://localhost:3000/api/projects/1/extract'), { params });
+    expect(res.status).toBe(403);
+    expect(prisma.projectExtractionLog.findMany).not.toHaveBeenCalled();
   });
 });

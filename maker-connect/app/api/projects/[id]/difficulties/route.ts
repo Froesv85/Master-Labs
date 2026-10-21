@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { canAccessProject, requireOwnedProject } from '@/lib/project-access';
 
 function parseProjectId(value: string) {
   const parsed = Number(value);
@@ -26,12 +28,14 @@ export async function GET(
   }
 
   try {
+    const session = await getSession();
     const project = await prisma.project.findUnique({
       where: { id: projectId },
-      select: { id: true },
+      select: { id: true, visibility: true, creatorId: true, teamId: true },
     });
 
-    if (!project) {
+    // projeto privado de terceiros responde como inexistente
+    if (!project || !(await canAccessProject(project, session?.userId ?? null))) {
       return NextResponse.json({ error: 'Project not found.' }, { status: 404 });
     }
 
@@ -67,13 +71,10 @@ export async function POST(
   }
 
   try {
-    const project = await prisma.project.findUnique({
-      where: { id: projectId },
-      select: { id: true },
-    });
-
-    if (!project) {
-      return NextResponse.json({ error: 'Project not found.' }, { status: 404 });
+    const session = await getSession();
+    const guard = await requireOwnedProject(projectId, session?.userId ?? null);
+    if (guard.error) {
+      return NextResponse.json({ error: guard.error }, { status: guard.status });
     }
 
     const body = (await req.json().catch(() => null)) as { description?: string } | null;
