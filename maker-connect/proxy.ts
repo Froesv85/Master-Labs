@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifySession } from '@/lib/auth';
 
-const PUBLIC_PATHS = ['/login', '/signup', '/api/auth/login', '/api/auth/signup'];
+// /historia/: imagens da secao de historia da home (publica), em public/historia/
+const PUBLIC_PATHS = ['/login', '/signup', '/api/auth/login', '/api/auth/signup', '/historia/'];
 const PUBLIC_EXACT_PATHS = ['/'];
 
 export async function proxy(req: NextRequest) {

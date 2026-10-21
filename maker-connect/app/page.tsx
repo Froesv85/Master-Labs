@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Logo } from '@/components/logo';
+import { MakerHistory } from '@/components/maker-history';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
@@ -76,6 +77,7 @@ export default async function Home() {
         <header className="flex w-full items-center justify-between border-b border-amber-500/10 bg-[#080c17]/90 px-8 py-4 backdrop-blur-md">
           <Logo size={36} />
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-400">
+            <Link href="#historia" className="transition-colors hover:text-amber-400">História</Link>
             <Link href="#features" className="transition-colors hover:text-amber-400">Recursos</Link>
             <Link href="#social" className="transition-colors hover:text-amber-400">Comunidade</Link>
             <Link href="#robots" className="transition-colors hover:text-amber-400">Robôs</Link>
@@ -136,6 +138,8 @@ export default async function Home() {
             ))}
           </div>
         </main>
+
+        <MakerHistory />
 
         {/* Academic origin */}
         <section className="border-y border-amber-500/10 bg-[#0d1424]/70 px-8 py-16">
