@@ -97,3 +97,18 @@ def test_predict_difficulty_increases_with_more_technical_signals():
         "rele, sensor de corrente e watchdog de hardware para reinicio automatico"
     )
     assert complex_score >= simple_score
+
+
+def test_classifier_fallback_handles_accents():
+    # "robô"/"braço robótico" nao casavam com as palavras-chave sem acento
+    clf = CategoryClassifier()
+    clf.train([])
+    label, _, source = clf.predict("Robô aspirador para a sala")
+    assert (label, source) == ("Robotics", "heuristic")
+
+
+def test_short_keywords_need_whole_word():
+    # "placa" nao e filamento "pla"; "problema" nao e "ble"
+    clf = CategoryClassifier()
+    clf.train([])
+    assert clf.predict("Placa de madeira com um problema de encaixe")[0] == "Woodworking"

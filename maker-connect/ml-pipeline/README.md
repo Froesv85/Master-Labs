@@ -57,6 +57,15 @@ dependem de um MySQL real.
   de associação (Apriori) — poucas transações pra regras fortes, por isso complementamos
   com um conjunto curado de omissões clássicas do domínio maker/IoT
   (`CURATED_RULES` em `app/stage2_bom.py`). K-Means usa `k=min(3, n_transacoes)`.
+  Uma terceira fonte são as **regras externas** (`app/external_bom_rules.json`):
+  co-ocorrência de componentes em 54.599 artigos da Hackaday, só como estatística
+  agregada (contagem, confiança, lift — nenhum texto). Artigo não é BOM completa, então
+  a confiança bruta é baixa (0,09–0,56); a regra existe porque o lift é alto (>= 4) e o
+  consequente é uma peça de apoio do antecedente (ESC para brushless, carregador para
+  18650…). Elas entram com a própria confiança, abaixo das curadas (0,6). Geradas por
+  `data/external/hackaday/build_derived.py` (local-only, ver o README de lá).
+  `app/components.py` leva os itens da BOM (PT, texto livre) e as regras (EN) para o
+  mesmo nome canônico — "Ponte H TB6612FNG" e "motor driver" viram a mesma coisa.
 - **Auditoria (estágio 4)**: baseada em regras (reaproveita as regras do estágio 2 +
   checagens de consistência), porque não existe ainda auditoria humana rotulada pra
   treinar um classificador supervisionado. Próximo passo natural: `IsolationForest` ou
@@ -64,3 +73,28 @@ dependem de um MySQL real.
 
 Todos os `[EVAL]...` (projetos de holdout criados por `scripts/rag-eval.mjs`) são
 excluídos das consultas de treino em `app/db.py`.
+
+## Avaliação de categoria em português
+
+```bash
+python -m eval.evaluate_category
+```
+
+`eval/category_eval_pt.jsonl`: 80 projetos no formato do app (título + descrição), 20 por
+categoria, com 13 casos difíceis marcados (`hard`) — sem palavra-chave óbvia ou com
+armadilha ("placa" x "pla", "resina epóxi" em marcenaria). Escritos para este fim, não
+vêm de usuários reais: servem para comparar mudanças, não como número absoluto.
+Substituir/ampliar com projetos reais rotulados conforme aparecerem.
+
+Resultado em 21/10/2026 (acerto = categoria prevista está entre as válidas):
+
+| Variante | Acerto | Difíceis |
+|---|---|---|
+| produção antes da correção de acento/palavra inteira | 43/80 | 5/13 |
+| **produção atual** (Kaggle + fallback 0,6) | **50/80** | 7/13 |
+| só Kaggle, sem fallback | 34/80 | 6/13 |
+| Kaggle + Hackaday (ComplementNB), sem fallback | 37/80 | 5/13 |
+
+Em produção o modelo só decide 8 dos 80 casos (nos outros não passa de 0,6 e cai no
+fallback), porque foi treinado em inglês. Os pontos fracos são Robotics (11/20) e
+3D_Printing (9/20): o fallback desempata a favor de IoT.

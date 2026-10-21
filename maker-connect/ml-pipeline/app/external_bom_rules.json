@@ -1,0 +1,123 @@
+{
+  "source": "hackaday.com posts (HF hybridfree/hackaday-posts), so estatisticas agregadas",
+  "posts_analyzed": 54599,
+  "thresholds": {
+    "min_posts": 25,
+    "min_lift": 4.0,
+    "min_confidence": 0.05
+  },
+  "rules": [
+    {
+      "antecedent": "brushless motor",
+      "consequent": "esc",
+      "posts": 62,
+      "confidence": 0.135,
+      "lift": 51.0
+    },
+    {
+      "antecedent": "18650 battery",
+      "consequent": "battery charger",
+      "posts": 31,
+      "confidence": 0.105,
+      "lift": 32.3
+    },
+    {
+      "antecedent": "lead screw",
+      "consequent": "linear rail",
+      "posts": 56,
+      "confidence": 0.178,
+      "lift": 31.7
+    },
+    {
+      "antecedent": "linear rail",
+      "consequent": "lead screw",
+      "posts": 56,
+      "confidence": 0.183,
+      "lift": 31.7
+    },
+    {
+      "antecedent": "hall sensor",
+      "consequent": "magnet",
+      "posts": 139,
+      "confidence": 0.56,
+      "lift": 22.2
+    },
+    {
+      "antecedent": "linear rail",
+      "consequent": "bearing",
+      "posts": 106,
+      "confidence": 0.346,
+      "lift": 19.0
+    },
+    {
+      "antecedent": "dc motor",
+      "consequent": "motor driver",
+      "posts": 87,
+      "confidence": 0.162,
+      "lift": 16.1
+    },
+    {
+      "antecedent": "stepper motor",
+      "consequent": "lead screw",
+      "posts": 120,
+      "confidence": 0.083,
+      "lift": 14.3
+    },
+    {
+      "antecedent": "lead screw",
+      "consequent": "bearing",
+      "posts": 77,
+      "confidence": 0.244,
+      "lift": 13.4
+    },
+    {
+      "antecedent": "stepper motor",
+      "consequent": "linear rail",
+      "posts": 103,
+      "confidence": 0.071,
+      "lift": 12.7
+    },
+    {
+      "antecedent": "stepper motor",
+      "consequent": "motor driver",
+      "posts": 180,
+      "confidence": 0.124,
+      "lift": 12.3
+    },
+    {
+      "antecedent": "amplifier",
+      "consequent": "speaker",
+      "posts": 353,
+      "confidence": 0.271,
+      "lift": 7.3
+    },
+    {
+      "antecedent": "speaker",
+      "consequent": "amplifier",
+      "posts": 353,
+      "confidence": 0.173,
+      "lift": 7.3
+    },
+    {
+      "antecedent": "battery charger",
+      "consequent": "voltage regulator",
+      "posts": 27,
+      "confidence": 0.152,
+      "lift": 7.3
+    },
+    {
+      "antecedent": "18650 battery",
+      "consequent": "voltage regulator",
+      "posts": 31,
+      "confidence": 0.105,
+      "lift": 5.1
+    },
+    {
+      "antecedent": "lipo battery",
+      "consequent": "voltage regulator",
+      "posts": 45,
+      "confidence": 0.086,
+      "lift": 4.2
+    }
+  ]
+}
