@@ -117,10 +117,13 @@ SINGH, A.; KUMAR, P. Agentic RAG: Orchestrating Autonomous Generative Agents for
 | Banco vetorial | Pinecone |
 | Object storage | MinIO / S3 |
 | Geração PDF | jsPDF |
-| Autenticação | JWT (jose) + bcryptjs |
-| Fila assíncrona | BullMQ + Redis |
+| Autenticação | JWT (jose) + bcryptjs, OAuth Google/GitHub |
+| Fila assíncrona e rate limiting | BullMQ + Redis |
 | Pipeline de estruturação (Fase 5) | Python + FastAPI + scikit-learn (`ml-pipeline/`) |
 | Testes | Jest + ts-jest, Pytest |
+| Hospedagem | VPS Hostinger (Docker Compose + nginx), deploy por GitHub Actions a cada push na `main` |
+
+Guia de desenvolvimento (como rodar, testar, fazer deploy e operar): [`maker-connect/README.md`](maker-connect/README.md).
 
 ---
 
@@ -169,16 +172,29 @@ graph TD
 
 | Estágio | Algoritmo | Papel | Onde no código |
 |---|---|---|---|
-| 1. Classificação Prévia | Naive Bayes (TF-IDF) treinado em `ProjectTag` real, com fallback heurístico por palavra-chave | Define categoria, nível de dificuldade e domínios técnicos do projeto antes da geração | `ml-pipeline/app/stage1_classify.py` |
-| 2. Validação & Agrupamento | K-Means (topologia de BOM) + Apriori (regras de associação) sobre BOMs reais, com regras curadas de omissões clássicas | Detecta peças possivelmente esquecidas na BOM e agrupa projetos por topologia similar | `ml-pipeline/app/stage2_bom.py` |
+| 1. Classificação Prévia | Naive Bayes (TF-IDF) treinado em `ProjectTag` real, com fallback heurístico por palavra-chave (sem acento e por palavra inteira) | Define categoria, nível de dificuldade e domínios técnicos do projeto antes da geração | `ml-pipeline/app/stage1_classify.py` |
+| 2. Validação & Agrupamento | K-Means (topologia de BOM) + Apriori (regras de associação) sobre BOMs reais, regras curadas de omissões clássicas e 16 regras de co-ocorrência mineradas de 54.599 artigos da Hackaday (só estatística agregada), com normalizador de componentes PT/EN | Detecta peças possivelmente esquecidas na BOM e agrupa projetos por topologia similar | `ml-pipeline/app/stage2_bom.py`, `ml-pipeline/app/components.py`, `ml-pipeline/app/external_bom_rules.json` |
 | 3. RAG Especializado | Busca vetorial no Pinecone filtrada por domínio (metadata filter), com fallback automático sem filtro | Prioriza evidências técnicas do domínio do projeto (sensor/atuador/protocolo/...) antes da geração via LLM | `queryByEmbedding()` em `lib/pinecone.ts` + `lib/extraction-queue.ts` |
 | 4. Auditoria Pós-Geração | Classificador baseado em regras (reaproveita as regras do estágio 2 + checagens de consistência BOM/requisitos) | Audita a saída gerada e sinaliza inconsistências/omissões antes da entrega final | `ml-pipeline/app/stage4_audit.py` |
 
-O worker BullMQ (`lib/extraction-queue.ts`) chama o `ml-pipeline` via `lib/ml-pipeline.ts` de forma defensiva: se o serviço estiver fora do ar, os campos de previsão ficam `null` e o pipeline principal (Ollama/qwen) continua funcionando normalmente. Previsões e flags ficam disponíveis em `ProjectExtractionLog` (`predictedCategory`, `predictedDifficulty`, `predictedDomains`, `missingComponents`, `bomClusterLabel`, `auditScore`, `auditFlags`), retornados por `GET /api/projects/[id]/extract`.
+O worker BullMQ (`lib/extraction-queue.ts`) chama o `ml-pipeline` via `lib/ml-pipeline.ts` de forma defensiva: se o serviço estiver fora do ar, os campos de previsão ficam `null` e o pipeline principal (Ollama/qwen) continua funcionando normalmente. Previsões e flags ficam disponíveis em `ProjectExtractionLog` (`predictedCategory`, `predictedDifficulty`, `predictedDomains`, `missingComponents`, `bomClusterLabel`, `auditScore`, `auditFlags`), retornados ao dono do projeto por `GET /api/projects/[id]/extract`.
+
+**Avaliação em português:** `ml-pipeline/eval/` tem 80 projetos rotulados (20 por categoria, 13 casos difíceis) e um script que compara variantes do classificador. Em 21/10/2026 o caminho de produção acertava 50/80 (era 43/80 antes da correção de acento e palavra inteira no fallback). Detalhes no [README do ml-pipeline](maker-connect/ml-pipeline/README.md).
 
 ---
 
-## Status (12/09/2026)
+## Segurança e Privacidade
+
+- **Termos de Uso** e **Política de Privacidade** públicos em [makerconnect.com.br/termos](https://makerconnect.com.br/termos) e [/privacidade](https://makerconnect.com.br/privacidade), escritos a partir do que o código faz (dados coletados, cookie único de sessão, anonimização antes da IA, fornecedores, direitos do titular pela LGPD).
+- **Autenticação em duas camadas:** o middleware (`proxy.ts`) exige sessão em todas as páginas e em todo `/api/*`, com uma lista pública explícita; cada rota ainda verifica se o usuário é dono do recurso ou pode vê-lo.
+- **Rate limiting** com Redis no login, cadastro, extração por IA e geração de PDF.
+- **LGPD:** e-mail, telefone e CPF são removidos do texto antes de qualquer chamada de IA, com registro de auditoria.
+
+As regras para quem desenvolve (como proteger uma rota nova, o que nunca devolver de um usuário) estão em [`maker-connect/README.md`](maker-connect/README.md#segurança-e-autorização), junto com a lista de dívidas técnicas conhecidas.
+
+---
+
+## Status (21/10/2026)
 
 | Entrega | Status |
 |---------|--------|
@@ -198,11 +214,15 @@ O worker BullMQ (`lib/extraction-queue.ts`) chama o `ml-pipeline` via `lib/ml-pi
 | Motor de extração BullMQ como padrão em produção (n8n mantido como legado) | Concluído |
 | Dossiê Técnico editável (requisitos/BOM/etapas, vídeo, galeria de imagens) | Concluído |
 | Fase 5 — pipeline de estruturação (ml-pipeline) | Concluído — dataset real ainda pequeno, ver `ml-pipeline/README.md` |
+| Regras de BOM externas (Hackaday) + avaliação de categoria em português | Concluído |
+| Produção migrada da Azure para VPS Hostinger | Concluído |
+| Termos de Uso e Política de Privacidade (LGPD) | Concluído — pendências operacionais em `maker-connect/README.md` |
+| Autenticação em toda a API, checagem de dono e rate limiting | Concluído |
 | Gate S1.1 | PASS (28/04/2026) |
 | Gate S1.2 | PASS (13/05/2026) |
 | Gate S1.3 | Partial PASS — relevance 98% ✅, latência ⚠️ (sem GPU) |
 | Gate S1.4 | latência sem GPU melhorou pra p95 ~46s (era 137s) com BullMQ + Fase 5; ainda acima da meta de <15s |
-| Suite de testes | 300 testes / 43 suites / 0 falhas |
+| Suite de testes | 389 testes / 0 falhas (Jest: 359 em 45 suítes; Pytest: 30) |
 | RAG relevance (holdout H01-H10) | 95–98% conforme motor/rodada (meta: ≥ 85%) |
 
 ---
@@ -226,6 +246,13 @@ Registro das principais entregas por período, com base no histórico de commits
 | 12/09 | **BullMQ vira o motor padrão em produção** (antes era n8n) — Ollama passou a ser chamado direto via Tailscale, sem passar pelo n8n; corrigido bug de deploy em que o nginx ficava com o IP antigo do container após cada release |
 | 12/09 | **Dossiê Técnico** deixou de ser um placeholder estático: vira editável (requisitos, BOM e **etapas de montagem** — novo campo gerado pela IA), com link de vídeo (YouTube) e galeria de imagens; edição do dono nunca sobrescreve a saída original da IA, preservada para auditoria em um registro `ProjectDossier` separado |
 | 12/09 | **PDF exportado** passa a puxar do Dossiê (não mais do output bruto da extração): logo atualizado pra bater com a marca atual, link clicável do projeto e do vídeo, conteúdo organizado em tópicos (Visão Geral, Requisitos, BOM, Etapas de Montagem, Código) |
+| 16/10 | **Produção migra da Azure para um VPS Hostinger** (créditos da Azure esgotados); MinIO trocado pela imagem da Chainguard e painel admin passa a mostrar a infraestrutura do VPS |
+| 17/10 | Modal de criação de projeto maior e guiado, com sugestão por IA e link de vídeo; correção da distorção do logo no PDF |
+| 21/10 | 8 **projetos de demonstração** completos em produção, com capas ilustradas (`prisma/seed-showcase-projects.cjs`) |
+| 21/10 | **Fase 5 com dados externos:** regras de co-ocorrência de componentes mineradas da Hackaday no estágio 2 e conjunto de avaliação de categoria em português |
+| 21/10 | Seção **"Nossa história"** na home (do *Make Do and Mend* à cultura maker), com linha do tempo, fontes e imagens de licença livre |
+| 21/10 | **Termos de Uso e Política de Privacidade** publicados |
+| 21/10 | **Correções de segurança:** autenticação em toda a API, checagem de dono nas rotas de usuário e projeto, rate limiting, Next.js 16.4.2 e fim do `ignoreBuildErrors` |
 
 ---
 
@@ -368,30 +395,31 @@ npm install
 
 ```bash
 cp .env.example .env.local
-# preencher: DATABASE_URL, JWT_SECRET, PINECONE_API_KEY, AWS_* (MinIO),
-#            OLLAMA_BASE_URL, REDIS_URL, ML_PIPELINE_URL
-# opcional (só se EXTRACTION_ENGINE=n8n): N8N_EXTRACTION_WEBHOOK_URL
+# os valores do exemplo já servem para a infra local; preencha pelo menos JWT_SECRET,
+# PINECONE_API_KEY e OLLAMA_BASE_URL (todas as variáveis estão comentadas no arquivo)
 ```
 
-### 4. Banco de dados
+### 4. Infra local (Docker)
+
+```bash
+docker compose up -d mysql redis minio createbuckets ml-pipeline
+```
+
+### 5. Banco de dados
 
 ```bash
 npx prisma migrate dev
 npx prisma db seed
 ```
 
-### 5. Executar
+### 6. Executar
 
 ```bash
 npm run dev        # dev server em http://localhost:3000
-npm test           # suite de testes (300 testes)
+npm test           # testes Jest (359)
 ```
 
-### 6. Infra local (Docker)
-
-```bash
-docker compose up -d   # MySQL + Redis + MinIO + ml-pipeline
-```
+Detalhes, problemas conhecidos (inclusive o build em disco FAT32 no Windows), deploy e operação em produção: [`maker-connect/README.md`](maker-connect/README.md).
 
 ---
 
@@ -399,15 +427,22 @@ docker compose up -d   # MySQL + Redis + MinIO + ml-pipeline
 
 ```
 Master-Labs/
-├── maker-connect/          # aplicação principal (Next.js + API + Prisma)
-│   ├── app/                # rotas Next.js (páginas e API routes)
-│   ├── lib/                # serviços: auth, prisma, lgpd, s3, pdf, ollama,
-│   │                       #   extraction-queue.ts e pdf-export-queue.ts
+├── maker-connect/          # aplicação principal (Next.js + API + Prisma) — ver o README de lá
+│   ├── app/                # páginas e rotas de API
+│   ├── components/         # componentes compartilhados (logo, história, páginas legais...)
+│   ├── lib/                # serviços: auth, prisma, project-access, rate-limit, lgpd, s3,
+│   │                       #   ollama, pinecone, extraction-queue.ts e pdf-export-queue.ts
 │   │                       #   (workers BullMQ, in-process, sem pasta dedicada)
-│   ├── ml-pipeline/        # Fase 5 — microsserviço Python (FastAPI + scikit-learn)
-│   ├── __tests__/          # 43 suites de testes (Jest)
-│   ├── prisma/             # schema, migrations, seed
+│   ├── ml-pipeline/        # Fase 5 — microsserviço Python (FastAPI + scikit-learn) + eval/
+│   ├── __tests__/          # 45 suítes de testes (Jest)
+│   ├── prisma/             # schema, migrations, seed e seed dos projetos de demonstração
+│   ├── proxy.ts            # middleware de autenticação
+│   ├── backend/            # LEGADO: backend Express/Knex da primeira fase, não usado
 │   └── scripts/            # rag-eval, seed-passwords, etc. (local-only, fora do git)
+├── nginx/                  # configuração do nginx de produção
+├── docker-compose.prod.yml # stack de produção no VPS
+├── .github/workflows/      # deploy.yml (build das imagens + deploy por SSH)
+├── assets/                 # diagramas e screenshots usados neste README
 ├── docs/                   # documentação: planning, architecture, ai, tcc (local-only, fora do git)
 ├── scripts/                # automações operacionais: Jira, diagramas (local-only, fora do git)
 └── README.md               # este arquivo

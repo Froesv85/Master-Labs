@@ -1,205 +1,235 @@
-# MakerConnect
+# MakerConnect: guia do desenvolvedor
 
-Rede social técnica para governança de projetos IoT, com foco em rastreabilidade, reuso e documentação assistida por IA.
+Rede social para makers com documentação técnica gerada por IA (lista de materiais, requisitos,
+etapas de montagem e PDF). Projeto de TCC de Engenharia de Software (Católica SC, Jaraguá do Sul),
+com patrocínio da Master by Tech. Em produção em **https://makerconnect.com.br**.
 
-Projeto de TCC — CATOLICASC, 7º Semestre (2026). Estudante: Vinicius Froes.
+Este arquivo é para quem vai **rodar, mudar ou operar** o código. A visão geral e o relatório
+acadêmico estão no [README da raiz](../README.md); o microsserviço de ML, em
+[ml-pipeline/README.md](ml-pipeline/README.md).
 
 ---
 
-## Tech Stack
+## Stack
 
 | Camada | Tecnologia |
-|--------|-----------|
-| Frontend | Next.js 16 (App Router, Turbopack) |
-| Estilo | Tailwind CSS v4 |
-| ORM | Prisma + MySQL |
-| Fila assíncrona | BullMQ + Redis (ioredis) |
-| IA / RAG | Google Gemini + Pinecone |
-| Storage | AWS S3 |
-| Runtime | Node.js ≥ 18 |
+|---|---|
+| App (páginas + API) | Next.js 16 (App Router), React 19, Tailwind CSS v4 |
+| Banco | MySQL 8 via Prisma 6 |
+| Filas e rate limiting | Redis + BullMQ (workers de extração e de PDF rodam dentro do processo do Next) |
+| IA | Ollama (`qwen2.5:7b-instruct` para geração, `nomic-embed-text` para embeddings) + Pinecone (busca vetorial) |
+| ML clássico | `ml-pipeline/`: FastAPI + scikit-learn (classificação, regras de BOM, auditoria) |
+| Arquivos | MinIO (S3-compatível) |
+| Auth | JWT em cookie `httpOnly` (`mc_session`, 7 dias) + OAuth Google/GitHub |
+| PDF | jsPDF |
+| Testes | Jest + ts-jest (app), Pytest (ml-pipeline) |
+| Produção | VPS Hostinger com Docker Compose + nginx; deploy por GitHub Actions |
 
 ---
 
-## Arquitetura
+## Estrutura
 
 ```
-Browser
-  └── Next.js App Router (app/)
-        ├── (app)/feed          — Feed de projetos com filtros, vote, fork
-        ├── (app)/robots        — Ranking de robôs + histórico de partidas
-        ├── (app)/teams         — Equipes e membros
-        ├── (app)/communities   — Comunidades por categoria
-        ├── (app)/profile/[id]  — Perfil maker com badges e projetos
-        └── api/
-              ├── projects      — CRUD + vote + fork + extração IA + export PDF
-              ├── robots        — CRUD + matches
-              ├── teams         — CRUD + membros
-              ├── communities   — CRUD + posts
-              └── users/[id]    — Perfil + follow
-
-Banco de dados: MySQL via Prisma
-Fila: BullMQ + Redis (jobs de extração IA e export PDF)
-IA: Gemini (extração) + Pinecone (embeddings RAG)
+maker-connect/
+├── app/
+│   ├── (app)/          # páginas autenticadas: projects, profile, teams, communities, robots, admin
+│   ├── (auth)/         # login e cadastro (com aviso de aceite dos termos)
+│   ├── api/            # rotas de API (auth, projects, users, teams, communities, robots, admin...)
+│   ├── termos/ e privacidade/   # páginas legais públicas
+│   └── page.tsx        # home pública (inclui a seção "Nossa história")
+├── components/         # componentes compartilhados (logo, maker-history, legal-page...)
+├── lib/                # auth, prisma, project-access, rate-limit, lgpd, ollama, pinecone,
+│                       #   extraction-queue / pdf-export-queue (workers BullMQ), s3-service...
+├── prisma/             # schema, migrations, seed.ts e seed-showcase-projects.cjs
+├── ml-pipeline/        # microsserviço Python (estágios 1, 2 e 4 da Fase 5)
+├── __tests__/          # testes Jest (rotas de API e middleware)
+├── proxy.ts            # middleware de autenticação (o Next 16 chama de "proxy")
+└── public/             # estáticos (historia/ é público; o resto exige sessão, ver Segurança)
 ```
+
+`backend/` (Knex) é **código legado e não é usado** por nada; não confunda com `app/api/`.
 
 ---
 
-## Como executar
+## Rodando localmente
 
-### Pré-requisitos
-
-- Node.js ≥ 18
-- MySQL rodando localmente
-- Redis rodando localmente
-
-### Setup
+Pré-requisitos: Node 20+, Docker, e um Ollama acessível (local ou remoto) se você for testar a
+extração por IA.
 
 ```bash
-# Instalar dependências
+cp .env.example .env.local                 # e preencha JWT_SECRET (o resto já serve para local)
+docker compose up -d mysql redis minio createbuckets ml-pipeline
 npm install
-
-# Configurar variáveis de ambiente
-cp .env.example .env.local
-# Editar .env.local com DATABASE_URL e REDIS_URL
-
-# Aplicar migrations e seed
-npx prisma migrate dev
-npx prisma db seed
-
-# Iniciar servidor de desenvolvimento
-npm run dev
+npx prisma migrate dev                     # cria o schema no MySQL da porta 3307
+npx prisma db seed                         # usuários e dados de demonstração (senha: maker123)
+npm run dev                                # http://localhost:3000
 ```
 
-Abra [http://localhost:3000](http://localhost:3000).
+Para virar admin: `npm run promote-admin -- seu-email@exemplo.com` (depois do primeiro login).
 
-### Variáveis de ambiente obrigatórias
+> **Windows com disco FAT32/exFAT:** o `next build` falha com `EISDIR: illegal operation on a
+> directory, readlink`. Não é bug do código: faça o build a partir de um disco NTFS (com
+> `npm ci` lá, não um junction para o `node_modules` do disco FAT). O CI, em Linux, não é afetado.
 
-```env
-DATABASE_URL="mysql://user:password@localhost:3306/makerconnect"
-REDIS_URL="redis://localhost:6379"
-```
+### Variáveis de ambiente
 
----
+Todas estão comentadas em [`.env.example`](.env.example). As que mais causam confusão:
 
-## API Reference
+| Variável | Observação |
+|---|---|
+| `EXTRACTION_ENGINE` | `bullmq` em produção. **Sem a variável o código cai em `n8n`** (motor legado). |
+| `OLLAMA_BASE_URL` | Host do Ollama. Sem ele, a extração por IA falha. |
+| `S3_ENDPOINT` x `S3_INTERNAL_ENDPOINT` | O primeiro monta as URLs públicas; o segundo é o que o SDK usa. Em produção são diferentes (ver comentário em `lib/s3-service.ts`). |
+| `REDIS_URL` | Usado pelas filas **e** pelo rate limiting. Sem Redis o limitador libera tudo (fail-open) e loga um aviso. |
+| `PUBLIC_SITE_URL` | Base dos links impressos nos PDFs. |
 
-### Projetos
+### Scripts
 
-| Método | Rota | Descrição |
-|--------|------|-----------|
-| GET | `/api/projects` | Lista projetos com filtros |
-| POST | `/api/projects` | Cria projeto |
-| POST | `/api/projects/[id]/vote` | Upvote idempotente |
-| POST | `/api/projects/[id]/fork` | Fork com lineage |
-| POST | `/api/projects/[id]/extract` | Dispara extração IA (async) |
-| GET | `/api/projects/[id]/export` | Export PDF via fila BullMQ |
-
-**Query params — GET /api/projects:**
-
-| Param | Tipo | Valores | Padrão |
-|-------|------|---------|--------|
-| `category` | string | `3D_Printing`, `Robotics`, `IoT`, `Woodworking` | — |
-| `q` | string | texto livre | — |
-| `sort` | string | `newest`, `oldest`, `top` | `newest` |
-| `page` | int | ≥ 1 | `1` |
-| `pageSize` | int | 1–50 | `10` |
-
-**Exemplo de resposta:**
-
-```json
-{
-  "data": [{ "id": 1, "title": "RoboSumo v2", "category": "Robotics", "votes": 12, ... }],
-  "pagination": { "page": 1, "pageSize": 10, "total": 42, "totalPages": 5 },
-  "filters": { "category": null, "q": null, "sort": "newest" }
-}
-```
-
-### Robôs
-
-| Método | Rota | Descrição |
-|--------|------|-----------|
-| GET | `/api/robots` | Lista robôs ordenados por ELO |
-| POST | `/api/robots` | Cadastra robô |
-| GET/PATCH/DELETE | `/api/robots/[id]` | Detalhe, edição, remoção |
-
-### Equipes & Comunidades
-
-| Método | Rota | Descrição |
-|--------|------|-----------|
-| GET/POST | `/api/teams` | Lista / cria equipe |
-| GET/POST | `/api/communities` | Lista / cria comunidade |
-
----
-
-## Modelo de dados (resumo)
-
-```
-User ──< Project (creator)
-              ├──< ProjectVote
-              ├──< ProjectDifficulty
-              ├──< ProjectExport (PDF async)
-              └──< ProjectExtractionLog (IA pipeline)
-
-Project ──< Project (fork via parentId)
-
-User ──< Robot ──< RobotMatch
-                └──< RobotAward
-
-User >──< Team (via TeamMember)
-User >──< Community (via CommunityMember)
-Community ──< CommunityPost
-```
-
----
-
-## Features implementadas
-
-- Feed de projetos com filtros por categoria, busca fulltext, paginação e ordenação
-- Upvote idempotente com contador em tempo real
-- Fork de projeto com rastreamento de lineage (`parentId`)
-- Perfil maker com badges, nível (`apprentice` → `grandmaster`) e lista de projetos
-- Log de dificuldades por projeto (timeline de bloqueios e aprendizados)
-- Robôs: ranking ELO, histórico de partidas, premiações
-- Equipes: criação, membros com roles (`owner`, `admin`, `member`)
-- Comunidades estilo Orkut: posts, moderação, categorias
-- Extração assíncrona via IA (Gemini + Pinecone) com callback de webhook
-- Export PDF assíncrono via BullMQ
+| Comando | O que faz |
+|---|---|
+| `npm run dev` | servidor de desenvolvimento |
+| `npm test` | testes Jest (`npm run test:coverage` para cobertura) |
+| `npm run lint` | ESLint |
+| `npx tsc --noEmit` | checagem de tipos (o build **não** ignora mais erros de tipo) |
+| `npm run build` / `npm start` | build e servidor de produção (`start` roda `prisma migrate deploy` antes) |
 
 ---
 
 ## Testes
 
 ```bash
-npm test           # roda todos os testes
-npm test -- --watch
-npm test -- --coverage
+npm test                                   # 359 testes, 45 suítes (rotas de API + middleware)
+cd ml-pipeline && pytest                   # 30 testes do microsserviço Python
+cd ml-pipeline && python -m eval.evaluate_category   # avaliação do classificador em português
 ```
 
-Os testes unitários ficam em `__tests__/`.
+Os testes de rota mockam `@/lib/prisma` e `@/lib/auth` (o `jose` é ESM e o Jest não o transforma).
+Toda rota nova que mexe com dados de usuário deve ter teste de **401 sem sessão** e de
+**403 para quem não é dono**, como em `__tests__/api/users-id.test.ts`.
 
 ---
 
-## Progresso do MVP
+## Segurança e autorização
 
-| Módulo | Status |
-|--------|--------|
-| Feed social (projetos) | ✅ Completo |
-| Robôs + ranking ELO | ✅ Completo |
-| Equipes + comunidades | ✅ Completo |
-| Perfil maker | ✅ Completo |
-| Extração IA (async) | ✅ Completo |
-| Export PDF (async) | ✅ Completo |
-| Unit tests | ✅ Estrutura criada |
-| LGPD / PII masking | 🔄 Em andamento |
-| Deploy AWS | ⏳ Semana 10–12 |
+**Duas camadas, sempre as duas:**
 
-**MVP: ~65% concluído.**
+1. **`proxy.ts`** exige sessão em todas as páginas e em todo `/api/*`. Sem sessão, páginas
+   redirecionam para `/login` e a API responde `401` em JSON. As exceções são explícitas:
+   - páginas: `/`, `/login`, `/signup`, `/termos`, `/privacidade`, `/historia/*`;
+   - API: `/api/auth/*`, `/api/health` e `/api/projects/[id]/extract/callback` (callback do n8n,
+     autenticado pelo `webhookId`, que é um UUID e só o dono do projeto vê).
+2. **Dentro de cada rota**, checar a permissão sobre o recurso. O middleware só garante que
+   *existe* uma sessão, não que ela pode mexer naquele projeto. Use os helpers de
+   `lib/project-access.ts`:
+   - `requireOwnedProject(projectId, userId)` para escrita (só o dono);
+   - `canAccessProject(project, userId)` e `projectVisibilityWhere(userId)` para leitura
+     (respeita `public`, `private_owner` e `private_team`).
+
+Outras regras do código:
+
+- Ao devolver usuários, use **`select` explícito**. Nunca `include`/linha inteira de `User`
+  (tem `password`, `googleId`, `githubId`, `role`). O e-mail só vai para o próprio usuário.
+- O usuário vem **sempre da sessão** (`getSession()`), nunca de `userId` no corpo da requisição.
+- **Rate limiting** (`lib/rate-limit.ts`, Redis, janela fixa):
+
+  | Ação | Limite |
+  |---|---|
+  | login | 20 por IP e 5 por e-mail a cada 15 min |
+  | cadastro | 5 por IP por hora |
+  | extração por IA | 10 por usuário por hora |
+  | geração de PDF | 20 por usuário por hora |
+
+  O IP vem do `X-Real-IP`, que o nginx sobrescreve (o `X-Forwarded-For` pode ser forjado).
+- **LGPD:** `lib/lgpd.ts` remove e-mail, telefone e CPF do texto antes de qualquer chamada de IA,
+  e `lib/lgpd-audit.ts` registra cada remoção.
+- Senhas com bcrypt; mínimo de 8 caracteres no cadastro.
 
 ---
 
-## Próximos passos (S1B)
+## Deploy
 
-- Aumentar cobertura de testes (target: >75%)
-- ARCHITECTURE.md com diagrama C4
-- LGPD compliance checklist
-- Deploy em AWS (g4dn + RDS + ElastiCache)
+Todo push na `main` dispara [`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml):
+
+1. `build` e `build-ml` constroem e publicam as imagens `ghcr.io/froesv85/maker-connect` e
+   `maker-connect-ml` (tags `latest` e SHA curto);
+2. `deploy` entra por SSH no VPS, faz `git pull`, `docker compose pull` e `up -d` dos dois
+   serviços e **reinicia o nginx** (sem isso ele fica preso no IP antigo do container e tudo vira 502).
+
+Problemas já vistos:
+
+- **Merges seguidos** disparam deploys simultâneos que disputam o container `maker-ml-pipeline`
+  (`removal of container ... is already in progress`). O último vence; os outros falham.
+- **Timeout de SSH** (`dial tcp ***:22: i/o timeout`) do runner do GitHub: rode de novo só o job
+  que falhou (`gh run rerun <id> --failed`); as imagens já construídas são reaproveitadas.
+
+As migrations rodam sozinhas na subida do container (`prisma migrate deploy` no `CMD`).
+
+---
+
+## Operação em produção
+
+```bash
+ssh -i ~/.ssh/makerconnect_hostinger root@2.25.146.28   # pelo IP: o hostname não está no known_hosts
+docker ps                                               # maker-connect, maker-ml-pipeline, maker-mysql,
+                                                        # maker-redis, maker-minio, maker-nginx
+docker logs -f maker-connect                            # logs do app
+docker exec -it maker-mysql sh -c 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" maker'
+```
+
+O MySQL **não** fica exposto fora do VPS. Para um cliente gráfico, abra um túnel SSH até o IP
+interno do container (`docker inspect maker-mysql`).
+
+**Projetos de demonstração:** `prisma/seed-showcase-projects.cjs` cadastra 8 projetos completos
+(BOM, dificuldades, código e dossiê) para um usuário existente. É idempotente e tem `DRY_RUN=1`:
+
+```bash
+docker exec -e OWNER_EMAIL=voce@exemplo.com -e DRY_RUN=1 maker-connect node prisma/seed-showcase-projects.cjs
+```
+
+---
+
+## Páginas legais
+
+`/termos` e `/privacidade` (`app/termos`, `app/privacidade`, layout em `components/legal-page.tsx`)
+descrevem o que o código faz de fato. **Se você mudar a coleta de dados, os cookies, os
+fornecedores (Pinecone, Hostinger, OAuth) ou a forma de usar IA, atualize a Política de
+Privacidade e a data `LEGAL_UPDATED_AT`.** Contato: `privacidade@makerconnect.com.br`.
+
+---
+
+## Dívida técnica conhecida
+
+Em ordem de prioridade:
+
+- **CI sem testes:** o workflow constrói e publica sem rodar `npm test`, lint nem `tsc`.
+- **Prisma 6 → 7:** as 3 vulnerabilidades altas restantes do `npm audit` exigem a migração.
+- **Backup:** não há rotina versionada; banco e arquivos do MinIO estão no mesmo disco do VPS.
+- **Sessão sem revogação:** o JWT vale 7 dias; logout e troca de senha não derrubam sessões abertas.
+- **Sem e-mail transacional:** não há recuperação de senha nem confirmação de e-mail.
+- **LGPD operacional:** falta autoexclusão de conta, registro do aceite dos termos (data e versão)
+  e consentimento dos pais no cadastro de menores.
+- **Observabilidade:** só `console.*`; sem rastreamento de erros nem alerta de queda.
+- **Sem staging:** mudanças vão direto para produção.
+- **Validação de entrada manual:** adotar Zod nas rotas.
+- **Headers de segurança** (CSP, HSTS, X-Frame-Options) ausentes no Next e no nginx.
+- **Estáticos de `public/`** fora de `/historia/` exigem sessão (o `proxy.ts` não distingue arquivo de página).
+- **Lint:** 2 erros antigos de `react-hooks/set-state-in-effect` em `profile/page.tsx` e `teams/[id]/page.tsx`.
+- **Código e dependências mortas:** `backend/`, `pdfkit`, `pdfmake`, `pdf-lib`, `@google/generative-ai`.
+
+---
+
+## Modelo de dados
+
+São 31 modelos em [`prisma/schema.prisma`](prisma/schema.prisma). O núcleo:
+
+```
+User ──< Project (creator) ──< ProjectComponent, ProjectImage, ProjectFile, ProjectCodeFile,
+   │          │                ProjectDifficulty, ProjectComment, ProjectVote, ProjectShare,
+   │          │                ProjectExport (PDF), ProjectExtractionLog (IA), LgpdAuditLog
+   │          ├──1 ProjectDossier (resultado da IA editável pelo dono)
+   │          └──< Project (fork, via parentId)
+   ├──1 UserProfile, ──< UserBadge, UserFollow
+   ├──< Robot ──< RobotMatch, RobotAward, RobotEventParticipation
+   ├──< TeamMember >── Team ──< Competition
+   └──< CommunityMember >── Community ──< CommunityPost
+```
