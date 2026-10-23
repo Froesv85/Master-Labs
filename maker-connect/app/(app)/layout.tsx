@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import AppNav from './_components/app-nav';
+import FeedbackWidget from './_components/feedback-widget';
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const session = await getSession();
@@ -22,6 +23,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
         isAdmin={user?.role === 'admin'}
       />
       <main className="mx-auto max-w-7xl px-4 py-6">{children}</main>
+      <FeedbackWidget />
     </div>
   );
 }

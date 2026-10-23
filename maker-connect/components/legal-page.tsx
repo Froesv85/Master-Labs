@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { Logo } from '@/components/logo';
 
 export const LEGAL_CONTACT_EMAIL = 'privacidade@makerconnect.com.br';
-export const LEGAL_UPDATED_AT = '21 de outubro de 2026';
+export const LEGAL_UPDATED_AT = '23 de outubro de 2026';
 
 export function LegalPage({ title, intro, children }: { title: string; intro: ReactNode; children: ReactNode }) {
   return (
