@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-
-const DEFAULT_PROFILE_EMAIL = 'test@example.com';
+import { projectVisibilityWhere } from '@/lib/project-access';
 
 function parseUserId(value: string | null) {
   if (!value) {
@@ -18,7 +18,12 @@ function parseUserId(value: string | null) {
 }
 
 export async function GET(req: NextRequest) {
-  const emailParam = req.nextUrl.searchParams.get('email');
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
+  }
+
+  const emailParam = req.nextUrl.searchParams.get('email')?.trim().toLowerCase();
   const userIdParam = req.nextUrl.searchParams.get('userId');
 
   const userId = parseUserId(userIdParam);
@@ -26,19 +31,25 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid userId. Use a positive integer.' }, { status: 400 });
   }
 
-  const where = userId
-    ? { id: userId }
-    : { email: emailParam?.trim() || DEFAULT_PROFILE_EMAIL };
+  // Busca por e-mail so do proprio usuario: buscar o e-mail de terceiros permitia
+  // descobrir quem tem conta. Sem parametro, o perfil e o da sessao.
+  if (emailParam && emailParam !== session.email.toLowerCase()) {
+    return NextResponse.json({ error: 'Maker profile not found.' }, { status: 404 });
+  }
+  const targetId = userId ?? session.userId;
+  const isSelf = targetId === session.userId;
 
   try {
     const user = await prisma.user.findUnique({
-      where,
+      where: { id: targetId },
       select: {
         id: true,
         name: true,
         email: true,
         language: true,
         projects: {
+          // so os projetos que quem consulta pode ver (privados de terceiros ficam de fora)
+          where: await projectVisibilityWhere(session.userId),
           orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
           select: {
             id: true,
@@ -80,7 +91,8 @@ export async function GET(req: NextRequest) {
         maker: {
           id: user.id,
           name: user.name,
-          email: user.email,
+          email: isSelf ? user.email : null,
+          language: isSelf ? user.language : null,
         },
         stats: {
           projects: projects.length,
@@ -97,15 +109,21 @@ export async function GET(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { userId, language } = body;
+    // o usuario vem da sessao, nunca do corpo: antes qualquer um trocava o idioma de outra conta
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
+    }
 
-    if (!userId || !language) {
-      return NextResponse.json({ error: 'Missing userId or language.' }, { status: 400 });
+    const body = await req.json();
+    const { language } = body;
+
+    if (!language) {
+      return NextResponse.json({ error: 'Missing language.' }, { status: 400 });
     }
 
     const updatedUser = await prisma.user.update({
-      where: { id: Number(userId) },
+      where: { id: session.userId },
       data: { language },
     });
 

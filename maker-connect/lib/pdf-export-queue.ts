@@ -143,7 +143,8 @@ export async function processPdfExportJob(jobData: PdfExportJobData) {
     projectTitle: project.title,
     projectDescription: project.description || '',
     projectUrl: `${PUBLIC_SITE_URL}/projects/${project.id}`,
-    creator: project.creator.name || project.creator.email,
+    // PDF pode ser baixado por outros usuarios: nunca cair para o e-mail do autor
+    creator: project.creator.name || 'Maker da comunidade',
     tags: project.tags.map((t) => t.tag),
     difficulties: project.difficulties.map((difficulty) => ({
       date: new Date(difficulty.createdAt).toLocaleDateString('pt-BR'),

@@ -2,9 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 import { signSession, sessionCookieOptions } from '@/lib/auth';
+import { RATE_LIMITS, checkRateLimit, clientIp, tooManyRequests } from '@/lib/rate-limit';
+
+const MIN_PASSWORD_LENGTH = 8;
 
 export async function POST(req: NextRequest) {
   try {
+    const limit = await checkRateLimit(RATE_LIMITS.signupByIp, clientIp(req));
+    if (!limit.allowed) return tooManyRequests(limit.retryAfterSeconds);
+
     const { email, password, name } = await req.json() as {
       email?: string;
       password?: string;
@@ -14,8 +20,8 @@ export async function POST(req: NextRequest) {
     if (!email?.trim() || !password) {
       return NextResponse.json({ error: 'Email e senha são obrigatórios' }, { status: 400 });
     }
-    if (password.length < 6) {
-      return NextResponse.json({ error: 'Senha deve ter no mínimo 6 caracteres' }, { status: 400 });
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      return NextResponse.json({ error: `Senha deve ter no mínimo ${MIN_PASSWORD_LENGTH} caracteres` }, { status: 400 });
     }
 
     const existing = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });

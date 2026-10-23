@@ -74,11 +74,11 @@ export default function SignupPage() {
           />
         </div>
         <div>
-          <label className={labelCls}>Senha <span className="normal-case text-zinc-600">(mín. 6 caracteres)</span></label>
+          <label className={labelCls}>Senha <span className="normal-case text-zinc-600">(mín. 8 caracteres)</span></label>
           <input
             type="password"
             required
-            minLength={6}
+            minLength={8}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••"

@@ -1,4 +1,9 @@
-# MakerConnect Backend API
+# MakerConnect Backend API (LEGADO)
+
+> ⚠️ **Esta pasta é código legado e não é usada pela aplicação.** A API em produção são as rotas
+> Next.js em [`app/api/`](../app/api), com Prisma. Este backend Express/Knex foi da primeira fase
+> do projeto e não é construído nem implantado. A documentação atual está em
+> [`maker-connect/README.md`](../README.md).
 
 IoT Project Governance + Social + Robotics Competition Platform
 

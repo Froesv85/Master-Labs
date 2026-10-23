@@ -1,14 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { projectVisibilityWhere } from '@/lib/project-access';
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const userId = parseInt(id);
   if (isNaN(userId)) return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
 
+  const session = await getSession();
+  if (!session) return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
+  const isSelf = session.userId === userId;
+
+  // select explicito: antes o `include` devolvia a linha inteira de User, com hash
+  // da senha, googleId/githubId e role, para qualquer pessoa (inclusive sem login)
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    include: {
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      language: true,
       profile: true,
       badges: { orderBy: { earnedAt: 'desc' } },
       robots: {
@@ -16,6 +28,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
         orderBy: { eloScore: 'desc' },
       },
       projects: {
+        where: await projectVisibilityWhere(session.userId),
         orderBy: { createdAt: 'desc' },
         take: 6,
         include: { tags: { select: { tag: true } } },
@@ -54,6 +67,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
   return NextResponse.json({
     ...user,
+    email: isSelf ? user.email : null,
+    language: isSelf ? user.language : null,
     projects: user.projects.map((p) => ({ ...p, tags: p.tags.map((t) => t.tag) })),
     sharedProjects: user.sharedProjects.map((s) => ({
       ...s,
@@ -66,6 +81,11 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const { id } = await params;
   const userId = parseInt(id);
   if (isNaN(userId)) return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
+
+  // so o proprio usuario edita o perfil (antes nao havia nenhuma checagem)
+  const session = await getSession();
+  if (!session) return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
+  if (session.userId !== userId) return NextResponse.json({ error: 'Sem permissão.' }, { status: 403 });
 
   const body = await req.json();
   const { name, bio, location, website, githubUrl, expertise } = body as {

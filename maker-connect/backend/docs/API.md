@@ -1,3 +1,6 @@
+> ⚠️ **Legado:** documenta o backend Express/Knex de `backend/`, que não é usado. A API atual são
+> as rotas Next.js em `app/api/`; ver [`maker-connect/README.md`](../../README.md).
+
 # MakerConnect API Documentation - Onda 1
 
 **Data:** 2026-04-22  

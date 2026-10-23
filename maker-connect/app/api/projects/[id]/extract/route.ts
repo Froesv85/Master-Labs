@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { requireOwnedProject } from '@/lib/project-access';
+import { RATE_LIMITS, checkRateLimit, tooManyRequests } from '@/lib/rate-limit';
 import { anonymizePii } from '@/lib/lgpd';
 import { enqueueExtractionJob } from '@/lib/extraction-queue';
 
@@ -25,8 +28,9 @@ function normalizeInput(value: unknown) {
   return value.trim();
 }
 
+// o webhookId autentica o callback do n8n, entao precisa ser imprevisivel (UUID inteiro)
 function createWebhookId() {
-  return `webhook_${Date.now()}_${crypto.randomUUID().slice(0, 8)}`;
+  return `webhook_${crypto.randomUUID()}`;
 }
 
 
@@ -94,6 +98,15 @@ export async function POST(
   if (!projectId) {
     return NextResponse.json({ error: 'Invalid project id.' }, { status: 400 });
   }
+
+  // extracao roda o modelo de IA: so o dono do projeto, com limite por hora
+  const session = await getSession();
+  const guard = await requireOwnedProject(projectId, session?.userId ?? null);
+  if (guard.error) {
+    return NextResponse.json({ error: guard.error }, { status: guard.status });
+  }
+  const limit = await checkRateLimit(RATE_LIMITS.extractByUser, String(session!.userId));
+  if (!limit.allowed) return tooManyRequests(limit.retryAfterSeconds);
 
   const body = (await req.json().catch(() => null)) as ExtractRequestBody | null;
   const source = body?.source ?? 'manual';
@@ -316,13 +329,11 @@ export async function GET(
   }
 
   try {
-    const project = await prisma.project.findUnique({
-      where: { id: projectId },
-      select: { id: true },
-    });
-
-    if (!project) {
-      return NextResponse.json({ error: 'Project not found.' }, { status: 404 });
+    // so o dono: os logs trazem o webhookId, que autentica o callback do n8n
+    const session = await getSession();
+    const guard = await requireOwnedProject(projectId, session?.userId ?? null);
+    if (guard.error) {
+      return NextResponse.json({ error: guard.error }, { status: guard.status });
     }
 
     const logs = await prisma.projectExtractionLog.findMany({

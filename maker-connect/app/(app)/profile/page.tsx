@@ -21,8 +21,8 @@ type ProfileResponse = {
     maker: {
       id: number;
       name: string | null;
-      email: string;
-      language: string;
+      email: string | null;
+      language: string | null;
     };
     stats: {
       projects: number;

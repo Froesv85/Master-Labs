@@ -48,3 +48,26 @@ describe('GET /api/users/search', () => {
     expect(body.data[0].name).toBe('Alice Maker');
   });
 });
+
+describe('privacidade na busca de usuários', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  it('busca parcial não devolve e-mails e só procura e-mail por igualdade', async () => {
+    (getSession as jest.Mock).mockResolvedValue(mockSession);
+    (prisma.user.findMany as jest.Mock).mockResolvedValue([{ id: 2, name: 'Alice Maker', email: 'alice@test.com' }]);
+    const res = await GET(makeRequest('?q=@test'));
+    const body = await res.json();
+    expect(body.data[0].email).toBeNull();
+    const { where } = (prisma.user.findMany as jest.Mock).mock.calls[0][0];
+    expect(where.OR).toContainEqual({ email: '@test' });
+    expect(JSON.stringify(where)).not.toContain('"email":{"contains"');
+  });
+
+  it('devolve o e-mail só para quem digitou o endereço exato', async () => {
+    (getSession as jest.Mock).mockResolvedValue(mockSession);
+    (prisma.user.findMany as jest.Mock).mockResolvedValue([{ id: 2, name: null, email: 'alice@test.com' }]);
+    const res = await GET(makeRequest('?q=Alice@Test.com'));
+    const body = await res.json();
+    expect(body.data[0].email).toBe('alice@test.com');
+  });
+});

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 import { signSession, sessionCookieOptions } from '@/lib/auth';
+import { RATE_LIMITS, checkRateLimit, clientIp, tooManyRequests } from '@/lib/rate-limit';
 
 export async function POST(req: NextRequest) {
   try {
@@ -9,6 +10,14 @@ export async function POST(req: NextRequest) {
 
     if (!email?.trim() || !password) {
       return NextResponse.json({ error: 'Email e senha são obrigatórios' }, { status: 400 });
+    }
+
+    const [byIp, byEmail] = await Promise.all([
+      checkRateLimit(RATE_LIMITS.loginByIp, clientIp(req)),
+      checkRateLimit(RATE_LIMITS.loginByEmail, email.trim().toLowerCase()),
+    ]);
+    if (!byIp.allowed || !byEmail.allowed) {
+      return tooManyRequests(Math.max(byIp.retryAfterSeconds, byEmail.retryAfterSeconds));
     }
 
     const user = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
