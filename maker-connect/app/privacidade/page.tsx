@@ -53,6 +53,11 @@ export default function PrivacidadePage() {
             materiais, dificuldades, comentários, votos, compartilhamentos, equipes, comunidades, robôs e competições.
           </li>
           <li>
+            <strong>Comentários e sugestões enviados à equipe:</strong> as mensagens que você escreve no botão
+            &quot;Sugestões&quot;, o tipo escolhido (sugestão, problema, comentário ou dúvida) e a página do site em que você
+            estava. Só você e os administradores da plataforma veem essas conversas.
+          </li>
+          <li>
             <strong>Dados técnicos:</strong> um cookie de sessão (veja a seção 8) e registros de acesso, como endereço IP,
             data e hora.
           </li>
@@ -73,6 +78,10 @@ export default function PrivacidadePage() {
           <li>
             <strong>Busca e recomendação de projetos:</strong> legítimo interesse em tornar o conteúdo da comunidade
             encontrável (art. 7º, IX).
+          </li>
+          <li>
+            <strong>Responder seus comentários e sugestões e melhorar a plataforma:</strong> execução do contrato e legítimo
+            interesse em corrigir problemas e evoluir o serviço (art. 7º, V e IX).
           </li>
           <li>
             <strong>Segurança, prevenção de abusos e guarda de registros de acesso:</strong> legítimo interesse e cumprimento

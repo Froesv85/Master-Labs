@@ -10,7 +10,10 @@ const BASE_NAV_ITEMS = [
   { href: '/communities', label: 'Comunidades' },
 ];
 
-const ADMIN_NAV_ITEM = { href: '/admin/metrics', label: 'Métricas' };
+const ADMIN_NAV_ITEMS = [
+  { href: '/admin/metrics', label: 'Métricas' },
+  { href: '/admin/feedback', label: 'Feedback' },
+];
 
 type Props = {
   userId: number;
@@ -22,7 +25,10 @@ type Props = {
 export default function AppNav({ userId, userName, avatarUrl, isAdmin }: Props) {
   const pathname = usePathname();
   const router = useRouter();
-  const NAV_ITEMS = isAdmin ? [...BASE_NAV_ITEMS, ADMIN_NAV_ITEM] : BASE_NAV_ITEMS;
+  const NAV_ITEMS = isAdmin ? [...BASE_NAV_ITEMS, ...ADMIN_NAV_ITEMS] : BASE_NAV_ITEMS;
+  // itens de /admin dividem o mesmo primeiro segmento: compara a rota inteira
+  const isActive = (href: string) =>
+    href.startsWith('/admin/') ? pathname.startsWith(href) : pathname.startsWith(`/${href.split('/')[1]}`);
 
   const initials = userName
     ? userName.split(' ').slice(0, 2).map((n) => n[0]).join('').toUpperCase()
@@ -50,9 +56,7 @@ export default function AppNav({ userId, userName, avatarUrl, isAdmin }: Props) 
         {/* Navigation */}
         <nav className="hidden items-center md:flex">
           {NAV_ITEMS.map((item) => {
-            const active =
-              pathname === item.href ||
-              (item.href !== '/admin/metrics' && pathname.startsWith(`/${item.href.split('/')[1]}`));
+            const active = isActive(item.href);
             return (
               <Link
                 key={item.href}
@@ -99,7 +103,7 @@ export default function AppNav({ userId, userName, avatarUrl, isAdmin }: Props) 
       {/* Mobile nav */}
       <div className="flex overflow-x-auto border-t border-white/5 md:hidden">
         {NAV_ITEMS.map((item) => {
-          const active = pathname === item.href || pathname.startsWith(`/${item.href.split('/')[1]}`);
+          const active = isActive(item.href);
           return (
             <Link
               key={item.href}

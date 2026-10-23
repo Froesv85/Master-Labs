@@ -59,6 +59,19 @@ enum ProjectVisibility {
   private_team
 }
 
+enum FeedbackCategory {
+  suggestion
+  bug
+  comment
+  question
+}
+
+enum FeedbackStatus {
+  open
+  answered
+  closed
+}
+
 model User {
   id              Int               @id @default(autoincrement())
   email           String            @unique
@@ -84,6 +97,8 @@ model User {
   lgpdAuditLogs  LgpdAuditLog[]
   projectComments ProjectComment[]
   createdCompetitions Competition[]
+  feedbackThreads FeedbackThread[]
+  feedbackMessages FeedbackMessage[]
 
   @@index([email])
 }
@@ -583,4 +598,39 @@ model LgpdAuditLog {
   @@index([projectId])
   @@index([userId])
   @@index([createdAt])
+}
+
+// Chat de comentarios e sugestoes de melhoria: cada conversa e entre um usuario e a
+// administracao (qualquer User com role admin ve e responde todas).
+model FeedbackThread {
+  id            Int               @id @default(autoincrement())
+  userId        Int
+  user          User              @relation(fields: [userId], references: [id])
+  category      FeedbackCategory  @default(suggestion)
+  subject       String            @db.VarChar(160)
+  status        FeedbackStatus    @default(open)
+  pagePath      String?           @db.VarChar(512)
+  adminUnread   Boolean           @default(true)
+  userUnread    Boolean           @default(false)
+  lastMessageAt DateTime          @default(now())
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  messages      FeedbackMessage[]
+
+  @@index([userId])
+  @@index([status, lastMessageAt])
+}
+
+model FeedbackMessage {
+  id        Int            @id @default(autoincrement())
+  threadId  Int
+  thread    FeedbackThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  authorId  Int
+  author    User           @relation(fields: [authorId], references: [id])
+  fromAdmin Boolean        @default(false)
+  content   String         @db.Text
+  createdAt DateTime       @default(now())
+
+  @@index([threadId, createdAt])
+  @@index([authorId])
 }
