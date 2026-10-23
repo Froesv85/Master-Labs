@@ -28,6 +28,7 @@ export const RATE_LIMITS = {
   signupByIp: { name: 'signup-ip', limit: 5, windowSeconds: 60 * 60 },
   extractByUser: { name: 'extract-user', limit: 10, windowSeconds: 60 * 60 },
   exportByUser: { name: 'export-user', limit: 20, windowSeconds: 60 * 60 },
+  feedbackByUser: { name: 'feedback-user', limit: 30, windowSeconds: 60 * 60 },
 } satisfies Record<string, RateLimitRule>;
 
 export type RateLimitResult = { allowed: boolean; retryAfterSeconds: number };
