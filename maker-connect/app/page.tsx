@@ -74,8 +74,8 @@ export default async function Home() {
 
       <div className="relative z-10 flex min-h-screen flex-col">
         {/* Navbar */}
-        <header className="flex w-full items-center justify-between border-b border-amber-500/10 bg-[#080c17]/90 px-8 py-4 backdrop-blur-md">
-          <Logo size={36} />
+        <header className="flex w-full items-center justify-between gap-3 border-b border-amber-500/10 bg-[#080c17]/90 px-4 py-4 backdrop-blur-md sm:px-8">
+          <Logo size={36} className="min-w-0" />
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-400">
             <Link href="#historia" className="transition-colors hover:text-amber-400">História</Link>
             <Link href="#features" className="transition-colors hover:text-amber-400">Recursos</Link>
@@ -85,9 +85,11 @@ export default async function Home() {
           </nav>
           <Link
             href="/projects"
-            className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-5 py-2 text-sm font-bold text-amber-400 transition-all hover:bg-amber-500/20 hover:border-amber-500/70"
+            className="shrink-0 whitespace-nowrap rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm font-bold text-amber-400 transition-all hover:bg-amber-500/20 hover:border-amber-500/70 sm:px-5"
           >
-            Acessar Plataforma →
+            {/* no celular o texto inteiro empurra o logo; "Entrar" cabe ao lado dele */}
+            <span className="sm:hidden">Entrar →</span>
+            <span className="hidden sm:inline">Acessar Plataforma →</span>
           </Link>
         </header>
 
