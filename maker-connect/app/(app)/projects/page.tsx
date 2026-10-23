@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Modal, Field, FormActions, inputCls, selectCls } from '@/components/modal';
-import { fetchProjectsFeed, shareProject, voteProject } from '@/features/social/projects/api';
+import { fetchProjectsFeed, voteProject } from '@/features/social/projects/api';
 import type { FeedCategory, FeedSort, ProjectItem, ProjectsFeedResponse } from '@/features/social/projects/types';
 import { isValidYoutubeUrl } from '@/lib/youtube';
 
@@ -96,15 +96,6 @@ function IconArrowUp() {
   );
 }
 
-function IconShare() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
-      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-    </svg>
-  );
-}
-
 function IconFile() {
   return (
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -142,13 +133,10 @@ function CategoryPlaceholder({ tags }: { tags: ProjectItem['tags'] }) {
 
 // ─── ProjectCard ──────────────────────────────────────────────────────────────
 
-function ProjectCard({ project, onVote, onShare, isVoting, isSharing, isShared }: {
+function ProjectCard({ project, onVote, isVoting }: {
   project: ProjectItem;
   onVote: (id: number) => void;
-  onShare: (id: number) => void;
   isVoting: boolean;
-  isSharing: boolean;
-  isShared: boolean;
 }) {
   const initials = project.creatorName
     ? project.creatorName.split(' ').slice(0, 2).map((n) => n[0]).join('').toUpperCase()
@@ -244,18 +232,6 @@ function ProjectCard({ project, onVote, onShare, isVoting, isSharing, isShared }
               className="inline-flex items-center gap-1 rounded-lg border border-amber-500/30 bg-amber-500/10 px-2.5 py-1.5 text-xs font-bold text-amber-400 transition hover:bg-amber-500/20 disabled:opacity-60"
             >
               <IconArrowUp />{isVoting ? '…' : project.votes}
-            </button>
-            <button
-              type="button"
-              disabled={isSharing || isShared}
-              onClick={() => onShare(project.id)}
-              className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs transition disabled:opacity-60 ${
-                isShared
-                  ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400'
-                  : 'border-white/8 bg-slate-800 text-zinc-400 hover:border-white/15 hover:text-zinc-200'
-              }`}
-            >
-              <IconShare />{isSharing ? '…' : isShared ? 'Compartilhado' : 'Compartilhar'}
             </button>
           </div>
         </div>
@@ -700,8 +676,6 @@ export default function ProjectsPage() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [sharingProjectId, setSharingProjectId] = useState<number | null>(null);
-  const [sharedProjectIds, setSharedProjectIds] = useState<Set<number>>(new Set());
   const [votingProjectId, setVotingProjectId] = useState<number | null>(null);
   const [response, setResponse] = useState<ProjectsFeedResponse | null>(null);
   const [showCreate, setShowCreate] = useState(false);
@@ -725,18 +699,6 @@ export default function ProjectsPage() {
     load();
     return () => controller.abort();
   }, [categoryQuery, page, searchQuery, sort]);
-
-  async function handleShare(projectId: number) {
-    setSharingProjectId(projectId); setError(null);
-    try {
-      await shareProject(projectId);
-      setSharedProjectIds((prev) => new Set(prev).add(projectId));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao compartilhar projeto.');
-    } finally {
-      setSharingProjectId(null);
-    }
-  }
 
   async function handleVote(projectId: number) {
     setVotingProjectId(projectId); setError(null);
@@ -856,10 +818,8 @@ export default function ProjectsPage() {
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {response.data.map((project) => (
               <ProjectCard key={project.id} project={project}
-                onVote={handleVote} onShare={handleShare}
-                isVoting={votingProjectId === project.id}
-                isSharing={sharingProjectId === project.id}
-                isShared={sharedProjectIds.has(project.id)} />
+                onVote={handleVote}
+                isVoting={votingProjectId === project.id} />
             ))}
           </div>
         )}

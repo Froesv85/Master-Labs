@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 type ProjectImage = { id: number; imageUrl: string; position: number };
@@ -70,24 +69,6 @@ function IconArrowUp({ className }: { className?: string }) {
   );
 }
 
-function IconShare({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
-      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-    </svg>
-  );
-}
-
-function IconFork({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="6" cy="6" r="2.5" /><circle cx="18" cy="6" r="2.5" /><circle cx="12" cy="18" r="2.5" />
-      <path d="M6 8.5V12a4 4 0 0 0 4 4M18 8.5V12a4 4 0 0 1-4 4" />
-    </svg>
-  );
-}
-
 function IconDownload({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -110,7 +91,6 @@ function formatFileSize(kb: number) {
 }
 
 export default function ProjectHero({ project }: { project: ProjectHeroData }) {
-  const router = useRouter();
   const gallery = project.images.length > 0
     ? project.images.map((img) => img.imageUrl)
     : project.coverImageUrl
@@ -119,11 +99,7 @@ export default function ProjectHero({ project }: { project: ProjectHeroData }) {
 
   const [activeImg, setActiveImg] = useState(0);
   const [votes, setVotes] = useState(project.votes);
-  const [shares, setShares] = useState(project.shares);
   const [voting, setVoting] = useState(false);
-  const [sharing, setSharing] = useState(false);
-  const [forking, setForking] = useState(false);
-  const [shared, setShared] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const metas = project.tags.map((t) => CATEGORY_META[t] ?? CATEGORY_META.Robotics);
@@ -151,34 +127,6 @@ export default function ProjectHero({ project }: { project: ProjectHeroData }) {
       setError(err instanceof Error ? err.message : 'Erro ao votar.');
     } finally {
       setVoting(false);
-    }
-  }
-
-  async function handleShare() {
-    setSharing(true); setError(null);
-    try {
-      const res = await fetch(`/api/projects/${project.id}/share`, { method: 'POST' });
-      if (!res.ok) throw new Error('Falha ao compartilhar.');
-      const payload = await res.json() as { data: { shares: number } };
-      setShares(payload.data.shares);
-      setShared(true);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao compartilhar.');
-    } finally {
-      setSharing(false);
-    }
-  }
-
-  async function handleFork() {
-    setForking(true); setError(null);
-    try {
-      const res = await fetch(`/api/projects/${project.id}/fork`, { method: 'POST' });
-      if (!res.ok) throw new Error('Falha ao criar fork.');
-      const payload = await res.json() as { data: { id: number } };
-      router.push(`/projects/${payload.data.id}`);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao criar fork.');
-      setForking(false);
     }
   }
 
@@ -212,7 +160,7 @@ export default function ProjectHero({ project }: { project: ProjectHeroData }) {
                   href={`/projects/${project.parentId}`}
                   className="absolute right-3 top-3 rounded-full border border-amber-500/40 bg-black/60 px-2.5 py-1 text-[11px] font-medium text-amber-300 backdrop-blur-sm hover:bg-black/80"
                 >
-                  Fork de &ldquo;{project.parentTitle}&rdquo;
+                  Baseado em &ldquo;{project.parentTitle}&rdquo;
                 </Link>
               )}
             </div>
@@ -293,43 +241,21 @@ export default function ProjectHero({ project }: { project: ProjectHeroData }) {
             {/* Stats row */}
             <div className="mt-4 flex items-center gap-4 border-y border-white/5 py-3 text-xs text-zinc-500">
               <span className="flex items-center gap-1.5"><IconArrowUp className="h-3.5 w-3.5" />{votes} votos</span>
-              <span className="flex items-center gap-1.5"><IconShare className="h-3.5 w-3.5" />{shares}</span>
-              <span className="flex items-center gap-1.5"><IconFork className="h-3.5 w-3.5" />{project.forkCount}</span>
               {project.files.length > 0 && (
                 <span className="flex items-center gap-1.5"><IconDownload className="h-3.5 w-3.5" />{project.files.length}</span>
               )}
             </div>
 
             {/* Actions */}
-            <div className="mt-4 grid grid-cols-3 gap-2">
+            <div className="mt-4">
               <button
                 type="button"
                 disabled={voting}
                 onClick={handleVote}
-                className="flex flex-col items-center gap-1 rounded-lg border border-amber-500/30 bg-amber-500/10 py-2.5 text-amber-400 transition hover:bg-amber-500/20 disabled:opacity-60"
+                className="flex w-full items-center justify-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 py-2.5 text-amber-400 transition hover:bg-amber-500/20 disabled:opacity-60"
               >
                 <IconArrowUp className="h-4 w-4" />
-                <span className="text-[11px] font-bold">Votar</span>
-              </button>
-              <button
-                type="button"
-                disabled={sharing || shared}
-                onClick={handleShare}
-                className={`flex flex-col items-center gap-1 rounded-lg border py-2.5 transition disabled:opacity-60 ${
-                  shared ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400' : 'border-white/10 bg-white/5 text-zinc-300 hover:border-white/20'
-                }`}
-              >
-                <IconShare className="h-4 w-4" />
-                <span className="text-[11px] font-bold">{shared ? 'Enviado' : 'Compartilhar'}</span>
-              </button>
-              <button
-                type="button"
-                disabled={forking}
-                onClick={handleFork}
-                className="flex flex-col items-center gap-1 rounded-lg border border-white/10 bg-white/5 py-2.5 text-zinc-300 transition hover:border-white/20 disabled:opacity-60"
-              >
-                <IconFork className="h-4 w-4" />
-                <span className="text-[11px] font-bold">{forking ? '...' : 'Fork'}</span>
+                <span className="text-sm font-bold">Votar</span>
               </button>
             </div>
 
