@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { Logo } from '@/components/logo';
 import { MakerHistory } from '@/components/maker-history';
+import { Nodo } from '@/components/nodo/nodo';
+import { NodoHero } from '@/components/nodo/nodo-hero';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
@@ -94,7 +96,9 @@ export default async function Home() {
         </header>
 
         {/* Hero */}
-        <main className="flex flex-1 flex-col items-center justify-center px-8 py-24 text-center">
+        <main className="flex flex-1 flex-col items-center justify-center px-8 py-16 text-center sm:py-20">
+          <NodoHero />
+
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-4 py-1.5 text-xs font-semibold text-amber-400 backdrop-blur-md">
             <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
@@ -183,30 +187,17 @@ export default async function Home() {
             <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
               {[
                 {
-                  icon: (
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                  ),
+                  mood: 'idea' as const,
                   title: 'MakerBrain RAG',
                   desc: 'Pipelines de extração inteligentes com aterramento técnico real — sem alucinações na lista de componentes.',
                 },
                 {
-                  icon: (
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                  ),
+                  mood: 'thinking' as const,
                   title: 'Visão Computacional',
                   desc: 'Analise fotos e esquemáticos. O agente identifica circuitos e sugere firmware base (Arduino/ESP).',
                 },
                 {
-                  icon: (
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                  ),
+                  mood: 'docs' as const,
                   title: 'Dossiê Técnico S3',
                   desc: 'Documentação PDF com BOM, código e diário de bordo armazenados em bucket empresarial seguro.',
                 },
@@ -215,8 +206,9 @@ export default async function Home() {
                   key={f.title}
                   className="group rounded-2xl border border-white/8 bg-[#0d1424] p-8 transition-all hover:border-amber-500/30 hover:bg-[#111827]"
                 >
-                  <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-amber-500/10 text-amber-400">
-                    {f.icon}
+                  {/* o Nodo fica parado e ganha vida no hover do card */}
+                  <div className="nodo-hover-play mb-5 flex h-20 w-20 items-center justify-center rounded-2xl bg-amber-500/10">
+                    <Nodo size={60} mood={f.mood} />
                   </div>
                   <h3 className="mb-2 text-lg font-bold text-white">{f.title}</h3>
                   <p className="text-sm leading-relaxed text-zinc-500">{f.desc}</p>
@@ -282,8 +274,12 @@ export default async function Home() {
               </div>
 
               {/* Mock ranking card */}
-              <div className="flex-1 max-w-sm w-full">
-                <div className="rounded-2xl border border-amber-500/20 bg-[#0d1424] overflow-hidden shadow-[0_0_40px_rgba(245,158,11,0.08)]">
+              <div className="relative flex-1 max-w-sm w-full pt-10">
+                {/* Nodo espiando por cima do ranking */}
+                <div className="nodo-peek pointer-events-none absolute -top-2 right-6 z-10" aria-hidden>
+                  <Nodo size={72} mood="celebrate" />
+                </div>
+                <div className="relative z-20 rounded-2xl border border-amber-500/20 bg-[#0d1424] overflow-hidden shadow-[0_0_40px_rgba(245,158,11,0.08)]">
                   <div className="border-b border-white/5 bg-amber-500/5 px-5 py-3 flex items-center justify-between">
                     <span className="text-xs font-bold uppercase tracking-widest text-amber-400">Top Ranking ELO</span>
                     <span className="text-xs text-zinc-600">ao vivo</span>
@@ -312,6 +308,9 @@ export default async function Home() {
         {/* CTA */}
         <section className="border-t border-white/5 px-8 py-20 text-center">
           <div className="mx-auto max-w-2xl">
+            <div className="mb-6 flex justify-center">
+              <Nodo size={110} mood="happy" rolling title="Nodo acenando" />
+            </div>
             <h2 className="text-4xl font-black text-white mb-4">Pronto para entrar na arena?</h2>
             <p className="text-zinc-500 mb-8">Crie seu perfil, cadastre seu robô e conecte-se com os melhores makers do Brasil.</p>
             <Link
