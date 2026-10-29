@@ -31,6 +31,16 @@ pytest
 Os testes usam fixtures (`app.db.CategorySample`, `app.db.BomTransaction`) e não
 dependem de um MySQL real.
 
+## Dados de treino
+
+| Variável | Efeito |
+|---|---|
+| `DATABASE_URL` | lê `ProjectTag` (categoria) e as BOMs das extrações concluídas, sempre sem os projetos `[EVAL]` |
+| `USE_BOOTSTRAP_TRAINING=1` | soma ao treino de categoria os 11.362 títulos do Instructables em `data/bootstrap_category_training.csv` (origem e licença em `data/README.md`). Sem o arquivo, a flag não tem efeito |
+
+O `data/` fica fora do git e da imagem Docker. Em produção ele entra por volume
+(`./data/ml-pipeline:/srv/data` no compose), que é o caminho que `app/db.py` procura.
+
 ## Endpoints
 
 | Rota | Uso |
@@ -60,7 +70,7 @@ dependem de um MySQL real.
   Uma terceira fonte são as **regras externas** (`app/external_bom_rules.json`):
   co-ocorrência de componentes em 54.599 artigos da Hackaday, só como estatística
   agregada (contagem, confiança, lift — nenhum texto). Artigo não é BOM completa, então
-  a confiança bruta é baixa (0,09–0,56); a regra existe porque o lift é alto (>= 4) e o
+  a confiança bruta é baixa (0,07–0,56); a regra existe porque o lift é alto (>= 4) e o
   consequente é uma peça de apoio do antecedente (ESC para brushless, carregador para
   18650…). Elas entram com a própria confiança, abaixo das curadas (0,6). Geradas por
   `data/external/hackaday/build_derived.py` (local-only, ver o README de lá).
@@ -94,6 +104,21 @@ Resultado em 21/10/2026 (acerto = categoria prevista está entre as válidas):
 | **produção atual** (Kaggle + fallback 0,6) | **50/80** | 7/13 |
 | só Kaggle, sem fallback | 34/80 | 6/13 |
 | Kaggle + Hackaday (ComplementNB), sem fallback | 37/80 | 5/13 |
+
+Validação cruzada no próprio dataset de treino (Kaggle, 11.362 títulos,
+`StratifiedKFold(5, shuffle=True, random_state=42)`, mesmo pipeline TF-IDF + MultinomialNB
+de produção), em 27/10/2026:
+
+| Classe | Precisão | Revocação | F1 |
+|---|---|---|---|
+| IoT | 0,745 | 0,746 | 0,745 |
+| Robotics | 0,778 | 0,699 | 0,737 |
+| 3D_Printing | 0,720 | 0,731 | 0,726 |
+| Woodworking | 0,784 | 0,832 | 0,807 |
+| **Macro** | 0,757 | 0,752 | **0,754** (acurácia 0,755) |
+
+A diferença para os 34/80 do modelo isolado em português mede a mudança de domínio
+(títulos curtos em inglês x descrições em português), não um defeito do modelo.
 
 Em produção o modelo só decide 8 dos 80 casos (nos outros não passa de 0,6 e cai no
 fallback), porque foi treinado em inglês. Os pontos fracos são Robotics (11/20) e
