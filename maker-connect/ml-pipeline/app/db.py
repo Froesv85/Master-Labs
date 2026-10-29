@@ -2,13 +2,16 @@
 side). This service never writes to these tables — it only pulls training data for the
 Fase 5 stages and reuses the same DATABASE_URL as the Next.js app.
 """
+import csv
 import json
 import os
 from dataclasses import dataclass, field
+from pathlib import Path
 
 from sqlalchemy import create_engine, text
 
 EVAL_PREFIX = "[EVAL]%"
+BOOTSTRAP_CSV_PATH = Path(__file__).resolve().parent.parent / "data" / "bootstrap_category_training.csv"
 
 
 def _sqlalchemy_url() -> str:
@@ -57,6 +60,28 @@ def load_category_training_data() -> list[CategorySample]:
         text_blob = " ".join(p for p in parts if p).strip()
         if text_blob and row["category"]:
             samples.append(CategorySample(text=text_blob, category=row["category"]))
+
+    if os.environ.get("USE_BOOTSTRAP_TRAINING", "").lower() in ("1", "true"):
+        samples.extend(_load_bootstrap_category_samples())
+
+    return samples
+
+
+def _load_bootstrap_category_samples() -> list[CategorySample]:
+    """External titles (Instructables/Kaggle, title-only, noisier than real
+    descriptions) used to widen an otherwise tiny real dataset. Local-only file,
+    not committed (see ml-pipeline/data/README.md for provenance/license) — missing
+    file just means the flag has no effect instead of crashing the service.
+    """
+    if not BOOTSTRAP_CSV_PATH.exists():
+        return []
+
+    samples = []
+    with open(BOOTSTRAP_CSV_PATH, encoding="utf-8", newline="") as f:
+        for row in csv.DictReader(f):
+            text_blob, category = row.get("text", "").strip(), row.get("category", "").strip()
+            if text_blob and category:
+                samples.append(CategorySample(text=text_blob, category=category))
     return samples
 
 

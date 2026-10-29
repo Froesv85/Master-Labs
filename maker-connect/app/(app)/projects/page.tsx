@@ -497,7 +497,7 @@ function CreateProjectModal({ onClose, onCreated }: { onClose: () => void; onCre
           <div className="rounded-xl border border-teal-500/20 bg-teal-500/5 p-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
-                <p className="text-xs font-bold text-teal-300">✨ Sugestão com IA</p>
+                <p className="text-xs font-bold text-teal-300">Sugestão com IA</p>
                 <p className="text-xs text-zinc-500">Gera um rascunho de descrição, lista de materiais e etapas de montagem a partir do título/objetivo — você revisa e edita antes de publicar.</p>
               </div>
               <button type="button" onClick={handleSuggest} disabled={suggesting || title.trim().length < 3}
