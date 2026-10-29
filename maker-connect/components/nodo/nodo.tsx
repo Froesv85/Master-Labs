@@ -30,6 +30,8 @@ type NodoProps = {
   rolling?: boolean;
   /** false congela o mascote (ícones, impressão) */
   animated?: boolean;
+  /** para onde o rosto olha, de -1 a 1 em cada eixo (ex.: seguir o cursor) */
+  look?: { x: number; y: number };
   title?: string;
   className?: string;
 };
@@ -42,6 +44,7 @@ export function Nodo({
   pose,
   rolling = false,
   animated = true,
+  look,
   title,
   className = '',
 }: NodoProps) {
@@ -93,8 +96,13 @@ export function Nodo({
 
         {/* rosto em tela */}
         <rect x="72" y="80" width="96" height="58" rx="14" fill={screen} />
-        <g className={mood === 'error' ? 'nodo-glitch' : undefined}>
-          <Face mood={mood} />
+        <g
+          className="nodo-face"
+          style={look ? { transform: `translate(${look.x * 9}px, ${look.y * 6}px)` } : undefined}
+        >
+          <g className={mood === 'error' ? 'nodo-glitch' : undefined}>
+            <Face mood={mood} />
+          </g>
         </g>
         {mood === 'thinking' && (
           <rect className="nodo-scanline" x="74" y="82" width="92" height="3" rx="1.5" fill={teal} fillOpacity="0.35" />

@@ -127,6 +127,15 @@ body {
 
 .nodo-static, .nodo-static * { animation: none !important; }
 
+/* página inicial */
+.nodo-face { transition: transform 160ms ease-out; }
+.nodo-hover-play .nodo * { animation-play-state: paused; }
+.group:hover .nodo-hover-play .nodo * { animation-play-state: running; }
+.nodo-hero-halo {
+  background: radial-gradient(circle, rgb(255 165 0 / .22), transparent 65%);
+  animation: nodo-glow 3.2s ease-in-out infinite;
+}
+
 /* ─── Transições entre telas (app/(app)/_components/route-transition.tsx) ──── */
 
 ::view-transition { pointer-events: none; }
