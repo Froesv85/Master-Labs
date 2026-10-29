@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, type ReactNode } from 'react';
+import { NodoLoader, messagesForPath } from '@/components/nodo/nodo-loader';
 
 type MetricData = {
   ai: {
@@ -88,7 +89,7 @@ export default function AdminMetricsPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-zinc-950">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent"></div>
+        <NodoLoader size="lg" messages={messagesForPath('/admin')} />
       </div>
     );
   }

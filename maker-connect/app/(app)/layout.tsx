@@ -4,6 +4,8 @@ import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import AppNav from './_components/app-nav';
 import FeedbackWidget from './_components/feedback-widget';
+import NodoWelcome from './_components/nodo-welcome';
+import RouteTransition from './_components/route-transition';
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const session = await getSession();
@@ -22,8 +24,11 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
         avatarUrl={user?.profile?.avatarUrl ?? null}
         isAdmin={user?.role === 'admin'}
       />
-      <main className="mx-auto max-w-7xl px-4 py-6">{children}</main>
+      <main className="mx-auto max-w-7xl px-4 py-6">
+        <RouteTransition>{children}</RouteTransition>
+      </main>
       <FeedbackWidget />
+      <NodoWelcome userName={session.name} />
     </div>
   );
 }

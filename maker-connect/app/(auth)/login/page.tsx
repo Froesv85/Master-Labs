@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useState } from 'react';
+import { requestNodoWelcome } from '@/components/nodo/welcome-flag';
 import OAuthButtons from '../_components/OAuthButtons';
 
 const OAUTH_ERROR_MESSAGES: Record<string, string> = {
@@ -37,6 +38,7 @@ function LoginForm() {
         const d = await res.json().catch(() => ({}));
         throw new Error(d.error ?? 'Erro ao entrar');
       }
+      requestNodoWelcome('login');
       router.replace('/projects');
       router.refresh();
     } catch (err) {

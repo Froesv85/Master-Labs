@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { NodoLoader } from '@/components/nodo/nodo-loader';
 
 type ProjectImage = { id: number; imageUrl: string; position: number };
 
@@ -94,7 +95,7 @@ export default function ImagesPanel({ projectId }: { projectId: number }) {
   }
 
   if (loading) {
-    return <p className="mt-6 text-sm text-zinc-500">Carregando imagens...</p>;
+    return <NodoLoader layout="inline" mood="idea" label="Revelando as fotos da bancada…" className="mt-6 text-zinc-500" />;
   }
 
   return (

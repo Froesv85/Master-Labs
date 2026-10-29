@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { use, useEffect, useRef, useState } from 'react';
 import { Modal, Field, FormActions, inputCls, selectCls } from '@/components/modal';
+import { NodoLoader, messagesForPath } from '@/components/nodo/nodo-loader';
 
 type RobotImage = { id: number; imageUrl: string; position: number };
 type RobotComponent = { id: number; name: string; quantity: number; description: string | null; createdAt: string };
@@ -341,7 +342,7 @@ export default function RobotDetailPage({ params }: { params: Promise<{ id: stri
   }, [id]);
 
   if (loading) {
-    return <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-2 border-amber-500 border-t-transparent" /></div>;
+    return <div className="flex h-64 items-center justify-center"><NodoLoader messages={messagesForPath('/robots')} /></div>;
   }
   if (!robot) return <div className="py-16 text-center text-zinc-500">Robô não encontrado.</div>;
 

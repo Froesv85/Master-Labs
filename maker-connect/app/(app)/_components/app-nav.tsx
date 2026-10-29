@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { LogoIcon } from '@/components/logo';
+import NodoNavProgress from './nodo-nav-progress';
 
 const BASE_NAV_ITEMS = [
   { href: '/projects', label: 'Projetos' },
@@ -41,7 +42,11 @@ export default function AppNav({ userId, userName, avatarUrl, isAdmin }: Props) 
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-amber-500/20 bg-[#080c17]/95 backdrop-blur-md">
+    <header
+      className="sticky top-0 z-50 border-b border-amber-500/20 bg-[#080c17]/95 backdrop-blur-md"
+      // fica parado enquanto o conteúdo desliza na troca de tela
+      style={{ viewTransitionName: 'site-header' }}
+    >
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-0">
         {/* Logo */}
         <Link href="/projects" className="flex items-center gap-2 py-3">
@@ -119,6 +124,7 @@ export default function AppNav({ userId, userName, avatarUrl, isAdmin }: Props) 
           );
         })}
       </div>
+      <NodoNavProgress />
     </header>
   );
 }

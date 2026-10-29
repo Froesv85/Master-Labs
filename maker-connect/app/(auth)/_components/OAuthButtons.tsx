@@ -1,8 +1,13 @@
+'use client';
+
+import { requestNodoWelcome } from '@/components/nodo/welcome-flag';
+
 export default function OAuthButtons() {
   return (
     <div className="space-y-2.5">
       <a
         href="/api/auth/google"
+        onClick={() => requestNodoWelcome('login')}
         className="flex h-10 w-full items-center justify-center gap-2.5 rounded-lg border border-white/10 bg-slate-800 text-sm font-semibold text-zinc-200 transition hover:bg-slate-700"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
@@ -28,6 +33,7 @@ export default function OAuthButtons() {
 
       <a
         href="/api/auth/github"
+        onClick={() => requestNodoWelcome('login')}
         className="flex h-10 w-full items-center justify-center gap-2.5 rounded-lg border border-white/10 bg-slate-800 text-sm font-semibold text-zinc-200 transition hover:bg-slate-700"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="#ffffff" aria-hidden="true">

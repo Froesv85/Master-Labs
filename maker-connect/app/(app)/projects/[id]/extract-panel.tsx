@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import CodeViewer from './code-viewer';
+import { NodoLoader } from '@/components/nodo/nodo-loader';
 
 type ExtractResponse = {
   data: {
@@ -218,9 +219,11 @@ export default function ExtractPanel({
           <p className="mt-1">Palavras-chave: {result.keywords?.join(', ') || 'nenhuma'}</p>
           
           {result.status === 'queued' && (
-            <div className="mt-4 animate-pulse text-emerald-600 font-medium">
-              ⏳ Processando extração (pipeline de IA, RAG)...
-            </div>
+            <NodoLoader
+              layout="inline"
+              messages={['Processando extração (pipeline de IA, RAG)…', 'Lendo o esquemático…', 'Cruzando com datasheets…']}
+              className="mt-4 text-emerald-600"
+            />
           )}
 
           {result.status === 'done' && result.output && (
