@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { NodoLoader } from '@/components/nodo/nodo-loader';
 
 type CodeFile = {
   id: number;
@@ -84,7 +85,7 @@ export default function CodeFilesPanel({ projectId }: { projectId: number }) {
   }
 
   if (loading) {
-    return <p className="mt-6 text-sm text-zinc-500">Carregando código do projeto...</p>;
+    return <NodoLoader layout="inline" mood="docs" label="Abrindo os arquivos de código…" className="mt-6 text-zinc-500" />;
   }
 
   return (

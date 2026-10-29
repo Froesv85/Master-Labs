@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { NodoLoader } from '@/components/nodo/nodo-loader';
 
 type ProjectExport = {
   id: number;
@@ -106,7 +107,7 @@ export default function ExportPanel({ projectId, canGenerate = true }: { project
                 </div>
                 <div>
                   {exp.status === 'processing' || exp.status === 'queued' ? (
-                    <span className="text-sm text-blue-600 animate-pulse font-medium">Buscando inteligência e vetorizando...</span>
+                    <NodoLoader layout="inline" mood="docs" messages={['Buscando inteligência e vetorizando…', 'Montando BOM e pinagem…', 'Diagramando o PDF…']} className="text-blue-600" />
                   ) : exp.status === 'done' ? (
                     <a
                       href={exp.fileUrl || '#'}

@@ -10,6 +10,7 @@ import FeedbackConversation, {
   type FeedbackCategory,
   type FeedbackStatus,
 } from '../../_components/feedback-conversation';
+import { NodoLoader } from '@/components/nodo/nodo-loader';
 
 type AdminThread = {
   id: number;
@@ -126,7 +127,7 @@ export default function AdminFeedbackPage() {
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
         <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02]">
-          {threads === null && <p className="p-4 text-sm text-zinc-500">Carregando...</p>}
+          {threads === null && <NodoLoader layout="inline" label="Abrindo a caixa de feedbacks…" className="p-4 text-zinc-400" />}
           {threads?.length === 0 && <p className="p-4 text-sm text-zinc-500">Nenhuma conversa neste filtro.</p>}
           {threads?.map((t) => (
             <button

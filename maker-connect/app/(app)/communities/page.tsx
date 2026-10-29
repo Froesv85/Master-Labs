@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Modal, Field, FormActions, inputCls, selectCls } from '@/components/modal';
 import { CoverPicker, CoverSelection } from '@/components/cover-picker';
+import { NodoLoader, messagesForPath } from '@/components/nodo/nodo-loader';
 
 type Community = {
   id: number; name: string; description: string | null; category: string; isPublic: boolean;
@@ -157,7 +158,7 @@ export default function CommunitiesPage() {
 
       {loading ? (
         <div className="flex h-40 items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-amber-500 border-t-transparent" />
+          <NodoLoader size="sm" messages={messagesForPath('/communities')} />
         </div>
       ) : error ? (
         <div className="flex h-40 flex-col items-center justify-center gap-3 rounded-xl border border-red-500/20 bg-red-500/5">

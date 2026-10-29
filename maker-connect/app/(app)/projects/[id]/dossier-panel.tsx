@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { YoutubeEmbed } from '@/components/youtube-embed';
 import { isValidYoutubeUrl } from '@/lib/youtube';
+import { NodoLoader } from '@/components/nodo/nodo-loader';
 
 type TechnicalRequirement = { id: string; name: string; detail: string; priority: string };
 type BomItem = { item: string; quantity: string; notes: string };
@@ -134,7 +135,7 @@ export default function DossierPanel({ projectId, refreshSignal }: { projectId: 
   }
 
   if (loading) {
-    return <p className="mt-6 text-sm text-zinc-500">Carregando dossiê...</p>;
+    return <NodoLoader layout="inline" mood="docs" label="Folheando o dossiê técnico…" className="mt-6 text-zinc-500" />;
   }
 
   if (!dossier) {

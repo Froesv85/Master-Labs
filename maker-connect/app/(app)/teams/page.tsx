@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Modal, Field, FormActions, inputCls } from '@/components/modal';
 import { CoverPicker, CoverSelection } from '@/components/cover-picker';
+import { NodoLoader, messagesForPath } from '@/components/nodo/nodo-loader';
 
 type Member = { id: number; role: string; user: { id: number; name: string | null } };
 type Team = { id: number; name: string; description: string | null; isPublic: boolean; ownerId: number; avatarUrl: string | null; coverUrl: string | null; owner: { id: number; name: string | null }; members: Member[]; createdAt: string };
@@ -117,7 +118,7 @@ export default function TeamsPage() {
 
       {loading ? (
         <div className="flex h-40 items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-amber-500 border-t-transparent" />
+          <NodoLoader size="sm" messages={messagesForPath('/teams')} />
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

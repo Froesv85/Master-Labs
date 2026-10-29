@@ -27,3 +27,153 @@ body {
   @apply bg-zinc-900/40 backdrop-blur-md border border-zinc-700/50 shadow-xl;
 }
 
+/* ─── Nodo: mascote animado (components/nodo) ──────────────────────────────── */
+
+.nodo-bob { animation: nodo-bob 2.4s ease-in-out infinite; }
+.nodo-hop { animation: nodo-hop 1.1s cubic-bezier(.3, 0, .3, 1) infinite; }
+.nodo-shadow { transform-box: fill-box; transform-origin: center; animation: nodo-shadow 2.4s ease-in-out infinite; }
+.nodo-mood-celebrate .nodo-shadow { animation-duration: 1.1s; }
+.nodo-blink { transform-box: fill-box; transform-origin: center; animation: nodo-blink 4.2s infinite; }
+.nodo-glow { transform-box: fill-box; transform-origin: center; animation: nodo-glow 1.8s ease-in-out infinite; }
+.nodo-rays { animation: nodo-rays 1.8s ease-in-out infinite; }
+.nodo-mood-idea .nodo-glow { animation-duration: 1s; }
+.nodo-bar { transform-box: fill-box; transform-origin: bottom; animation: nodo-bar 1.1s ease-in-out infinite; }
+/* origem no ombro, em unidades do viewBox */
+.nodo-wave { transform-origin: 182px 144px; animation: nodo-wave 1.6s ease-in-out infinite; }
+.nodo-cheer-l { transform-origin: 58px 142px; animation: nodo-cheer 1.1s ease-in-out infinite; }
+.nodo-cheer-r { transform-origin: 182px 142px; animation: nodo-cheer 1.1s ease-in-out infinite reverse; }
+.nodo-scan { animation: nodo-scan 1.6s ease-in-out infinite; }
+.nodo-scanline { animation: nodo-scanline 1.8s linear infinite; }
+.nodo-glitch { animation: nodo-glitch 2.4s steps(1) infinite; }
+.nodo-flicker { animation: nodo-flicker 2.4s steps(1) infinite; }
+.nodo-write { stroke-dasharray: 28; animation: nodo-write 2.4s ease-in-out infinite; }
+.nodo-confetti { transform-box: fill-box; transform-origin: center; animation: nodo-confetti 1.6s ease-in infinite; }
+.nodo-rolling .nodo-wheel { transform-box: fill-box; transform-origin: center; animation: nodo-spin .8s linear infinite; }
+.nodo-rolling .nodo-track { animation: nodo-track .5s linear infinite; }
+.nodo-rolling.nodo-mood-thinking .nodo-bob { animation-duration: 1.2s; }
+
+/* trilha do loader: o chão corre para trás e os nós acendem em sequência */
+.nodo-ground { animation: nodo-ground .7s linear infinite; }
+.nodo-node { transform-box: fill-box; transform-origin: center; animation: nodo-node 1.1s ease-in-out infinite; }
+.nodo-msg { animation: nodo-msg 420ms ease-out both; }
+
+@keyframes nodo-bob { 50% { transform: translateY(-4px); } }
+@keyframes nodo-hop { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-12px); } 60% { transform: translateY(-12px) rotate(-2deg); } }
+@keyframes nodo-shadow { 50% { transform: scaleX(.86); opacity: .6; } }
+@keyframes nodo-blink { 0%, 91%, 97%, 100% { transform: scaleY(1); } 94% { transform: scaleY(.1); } }
+/* multiplica o fillOpacity .3 do halo */
+@keyframes nodo-glow { 0%, 100% { transform: scale(.6); opacity: .4; } 50% { transform: scale(1.3); opacity: 1; } }
+@keyframes nodo-rays { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
+@keyframes nodo-bar { 50% { transform: scaleY(.35); } }
+@keyframes nodo-wave { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-16deg); } 50% { transform: rotate(6deg); } 75% { transform: rotate(-12deg); } }
+@keyframes nodo-cheer { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-9deg); } }
+@keyframes nodo-scan { 0%, 100% { transform: translateX(-7px); } 50% { transform: translateX(7px); } }
+@keyframes nodo-scanline { from { transform: translateY(0); opacity: 0; } 15%, 85% { opacity: 1; } to { transform: translateY(52px); opacity: 0; } }
+@keyframes nodo-glitch { 0%, 100% { transform: none; opacity: 1; } 8% { transform: translateX(-4px); } 10% { transform: translateX(3px); opacity: .6; } 12% { transform: none; opacity: 1; } 55% { opacity: .3; } 57% { opacity: 1; } }
+@keyframes nodo-flicker { 0%, 100% { opacity: 1; } 30% { opacity: .35; } 32% { opacity: 1; } 70% { opacity: .5; } 71% { opacity: 1; } }
+@keyframes nodo-write { 0% { stroke-dashoffset: 28; } 45%, 85% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: 0; opacity: 0; } }
+@keyframes nodo-confetti { from { transform: translateY(-10px) rotate(0); opacity: 0; } 20% { opacity: 1; } to { transform: translateY(46px) rotate(220deg); opacity: 0; } }
+@keyframes nodo-spin { to { transform: rotate(360deg); } }
+@keyframes nodo-track { to { stroke-dashoffset: -10; } }
+@keyframes nodo-ground { to { stroke-dashoffset: 16; } }
+@keyframes nodo-node { 0%, 100% { opacity: .15; transform: scale(.7); } 30% { opacity: 1; transform: scale(1.25); } }
+@keyframes nodo-msg { from { opacity: 0; transform: translateY(4px); filter: blur(2px); } to { opacity: 1; transform: none; filter: none; } }
+
+/* tirolesa: o Nodo desce pendurado na trilha da borda do header durante a navegação */
+.nodo-zip-line {
+  background: linear-gradient(90deg, transparent, #FFA500 35%, #FFB84D);
+  box-shadow: 0 0 10px rgb(255 165 0 / .7);
+  transition: width 220ms ease-out;
+}
+.nodo-zip-rider { transform: translate(-50%, -4px); transition: left 220ms ease-out; }
+.nodo-zip-rider > svg { transform-origin: 50% 3px; animation: nodo-swing 1.2s ease-in-out infinite; }
+.nodo-zip-done .nodo-zip-line { animation: nodo-zip-flash 650ms ease forwards; }
+.nodo-zip-done .nodo-zip-rider > svg { animation: nodo-zip-drop 600ms cubic-bezier(.5, -.4, .7, 1) forwards; }
+
+@keyframes nodo-swing { 0%, 100% { transform: rotate(12deg); } 50% { transform: rotate(-3deg); } }
+@keyframes nodo-zip-flash {
+  0% { background: #00C4B4; box-shadow: 0 0 16px #00C4B4; }
+  60% { opacity: 1; }
+  100% { background: #00C4B4; opacity: 0; }
+}
+@keyframes nodo-zip-drop {
+  0% { transform: rotate(0); }
+  35% { transform: translateY(-6px) rotate(-10deg); }
+  100% { transform: translateY(20px) rotate(24deg); opacity: 0; }
+}
+
+/* boas-vindas pós-login: a tela do Nodo liga como um CRT */
+.nodo-welcome { animation: nodo-fade-in 280ms ease-out both; }
+.nodo-welcome-out { animation: nodo-fade-out 450ms ease-in forwards; }
+.nodo-welcome-boot > svg { animation: nodo-crt 760ms cubic-bezier(.2, .8, .2, 1) both; }
+.nodo-welcome-ring { border: 2px solid #FFA500; animation: nodo-ripple 1.4s ease-out 600ms infinite both; }
+.nodo-welcome-text { animation: nodo-msg 500ms ease-out 480ms both; }
+.nodo-welcome-grid {
+  background-image: radial-gradient(circle, rgb(255 165 0 / .18) 1.5px, transparent 1.6px);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(circle at 50% 45%, #000 0, transparent 60%);
+  animation: nodo-fade-in 1.2s ease-out 200ms both;
+}
+
+@keyframes nodo-fade-in { from { opacity: 0; } }
+@keyframes nodo-fade-out { to { opacity: 0; transform: scale(1.03); } }
+@keyframes nodo-crt {
+  0% { transform: scale(1, .02); filter: brightness(3); opacity: 0; }
+  18% { transform: scale(1, .02); opacity: 1; }
+  45% { transform: scale(1.04, 1.06); filter: brightness(1.6); }
+  70% { transform: scale(1); filter: brightness(1); }
+}
+@keyframes nodo-ripple { from { transform: translateX(-50%) scale(.3); opacity: .9; } to { transform: translateX(-50%) scale(2.6); opacity: 0; } }
+
+.nodo-static, .nodo-static * { animation: none !important; }
+
+/* ─── Transições entre telas (app/(app)/_components/route-transition.tsx) ──── */
+
+::view-transition { pointer-events: none; }
+::view-transition-old(root),
+::view-transition-new(root) { animation: none; }
+
+/* header ancorado: só o conteúdo se move */
+::view-transition-group(site-header) { animation: none; z-index: 100; }
+::view-transition-old(site-header) { display: none; }
+::view-transition-new(site-header) { animation: none; }
+
+/* troca na mesma profundidade (ou navegação sem direção): sobe e entra em foco */
+::view-transition-old(.page-exit) { animation: 140ms ease-in both vt-fade-out; }
+::view-transition-new(.page-enter) { animation: 320ms cubic-bezier(.2, .8, .2, 1) 90ms both vt-rise; }
+
+/* avançar (entrar num projeto, ir para a aba à direita): conteúdo vem da direita */
+html[data-nav-dir="forward"]::view-transition-old(.page-exit) {
+  --vt-x: -56px;
+  animation: 160ms ease-in both vt-fade-out, 380ms cubic-bezier(.4, 0, .2, 1) both vt-slide-out;
+}
+html[data-nav-dir="forward"]::view-transition-new(.page-enter) {
+  --vt-x: 56px;
+  animation: 240ms ease-out 120ms both vt-fade-in, 420ms cubic-bezier(.2, .8, .2, 1) both vt-slide-in;
+}
+/* voltar: o caminho inverso */
+html[data-nav-dir="back"]::view-transition-old(.page-exit) {
+  --vt-x: 56px;
+  animation: 160ms ease-in both vt-fade-out, 380ms cubic-bezier(.4, 0, .2, 1) both vt-slide-out;
+}
+html[data-nav-dir="back"]::view-transition-new(.page-enter) {
+  --vt-x: -56px;
+  animation: 240ms ease-out 120ms both vt-fade-in, 420ms cubic-bezier(.2, .8, .2, 1) both vt-slide-in;
+}
+
+@keyframes vt-fade-out { to { opacity: 0; filter: blur(3px); } }
+@keyframes vt-fade-in { from { opacity: 0; filter: blur(3px); } }
+@keyframes vt-slide-out { to { translate: var(--vt-x); } }
+@keyframes vt-slide-in { from { translate: var(--vt-x); } }
+@keyframes vt-rise { from { opacity: 0; transform: translateY(14px); filter: blur(4px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .nodo, .nodo *, .nodo-zip *, .nodo-ground, .nodo-node, .nodo-msg { animation: none !important; }
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+}
+

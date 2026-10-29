@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { use, useEffect, useState } from 'react';
 import { Modal, Field, FormActions, inputCls } from '@/components/modal';
+import { NodoLoader, messagesForPath } from '@/components/nodo/nodo-loader';
 
 type Post = {
   id: number; title: string; content: string; mediaUrl: string | null;
@@ -294,7 +295,7 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
       .finally(() => setPendingLoading(false));
   }, [community, currentUserId, id, pendingFetched]);
 
-  if (loading) return <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-2 border-amber-500 border-t-transparent" /></div>;
+  if (loading) return <div className="flex h-64 items-center justify-center"><NodoLoader messages={messagesForPath('/communities')} /></div>;
   if (!community) return <div className="py-16 text-center text-zinc-500">Comunidade não encontrada.</div>;
 
   const catCfg = CATEGORY_CONFIG[community.category] ?? { emoji: '🌐', color: 'from-slate-900 to-[#0f1829]' };
@@ -536,7 +537,7 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
         <div className="space-y-3">
           {pendingLoading && (
             <div className="flex h-32 items-center justify-center">
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-violet-500 border-t-transparent" />
+              <NodoLoader layout="inline" label="Conferindo quem pediu para entrar…" className="text-zinc-400" />
             </div>
           )}
           {!pendingLoading && pendingMembers.length === 0 && (

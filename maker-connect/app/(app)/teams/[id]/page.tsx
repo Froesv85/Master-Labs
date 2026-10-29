@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { use, useEffect, useState } from 'react';
 import { Modal, Field, FormActions, inputCls } from '@/components/modal';
+import { NodoLoader, messagesForPath } from '@/components/nodo/nodo-loader';
 
 type Member = {
   id: number; role: string; status: string; joinedAt: string;
@@ -349,7 +350,7 @@ export default function TeamDetailPage({ params }: { params: Promise<{ id: strin
     }).catch(() => setLoading(false));
   }, [id]);
 
-  if (loading) return <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-2 border-amber-500 border-t-transparent" /></div>;
+  if (loading) return <div className="flex h-64 items-center justify-center"><NodoLoader messages={messagesForPath('/teams')} /></div>;
   if (!team) return <div className="py-16 text-center text-zinc-500">Equipe não encontrada.</div>;
 
   const approvedMembers = team.members.filter((m) => m.status === 'approved');
@@ -649,7 +650,7 @@ export default function TeamDetailPage({ params }: { params: Promise<{ id: strin
         <div className="space-y-3">
           {pendingLoading && (
             <div className="flex h-32 items-center justify-center">
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-violet-500 border-t-transparent" />
+              <NodoLoader layout="inline" label="Conferindo quem pediu para entrar…" className="text-zinc-400" />
             </div>
           )}
           {!pendingLoading && pendingMembers.length === 0 && (
@@ -700,7 +701,7 @@ export default function TeamDetailPage({ params }: { params: Promise<{ id: strin
           )}
           {competitionsLoading && (
             <div className="flex h-32 items-center justify-center">
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-amber-500 border-t-transparent" />
+              <NodoLoader layout="inline" mood="celebrate" label="Buscando as competições da equipe…" className="text-zinc-400" />
             </div>
           )}
           {!competitionsLoading && competitions.length === 0 && (

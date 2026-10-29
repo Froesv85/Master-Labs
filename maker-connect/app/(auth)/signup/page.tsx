@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { requestNodoWelcome } from '@/components/nodo/welcome-flag';
 import OAuthButtons from '../_components/OAuthButtons';
 
 export default function SignupPage() {
@@ -27,6 +28,7 @@ export default function SignupPage() {
         const d = await res.json();
         throw new Error(d.error ?? 'Erro ao cadastrar');
       }
+      requestNodoWelcome('signup');
       router.push('/projects');
       router.refresh();
     } catch (err) {

@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { use } from 'react';
 import { YoutubeEmbed } from '@/components/youtube-embed';
 import { Modal, Field, FormActions, inputCls, selectCls } from '@/components/modal';
+import { NodoLoader, messagesForPath } from '@/components/nodo/nodo-loader';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -443,7 +444,7 @@ function EditProjectModal({ projectId, onClose, onSaved }: {
   return (
     <Modal title="Editar Projeto" onClose={onClose}>
       {loading ? (
-        <p className="py-8 text-center text-sm text-zinc-500">Carregando…</p>
+        <NodoLoader size="sm" mood="docs" label="Abrindo a ficha do projeto…" className="py-8" />
       ) : !project ? (
         <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-xs text-red-400">{error ?? 'Projeto não encontrado'}</p>
       ) : (
@@ -612,7 +613,7 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-amber-500 border-t-transparent" />
+        <NodoLoader messages={messagesForPath('/profile')} />
       </div>
     );
   }
