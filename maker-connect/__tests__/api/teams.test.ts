@@ -50,12 +50,22 @@ describe('GET /api/teams', () => {
     expect(body[0].name).toBe('Robô Warriors');
   });
 
-  it('não filtra por visibilidade — lista públicas e privadas', async () => {
+  it('com sessão não filtra por visibilidade — lista públicas e privadas', async () => {
+    (getSession as jest.Mock).mockResolvedValueOnce(mockSession);
     (prisma.team.findMany as jest.Mock).mockResolvedValue([]);
 
     await GET();
     const callArgs = (prisma.team.findMany as jest.Mock).mock.calls[0][0];
     expect(callArgs?.where).toBeUndefined();
+  });
+
+  it('convidado (sem sessão) só vê equipes públicas', async () => {
+    (getSession as jest.Mock).mockResolvedValueOnce(null);
+    (prisma.team.findMany as jest.Mock).mockResolvedValue([]);
+
+    await GET();
+    const callArgs = (prisma.team.findMany as jest.Mock).mock.calls[0][0];
+    expect(callArgs?.where).toEqual({ isPublic: true });
   });
 });
 

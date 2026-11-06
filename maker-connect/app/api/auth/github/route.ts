@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { generateState, getAppUrl, stateCookieOptions } from '@/lib/oauth';
+import { generateState, getAppUrl, stateCookieOptions, nextCookieOptions } from '@/lib/oauth';
 
 export async function GET(req: NextRequest) {
   const clientId = process.env.GITHUB_CLIENT_ID;
@@ -18,5 +18,6 @@ export async function GET(req: NextRequest) {
 
   const res = NextResponse.redirect(url);
   res.cookies.set(stateCookieOptions(state));
+  res.cookies.set(nextCookieOptions(req));
   return res;
 }

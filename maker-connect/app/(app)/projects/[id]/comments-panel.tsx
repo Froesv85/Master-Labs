@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import { useAuthGate } from '@/components/guest-gate';
 
 type Comment = {
   id: number;
@@ -18,6 +19,7 @@ export default function CommentsPanel({
   initialComments: Comment[];
 }) {
   const [comments, setComments] = useState(initialComments);
+  const { requireAccount } = useAuthGate();
   const [content, setContent] = useState('');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageB64, setImageB64] = useState<string | null>(null);
@@ -51,6 +53,7 @@ export default function CommentsPanel({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!requireAccount()) return; // convidado: comentar exige conta
     if (!content.trim()) { setError('Escreva algo antes de comentar'); return; }
     setPosting(true);
     setError(null);

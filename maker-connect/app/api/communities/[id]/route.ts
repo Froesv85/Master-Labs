@@ -23,6 +23,10 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   });
 
   if (!community) return NextResponse.json({ error: 'Community not found' }, { status: 404 });
+  // convidado nao ve comunidade privada
+  if (!community.isPublic && !(await getSession())) {
+    return NextResponse.json({ error: 'Community not found' }, { status: 404 });
+  }
   return NextResponse.json(community);
 }
 

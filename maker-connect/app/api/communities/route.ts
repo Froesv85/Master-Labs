@@ -13,7 +13,10 @@ const categoryMap: Record<string, Category> = {
 };
 
 export async function GET() {
+  // convidado (sem sessao) so ve comunidades publicas
+  const session = await getSession();
   const communities = await prisma.community.findMany({
+    where: session ? undefined : { isPublic: true },
     include: {
       creator: { select: { id: true, name: true } },
       _count: { select: { members: true, posts: true } },

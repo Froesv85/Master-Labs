@@ -12,11 +12,34 @@ const PUBLIC_API_PREFIXES = ['/api/auth/'];
 const PUBLIC_API_EXACT = ['/api/health'];
 const PUBLIC_API_PATTERNS = [/^\/api\/projects\/\d+\/extract\/callback$/];
 
-function isPublicApi(pathname: string) {
+// Contador de visitas (logadas x convidados): precisa aceitar quem nao tem sessao.
+// So incrementa um contador diario agregado, sem dado pessoal (ver app/api/visits).
+const PUBLIC_API_POST_EXACT = ['/api/visits'];
+
+// Modo convidado: sem sessao, da para LER projetos, equipes e comunidades.
+// Paginas: listagem e detalhe. API: so GET, e cada rota filtra o que o convidado
+// ve (projetos publicos via canAccessProject/projectVisibilityWhere, equipes e
+// comunidades publicas). Criar, votar, comentar e entrar seguem exigindo sessao.
+const GUEST_PAGE_PATTERN = /^\/(projects|teams|communities)(\/\d+)?$/;
+const GUEST_API_GET_PATTERNS = [
+  /^\/api\/projects$/,
+  /^\/api\/projects\/\d+$/,
+  /^\/api\/projects\/\d+\/export$/,
+  /^\/api\/teams$/,
+  /^\/api\/teams\/\d+$/,
+  /^\/api\/teams\/\d+\/(members|competitions)$/,
+  /^\/api\/communities$/,
+  /^\/api\/communities\/\d+$/,
+  /^\/api\/communities\/\d+\/members$/,
+];
+
+function isPublicApi(pathname: string, method: string) {
   return (
     PUBLIC_API_EXACT.includes(pathname) ||
     PUBLIC_API_PREFIXES.some((p) => pathname.startsWith(p)) ||
-    PUBLIC_API_PATTERNS.some((re) => re.test(pathname))
+    PUBLIC_API_PATTERNS.some((re) => re.test(pathname)) ||
+    (method === 'POST' && PUBLIC_API_POST_EXACT.includes(pathname)) ||
+    (method === 'GET' && GUEST_API_GET_PATTERNS.some((re) => re.test(pathname)))
   );
 }
 
@@ -32,8 +55,10 @@ export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   const isPublic = pathname.startsWith('/api/')
-    ? isPublicApi(pathname)
-    : PUBLIC_EXACT_PATHS.includes(pathname) || PUBLIC_PATHS.some((p) => pathname.startsWith(p));
+    ? isPublicApi(pathname, req.method)
+    : PUBLIC_EXACT_PATHS.includes(pathname) ||
+      PUBLIC_PATHS.some((p) => pathname.startsWith(p)) ||
+      GUEST_PAGE_PATTERN.test(pathname);
   if (isPublic) return NextResponse.next();
 
   const token = req.cookies.get('mc_session')?.value;

@@ -40,6 +40,10 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   });
 
   if (!team) return NextResponse.json({ error: 'Team not found' }, { status: 404 });
+  // convidado nao ve equipe privada
+  if (!team.isPublic && !(await getSession())) {
+    return NextResponse.json({ error: 'Team not found' }, { status: 404 });
+  }
   return NextResponse.json(team);
 }
 

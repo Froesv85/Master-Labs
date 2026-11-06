@@ -25,8 +25,9 @@ export async function GET(_req: NextRequest, { params }: Params) {
     return NextResponse.json({ error: 'Invalid team id.' }, { status: 400 });
   }
 
-  const team = await prisma.team.findUnique({ where: { id: teamId }, select: { id: true } });
-  if (!team) {
+  const team = await prisma.team.findUnique({ where: { id: teamId }, select: { id: true, isPublic: true } });
+  // convidado nao ve competicoes de equipe privada
+  if (!team || (!team.isPublic && !(await getSession()))) {
     return NextResponse.json({ error: 'Team not found.' }, { status: 404 });
   }
 

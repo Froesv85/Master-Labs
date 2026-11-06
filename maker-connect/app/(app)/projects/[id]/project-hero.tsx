@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import { useAuthGate } from '@/components/guest-gate';
 
 type ProjectImage = { id: number; imageUrl: string; position: number };
 type ProjectFile = { id: number; fileName: string; fileUrl: string; fileType: string; fileSizeKb: number };
@@ -20,7 +21,7 @@ type ProjectHeroData = {
   teamName: string | null;
   creatorId: number;
   creatorName: string | null;
-  creatorEmail: string;
+  creatorEmail: string | null;
   parentId: number | null;
   parentTitle: string | null;
   coverImageUrl: string | null;
@@ -101,6 +102,7 @@ export default function ProjectHero({ project }: { project: ProjectHeroData }) {
   const [votes, setVotes] = useState(project.votes);
   const [voting, setVoting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { requireAccount } = useAuthGate();
 
   const metas = project.tags.map((t) => CATEGORY_META[t] ?? CATEGORY_META.Robotics);
   const meta = metas[0] ?? CATEGORY_META.Robotics;
@@ -116,6 +118,7 @@ export default function ProjectHero({ project }: { project: ProjectHeroData }) {
   const isPublic = project.visibility === 'public';
 
   async function handleVote() {
+    if (!requireAccount()) return; // convidado: votar exige conta
     setVoting(true); setError(null);
     try {
       const res = await fetch(`/api/projects/${project.id}/vote`, { method: 'POST' });
@@ -234,7 +237,7 @@ export default function ProjectHero({ project }: { project: ProjectHeroData }) {
                 {initials}
               </div>
               <span className="text-sm text-zinc-400 transition-colors group-hover/c:text-amber-400">
-                {project.creatorName ?? project.creatorEmail}
+                {project.creatorName ?? project.creatorEmail ?? 'Maker'}
               </span>
             </Link>
 

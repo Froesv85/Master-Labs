@@ -29,6 +29,8 @@ export const RATE_LIMITS = {
   extractByUser: { name: 'extract-user', limit: 10, windowSeconds: 60 * 60 },
   exportByUser: { name: 'export-user', limit: 20, windowSeconds: 60 * 60 },
   feedbackByUser: { name: 'feedback-user', limit: 30, windowSeconds: 60 * 60 },
+  // contador de visitas: 1 por sessao de aba; o teto so freia inflar o numero via script
+  visitByIp: { name: 'visit-ip', limit: 60, windowSeconds: 60 * 60 },
 } satisfies Record<string, RateLimitRule>;
 
 export type RateLimitResult = { allowed: boolean; retryAfterSeconds: number };

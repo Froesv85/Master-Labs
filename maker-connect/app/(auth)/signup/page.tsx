@@ -1,13 +1,28 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useState } from 'react';
 import { requestNodoWelcome } from '@/components/nodo/welcome-flag';
+import { safeNextPath } from '@/lib/safe-next';
+import { resetVisitFlag } from '@/components/visit-tracker';
 import OAuthButtons from '../_components/OAuthButtons';
 
 export default function SignupPage() {
+  return (
+    <Suspense fallback={null}>
+      <SignupForm />
+    </Suspense>
+  );
+}
+
+function SignupForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  // ?next= vem do modo convidado: volta para a pagina em que a pessoa estava
+  const rawNext = searchParams.get('next');
+  const nextPath = safeNextPath(rawNext);
+  const fromGuest = safeNextPath(rawNext, '') !== '';
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -29,7 +44,8 @@ export default function SignupPage() {
         throw new Error(d.error ?? 'Erro ao cadastrar');
       }
       requestNodoWelcome('signup');
-      router.push('/projects');
+      resetVisitFlag(); // proxima pagina conta como visita autenticada
+      router.push(nextPath);
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro inesperado');
@@ -45,7 +61,13 @@ export default function SignupPage() {
       <h1 className="mb-1 text-xl font-black text-white">Criar conta</h1>
       <p className="mb-6 text-sm text-zinc-500">Junte-se à comunidade maker</p>
 
-      <OAuthButtons />
+      {fromGuest && (
+        <p className="mb-6 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-300">
+          Para criar projetos, equipes e comunidades, votar ou participar, crie sua conta ou entre. Depois você volta para onde estava.
+        </p>
+      )}
+
+      <OAuthButtons next={fromGuest ? nextPath : undefined} />
 
       <div className="my-6 flex items-center gap-3">
         <div className="h-px flex-1 bg-white/10" />
@@ -105,7 +127,7 @@ export default function SignupPage() {
 
       <p className="mt-6 text-center text-sm text-zinc-500">
         Já tem conta?{' '}
-        <Link href="/login" className="font-semibold text-amber-400 hover:text-amber-300">
+        <Link href={fromGuest ? `/login?next=${encodeURIComponent(nextPath)}` : '/login'} className="font-semibold text-amber-400 hover:text-amber-300">
           Entrar
         </Link>
       </p>

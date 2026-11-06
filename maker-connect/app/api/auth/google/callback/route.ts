@@ -6,6 +6,8 @@ import {
   findOrCreateOAuthUser,
   getAppUrl,
   readState,
+  readNextPath,
+  clearNextCookieOptions,
 } from '@/lib/oauth';
 
 export async function GET(req: NextRequest) {
@@ -48,9 +50,10 @@ export async function GET(req: NextRequest) {
     const user = await findOrCreateOAuthUser('google', profile);
 
     const sessionToken = await signSession({ userId: user.id, email: user.email, name: user.name });
-    const res = NextResponse.redirect(`${appUrl}/projects`);
+    const res = NextResponse.redirect(`${appUrl}${readNextPath(req)}`);
     res.cookies.set(sessionCookieOptions(sessionToken));
     res.cookies.set(clearStateCookieOptions());
+    res.cookies.set(clearNextCookieOptions());
     return res;
   } catch {
     return loginError('oauth_falhou');
