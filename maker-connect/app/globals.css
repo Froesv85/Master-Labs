@@ -87,13 +87,15 @@ body {
 }
 .nodo-zip-rider { transform: translate(-50%, -4px); transition: left 220ms ease-out; }
 .nodo-zip-rider > svg { transform-origin: 50% 3px; animation: nodo-swing 1.2s ease-in-out infinite; }
-.nodo-zip-done .nodo-zip-line { animation: nodo-zip-flash 650ms ease forwards; }
-.nodo-zip-done .nodo-zip-rider > svg { animation: nodo-zip-drop 600ms cubic-bezier(.5, -.4, .7, 1) forwards; }
+/* tempos vindos do admin (lib/ui-settings.ts, injetados no layout); fallback = padrao */
+.nodo-zip-done .nodo-zip-line { animation: nodo-zip-flash var(--nodo-celebrate-ms, 1600ms) ease forwards; }
+/* comemora pendurado (mood celebrate) e so entao cai nos ultimos 600ms */
+.nodo-zip-done .nodo-zip-rider > svg { animation: nodo-zip-drop 600ms cubic-bezier(.5, -.4, .7, 1) var(--nodo-drop-delay-ms, 1000ms) forwards; }
 
 @keyframes nodo-swing { 0%, 100% { transform: rotate(12deg); } 50% { transform: rotate(-3deg); } }
 @keyframes nodo-zip-flash {
   0% { background: #00C4B4; box-shadow: 0 0 16px #00C4B4; }
-  60% { opacity: 1; }
+  80% { opacity: 1; }
   100% { background: #00C4B4; opacity: 0; }
 }
 @keyframes nodo-zip-drop {
@@ -148,26 +150,27 @@ body {
 ::view-transition-new(site-header) { animation: none; }
 
 /* troca na mesma profundidade (ou navegação sem direção): sobe e entra em foco */
-::view-transition-old(.page-exit) { animation: 140ms ease-in both vt-fade-out; }
-::view-transition-new(.page-enter) { animation: 320ms cubic-bezier(.2, .8, .2, 1) 90ms both vt-rise; }
+/* duracoes proporcionais a --vt-ms (deslize, padrao 700ms, editavel pelo admin) */
+::view-transition-old(.page-exit) { animation: calc(var(--vt-ms, 700ms) * .37) ease-in both vt-fade-out; }
+::view-transition-new(.page-enter) { animation: calc(var(--vt-ms, 700ms) * .8) cubic-bezier(.2, .8, .2, 1) calc(var(--vt-ms, 700ms) * .23) both vt-rise; }
 
 /* avançar (entrar num projeto, ir para a aba à direita): conteúdo vem da direita */
 html[data-nav-dir="forward"]::view-transition-old(.page-exit) {
   --vt-x: -56px;
-  animation: 160ms ease-in both vt-fade-out, 380ms cubic-bezier(.4, 0, .2, 1) both vt-slide-out;
+  animation: calc(var(--vt-ms, 700ms) * .4) ease-in both vt-fade-out, calc(var(--vt-ms, 700ms) * .89) cubic-bezier(.4, 0, .2, 1) both vt-slide-out;
 }
 html[data-nav-dir="forward"]::view-transition-new(.page-enter) {
   --vt-x: 56px;
-  animation: 240ms ease-out 120ms both vt-fade-in, 420ms cubic-bezier(.2, .8, .2, 1) both vt-slide-in;
+  animation: calc(var(--vt-ms, 700ms) * .6) ease-out calc(var(--vt-ms, 700ms) * .29) both vt-fade-in, var(--vt-ms, 700ms) cubic-bezier(.2, .8, .2, 1) both vt-slide-in;
 }
 /* voltar: o caminho inverso */
 html[data-nav-dir="back"]::view-transition-old(.page-exit) {
   --vt-x: 56px;
-  animation: 160ms ease-in both vt-fade-out, 380ms cubic-bezier(.4, 0, .2, 1) both vt-slide-out;
+  animation: calc(var(--vt-ms, 700ms) * .4) ease-in both vt-fade-out, calc(var(--vt-ms, 700ms) * .89) cubic-bezier(.4, 0, .2, 1) both vt-slide-out;
 }
 html[data-nav-dir="back"]::view-transition-new(.page-enter) {
   --vt-x: -56px;
-  animation: 240ms ease-out 120ms both vt-fade-in, 420ms cubic-bezier(.2, .8, .2, 1) both vt-slide-in;
+  animation: calc(var(--vt-ms, 700ms) * .6) ease-out calc(var(--vt-ms, 700ms) * .29) both vt-fade-in, var(--vt-ms, 700ms) cubic-bezier(.2, .8, .2, 1) both vt-slide-in;
 }
 
 @keyframes vt-fade-out { to { opacity: 0; filter: blur(3px); } }

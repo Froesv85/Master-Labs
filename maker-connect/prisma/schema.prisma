@@ -645,3 +645,12 @@ model SiteVisitDaily {
 
   @@id([day, authenticated])
 }
+
+// Configuracoes da plataforma editaveis pelo admin (ex.: tempos das animacoes do
+// Nodo, chave "ui.nodo"). value guarda JSON validado em lib/ui-settings.ts.
+model AppSetting {
+  key         String   @id @db.VarChar(64)
+  value       String   @db.Text
+  updatedById Int?
+  updatedAt   DateTime @updatedAt
+}

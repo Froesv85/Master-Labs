@@ -2,6 +2,7 @@
 
 import { useState, useEffect, type ReactNode } from 'react';
 import { NodoLoader, messagesForPath } from '@/components/nodo/nodo-loader';
+import NodoSettingsForm from './nodo-settings-form';
 
 type MetricData = {
   ai: {
@@ -122,6 +123,9 @@ export default function AdminMetricsPage() {
 
       {/* VISITAS: autenticadas x convidados */}
       {visits && <VisitsSection visits={visits} />}
+
+      {/* ANIMACOES DO NODO (tempos editaveis) */}
+      <NodoSettingsForm />
 
       {/* PLATFORM OVERVIEW */}
       {overview && (
