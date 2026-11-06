@@ -22,9 +22,11 @@ type Props = {
   userName: string | null;
   avatarUrl: string | null;
   isAdmin: boolean;
+  minRideMs: number;
+  celebrateMs: number;
 };
 
-export default function AppNav({ userId, userName, avatarUrl, isAdmin }: Props) {
+export default function AppNav({ userId, userName, avatarUrl, isAdmin, minRideMs, celebrateMs }: Props) {
   const pathname = usePathname();
   const router = useRouter();
   const NAV_ITEMS = isAdmin ? [...BASE_NAV_ITEMS, ...ADMIN_NAV_ITEMS] : BASE_NAV_ITEMS;
@@ -143,7 +145,7 @@ export default function AppNav({ userId, userName, avatarUrl, isAdmin }: Props) 
           );
         })}
       </div>
-      <NodoNavProgress />
+      <NodoNavProgress minRideMs={minRideMs} celebrateMs={celebrateMs} />
     </header>
   );
 }

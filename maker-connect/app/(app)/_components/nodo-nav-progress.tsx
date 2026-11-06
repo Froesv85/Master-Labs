@@ -29,23 +29,34 @@ function setDirection(dir: NavDirection | null) {
 
 type Phase = 'idle' | 'loading' | 'done';
 
+// Tempo de cena do Nodo: mesmo que a pagina carregue rapido, ele fica pelo menos
+// minRideMs na trilha e depois comemora por celebrateMs antes de sair. Os dois vem
+// do admin (lib/ui-settings.ts); o CSS le os mesmos valores via --nodo-*-ms.
+
 /**
  * Barra de progresso da navegação: o Nodo desce pendurado na trilha do circuito
  * na borda do header. Também marca `<html data-nav-dir>` para as view transitions
  * de rota (ver `RouteTransition` e globals.css).
  */
-export default function NodoNavProgress() {
+export default function NodoNavProgress({ minRideMs, celebrateMs }: { minRideMs: number; celebrateMs: number }) {
   const pathname = usePathname();
   const [phase, setPhase] = useState<Phase>('idle');
   const [progress, setProgress] = useState(0);
   const pathRef = useRef(pathname);
-  const timers = useRef<{ trickle?: ReturnType<typeof setInterval>; safety?: ReturnType<typeof setTimeout> }>({});
+  const startedAt = useRef(0);
+  const timers = useRef<{
+    trickle?: ReturnType<typeof setInterval>;
+    safety?: ReturnType<typeof setTimeout>;
+    arrive?: ReturnType<typeof setTimeout>;
+  }>({});
 
   useEffect(() => {
     function start(dir: NavDirection) {
       setDirection(dir);
       clearInterval(timers.current.trickle);
       clearTimeout(timers.current.safety);
+      clearTimeout(timers.current.arrive);
+      startedAt.current = Date.now();
       setPhase('loading');
       setProgress(12);
       // avança rápido no começo e desacelera perto do fim, sem nunca chegar sozinho a 100%
@@ -77,6 +88,7 @@ export default function NodoNavProgress() {
       window.removeEventListener('popstate', onPopState);
       clearInterval(t.trickle);
       clearTimeout(t.safety);
+      clearTimeout(t.arrive);
     };
   }, []);
 
@@ -84,8 +96,11 @@ export default function NodoNavProgress() {
   useEffect(() => {
     if (pathRef.current === pathname) return;
     pathRef.current = pathname;
-    setPhase((p) => (p === 'loading' ? 'done' : p));
-  }, [pathname]);
+    // pagina pronta antes do tempo minimo: o Nodo termina a viagem com calma
+    const remaining = Math.max(0, minRideMs - (Date.now() - startedAt.current));
+    clearTimeout(timers.current.arrive);
+    timers.current.arrive = setTimeout(() => setPhase((p) => (p === 'loading' ? 'done' : p)), remaining);
+  }, [pathname, minRideMs]);
 
   useEffect(() => {
     if (phase !== 'done') return;
@@ -95,9 +110,9 @@ export default function NodoNavProgress() {
       setPhase('idle');
       setProgress(0);
       setDirection(null);
-    }, 650);
+    }, celebrateMs);
     return () => clearTimeout(hide);
-  }, [phase]);
+  }, [phase, celebrateMs]);
 
   if (phase === 'idle') return null;
   const width = phase === 'done' ? 100 : progress;
@@ -106,7 +121,7 @@ export default function NodoNavProgress() {
     <div aria-hidden className={`nodo-zip pointer-events-none absolute inset-x-0 bottom-0 z-[60] ${phase === 'done' ? 'nodo-zip-done' : ''}`}>
       <div className="nodo-zip-line absolute bottom-0 left-0 h-[2px]" style={{ width: `${width}%` }} />
       <div className="nodo-zip-rider absolute top-0" style={{ left: `${width}%` }}>
-        <Nodo size={34}mood={phase === 'done' ? 'celebrate' : 'happy'} pose="up" />
+        <Nodo size={34} mood={phase === 'done' ? 'celebrate' : 'happy'} pose="up" />
       </div>
     </div>
   );
