@@ -51,12 +51,22 @@ describe('GET /api/communities', () => {
     expect(body[0].name).toBe('Makers de Robótica SP');
   });
 
-  it('não filtra por visibilidade — lista públicas e privadas', async () => {
+  it('com sessão não filtra por visibilidade — lista públicas e privadas', async () => {
+    (getSession as jest.Mock).mockResolvedValueOnce(mockSession);
     (prisma.community.findMany as jest.Mock).mockResolvedValue([]);
 
     await GET();
     const callArgs = (prisma.community.findMany as jest.Mock).mock.calls[0][0];
     expect(callArgs?.where).toBeUndefined();
+  });
+
+  it('convidado (sem sessão) só vê comunidades públicas', async () => {
+    (getSession as jest.Mock).mockResolvedValueOnce(null);
+    (prisma.community.findMany as jest.Mock).mockResolvedValue([]);
+
+    await GET();
+    const callArgs = (prisma.community.findMany as jest.Mock).mock.calls[0][0];
+    expect(callArgs?.where).toEqual({ isPublic: true });
   });
 });
 

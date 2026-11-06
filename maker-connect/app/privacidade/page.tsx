@@ -61,6 +61,11 @@ export default function PrivacidadePage() {
             <strong>Dados técnicos:</strong> um cookie de sessão (veja a seção 8) e registros de acesso, como endereço IP,
             data e hora.
           </li>
+          <li>
+            <strong>Contagem de visitas:</strong> somamos quantas visitas o site recebeu por dia, separando visitas de
+            pessoas conectadas e de visitantes sem conta. Guardamos apenas o total do dia, sem IP, sem identificar quem
+            visitou e sem cookie de análise.
+          </li>
         </List>
         <p>Não pedimos CPF, endereço, telefone nem dados bancários. A plataforma é gratuita.</p>
       </Section>
@@ -163,8 +168,14 @@ export default function PrivacidadePage() {
 
       <Section id="cookies" title="8. Cookies">
         <p>
-          Usamos <strong>um único cookie, essencial</strong>: o <code className="text-zinc-300">mc_session</code>, que mantém
-          você conectado por até 7 dias. Não usamos cookies de análise, de publicidade nem de rastreamento entre sites.
+          Usamos <strong>apenas cookies essenciais</strong>: o <code className="text-zinc-300">mc_session</code>, que mantém
+          você conectado por até 7 dias, e, durante o login com Google ou GitHub, dois cookies temporários (até 10
+          minutos) que protegem o login e lembram a página para onde você volta depois. Não usamos cookies de análise, de
+          publicidade nem de rastreamento entre sites.
+        </p>
+        <p>
+          Para não contar a mesma visita várias vezes, o navegador guarda uma marcação na memória da aba
+          (<code className="text-zinc-300">sessionStorage</code>), apagada quando a aba é fechada. Ela não identifica você.
         </p>
       </Section>
 

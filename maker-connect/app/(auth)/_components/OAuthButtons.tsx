@@ -1,13 +1,16 @@
 'use client';
 
 import { requestNodoWelcome } from '@/components/nodo/welcome-flag';
+import { resetVisitFlag } from '@/components/visit-tracker';
 
-export default function OAuthButtons() {
+export default function OAuthButtons({ next }: { next?: string }) {
+  // repassa o destino pos-login (modo convidado) para o fluxo OAuth
+  const qs = next ? `?next=${encodeURIComponent(next)}` : '';
   return (
     <div className="space-y-2.5">
       <a
-        href="/api/auth/google"
-        onClick={() => requestNodoWelcome('login')}
+        href={`/api/auth/google${qs}`}
+        onClick={() => { requestNodoWelcome('login'); resetVisitFlag(); }}
         className="flex h-10 w-full items-center justify-center gap-2.5 rounded-lg border border-white/10 bg-slate-800 text-sm font-semibold text-zinc-200 transition hover:bg-slate-700"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
@@ -32,8 +35,8 @@ export default function OAuthButtons() {
       </a>
 
       <a
-        href="/api/auth/github"
-        onClick={() => requestNodoWelcome('login')}
+        href={`/api/auth/github${qs}`}
+        onClick={() => { requestNodoWelcome('login'); resetVisitFlag(); }}
         className="flex h-10 w-full items-center justify-center gap-2.5 rounded-lg border border-white/10 bg-slate-800 text-sm font-semibold text-zinc-200 transition hover:bg-slate-700"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="#ffffff" aria-hidden="true">

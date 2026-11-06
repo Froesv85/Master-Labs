@@ -50,7 +50,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
       printerLayerHeight: true,
       createdAt: true,
       updatedAt: true,
-      creator: { select: { id: true, name: true, email: true } },
+      creator: { select: { id: true, name: true } }, // sem e-mail: rota aberta a convidados
       parent: { select: { id: true, title: true } },
       tags: { select: { tag: true } },
       components: { select: { id: true, name: true, quantity: true, description: true } },

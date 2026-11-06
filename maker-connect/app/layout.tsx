@@ -13,6 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 import { LanguageProvider } from "@/components/language-provider";
+import VisitTracker from "@/components/visit-tracker";
 
 export const metadata: Metadata = {
   title: "MakerConnect • Master Labs",
@@ -33,6 +34,7 @@ export default function RootLayout({
         <LanguageProvider>
           {children}
         </LanguageProvider>
+        <VisitTracker />
       </body>
     </html>
   );

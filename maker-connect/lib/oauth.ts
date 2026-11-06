@@ -1,6 +1,7 @@
 import { randomBytes } from 'crypto';
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { safeNextPath } from '@/lib/safe-next';
 
 const STATE_COOKIE_NAME = 'mc_oauth_state';
 const STATE_MAX_AGE = 60 * 10; // 10 minutes
@@ -154,4 +155,29 @@ export async function findOrCreateOAuthUser(provider: Provider, profile: OAuthPr
       },
     },
   });
+}
+
+// Destino pos-login (?next=, do modo convidado) guardado durante o vai-e-volta
+// do OAuth. Sempre passa por safeNextPath: so caminho interno.
+const NEXT_COOKIE_NAME = 'mc_oauth_next';
+
+export function nextCookieOptions(req: NextRequest) {
+  const next = safeNextPath(req.nextUrl.searchParams.get('next'), '');
+  return {
+    name: NEXT_COOKIE_NAME,
+    value: next,
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax' as const,
+    maxAge: next ? STATE_MAX_AGE : 0,
+    path: '/',
+  };
+}
+
+export function readNextPath(req: NextRequest) {
+  return safeNextPath(req.cookies.get(NEXT_COOKIE_NAME)?.value);
+}
+
+export function clearNextCookieOptions() {
+  return { ...clearStateCookieOptions(), name: NEXT_COOKIE_NAME };
 }

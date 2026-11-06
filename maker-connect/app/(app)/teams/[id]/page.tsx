@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useAuthGate } from '@/components/guest-gate';
 import { useRouter } from 'next/navigation';
 import { use, useEffect, useState } from 'react';
 import { Modal, Field, FormActions, inputCls } from '@/components/modal';
@@ -67,6 +68,7 @@ function JoinButton({
   isPublic: boolean;
   onJoined: (newStatus: string) => void;
 }) {
+  const { requireAccount } = useAuthGate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -89,6 +91,7 @@ function JoinButton({
   }
 
   async function handleJoin() {
+    if (!requireAccount()) return; // convidado: entrar exige conta
     setLoading(true);
     setError(null);
     try {

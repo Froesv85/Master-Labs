@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useAuthGate } from '@/components/guest-gate';
 import { useEffect, useState } from 'react';
 import { Modal, Field, FormActions, inputCls } from '@/components/modal';
 import { CoverPicker, CoverSelection } from '@/components/cover-picker';
@@ -84,6 +85,7 @@ export default function TeamsPage() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
+  const { requireAccount } = useAuthGate();
 
   useEffect(() => {
     fetch('/api/teams')
@@ -109,7 +111,7 @@ export default function TeamsPage() {
           <p className="text-sm text-zinc-400">Crie equipes, compartilhe projetos entre integrantes e organize robôs e competições</p>
         </div>
         <button
-          onClick={() => setShowCreate(true)}
+          onClick={() => { if (requireAccount()) setShowCreate(true); }}
           className="flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2.5 text-sm font-bold text-black shadow-[0_0_14px_rgba(245,158,11,0.3)] transition hover:bg-amber-400"
         >
           + Criar Equipe

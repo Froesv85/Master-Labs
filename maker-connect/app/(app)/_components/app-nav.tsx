@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { LogoIcon } from '@/components/logo';
+import { resetVisitFlag } from '@/components/visit-tracker';
 import NodoNavProgress from './nodo-nav-progress';
 
 const BASE_NAV_ITEMS = [
@@ -17,7 +18,7 @@ const ADMIN_NAV_ITEMS = [
 ];
 
 type Props = {
-  userId: number;
+  userId: number | null; // null = convidado (sem sessao)
   userName: string | null;
   avatarUrl: string | null;
   isAdmin: boolean;
@@ -37,6 +38,7 @@ export default function AppNav({ userId, userName, avatarUrl, isAdmin }: Props) 
 
   async function handleLogout() {
     await fetch('/api/auth/logout', { method: 'POST' });
+    resetVisitFlag(); // proxima pagina conta como visita de convidado
     router.push('/login');
     router.refresh();
   }
@@ -78,7 +80,23 @@ export default function AppNav({ userId, userName, avatarUrl, isAdmin }: Props) 
           })}
         </nav>
 
-        {/* Right: profile + logout */}
+        {/* Right: profile + logout (ou entrar/criar conta, para convidado) */}
+        {userId === null ? (
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/login?next=${encodeURIComponent(pathname)}`}
+              className="rounded-lg border border-white/10 px-3 py-1.5 text-xs font-semibold text-zinc-300 transition hover:border-white/20 hover:text-white"
+            >
+              Entrar
+            </Link>
+            <Link
+              href={`/signup?next=${encodeURIComponent(pathname)}`}
+              className="rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-bold text-black transition hover:bg-amber-400"
+            >
+              Criar conta
+            </Link>
+          </div>
+        ) : (
         <div className="flex items-center gap-2">
           <Link
             href={`/profile/${userId}`}
@@ -103,6 +121,7 @@ export default function AppNav({ userId, userName, avatarUrl, isAdmin }: Props) 
             Sair
           </button>
         </div>
+        )}
       </div>
 
       {/* Mobile nav */}

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useAuthGate } from '@/components/guest-gate';
 import { useEffect, useState } from 'react';
 import { Modal, Field, FormActions, inputCls, selectCls } from '@/components/modal';
 import { CoverPicker, CoverSelection } from '@/components/cover-picker';
@@ -97,6 +98,7 @@ export default function CommunitiesPage() {
   const [error, setError] = useState(false);
   const [filter, setFilter] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
+  const { requireAccount } = useAuthGate();
 
   useEffect(() => {
     fetch('/api/communities')
@@ -124,7 +126,7 @@ export default function CommunitiesPage() {
           <p className="text-sm text-zinc-400">Crie fóruns, compartilhe projetos e interaja com comentários e reações da comunidade maker</p>
         </div>
         <button
-          onClick={() => setShowCreate(true)}
+          onClick={() => { if (requireAccount()) setShowCreate(true); }}
           className="flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2.5 text-sm font-bold text-black shadow-[0_0_14px_rgba(245,158,11,0.3)] transition hover:bg-amber-400"
         >
           + Criar Comunidade

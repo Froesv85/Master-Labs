@@ -45,19 +45,34 @@ type Overview = {
   pinecone: { configured: boolean; index?: string; vectors?: number; dimension?: number | null; error?: string };
 };
 
+type VisitCounts = { authenticated: number; guest: number };
+type VisitSummary = {
+  today: VisitCounts;
+  last7Days: VisitCounts;
+  last30Days: VisitCounts;
+  total: VisitCounts;
+  daily: Array<{ day: string } & VisitCounts>;
+};
+
 export default function AdminMetricsPage() {
   const [data, setData] = useState<MetricData | null>(null);
   const [pipeline, setPipeline] = useState<PipelineMetrics | null>(null);
   const [overview, setOverview] = useState<Overview | null>(null);
+  const [visits, setVisits] = useState<VisitSummary | null>(null);
   const [loading, setLoading] = useState(true);
 
   async function fetchMetrics() {
     try {
-      const [resGeneral, resPipeline, resOverview] = await Promise.allSettled([
+      const [resGeneral, resPipeline, resOverview, resVisits] = await Promise.allSettled([
         fetch('/api/metrics'),
         fetch('/api/admin/metrics'),
         fetch('/api/admin/overview'),
+        fetch('/api/admin/visits'),
       ]);
+
+      if (resVisits.status === 'fulfilled' && resVisits.value.ok) {
+        setVisits(await resVisits.value.json());
+      }
 
       if (resGeneral.status === 'fulfilled' && resGeneral.value.ok) {
         const payload = await resGeneral.value.json();
@@ -104,6 +119,9 @@ export default function AdminMetricsPage() {
         </h1>
         <p className="mt-2 text-zinc-400">MakerBrain Intelligence & Compliance Analytics (Demo Day)</p>
       </header>
+
+      {/* VISITAS: autenticadas x convidados */}
+      {visits && <VisitsSection visits={visits} />}
 
       {/* PLATFORM OVERVIEW */}
       {overview && (
@@ -318,6 +336,52 @@ export default function AdminMetricsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function VisitsSection({ visits }: { visits: VisitSummary }) {
+  const fmt = (n: number) => n.toLocaleString('pt-BR');
+  const pctGuest = (c: VisitCounts) => {
+    const all = c.authenticated + c.guest;
+    return all === 0 ? '—' : `${Math.round((c.guest / all) * 100)}% convidados`;
+  };
+  const max = Math.max(1, ...visits.daily.map((d) => d.authenticated + d.guest));
+
+  return (
+    <section className="mb-10">
+      <h2 className="mb-4 text-lg font-semibold text-zinc-200">Visitas</h2>
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <KPICard title="Autenticadas (30 dias)" value={fmt(visits.last30Days.authenticated)} subtitle={`Hoje: ${fmt(visits.today.authenticated)} · 7 dias: ${fmt(visits.last7Days.authenticated)}`} color="emerald" />
+        <KPICard title="Não autenticadas (30 dias)" value={fmt(visits.last30Days.guest)} subtitle={`Hoje: ${fmt(visits.today.guest)} · 7 dias: ${fmt(visits.last7Days.guest)}`} color="cyan" />
+        <KPICard title="Total autenticadas" value={fmt(visits.total.authenticated)} subtitle="Desde o início da contagem" color="blue" />
+        <KPICard title="Total não autenticadas" value={fmt(visits.total.guest)} subtitle={pctGuest(visits.total)} color="rose" />
+      </div>
+
+      <div className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 shadow-xl">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-zinc-400">Últimos 14 dias</h3>
+          <div className="flex items-center gap-4 text-xs text-zinc-400">
+            <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-emerald-400" />Autenticadas</span>
+            <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-cyan-400" />Não autenticadas</span>
+          </div>
+        </div>
+        <div className="flex h-40 items-end gap-1.5">
+          {visits.daily.map((d) => {
+            const [, m, day] = d.day.split('-');
+            return (
+              <div key={d.day} className="flex h-full flex-1 flex-col items-center justify-end gap-1" title={`${day}/${m}: ${d.authenticated} autenticadas, ${d.guest} não autenticadas`}>
+                <div className="flex w-full flex-1 flex-col justify-end gap-px">
+                  <div className="w-full rounded-t-sm bg-cyan-400" style={{ height: `${(d.guest / max) * 100}%` }} />
+                  <div className="w-full bg-emerald-400" style={{ height: `${(d.authenticated / max) * 100}%` }} />
+                </div>
+                <span className="text-[10px] text-zinc-500">{day}/{m}</span>
+              </div>
+            );
+          })}
+        </div>
+        <p className="mt-3 text-xs text-zinc-500">Uma visita = uma sessão de aba do navegador. Contagem agregada por dia, sem IP ou dado pessoal.</p>
+      </div>
+    </section>
   );
 }
 

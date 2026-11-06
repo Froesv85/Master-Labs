@@ -94,9 +94,10 @@ export async function GET(req: NextRequest, { params }: Params) {
 
   const team = await prisma.team.findUnique({
     where: { id: teamId },
-    select: { id: true },
+    select: { id: true, isPublic: true },
   });
-  if (!team) {
+  // convidado nao ve membros de equipe privada
+  if (!team || (!team.isPublic && !(await getSession()))) {
     return NextResponse.json({ error: 'Team not found.' }, { status: 404 });
   }
 

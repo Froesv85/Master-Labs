@@ -46,8 +46,16 @@ describe('GET /api/teams/[id]/competitions', () => {
     expect(res.status).toBe(404);
   });
 
-  it('lista competições sem exigir sessão', async () => {
-    (prisma.team.findUnique as jest.Mock).mockResolvedValue(mockTeam);
+  it('equipe privada: convidado (sem sessão) recebe 404', async () => {
+    (prisma.team.findUnique as jest.Mock).mockResolvedValue({ ...mockTeam, isPublic: false });
+    (getSession as jest.Mock).mockResolvedValue(null);
+    const res = await GET(makeGetRequest('2'), { params: params('2') });
+    expect(res.status).toBe(404);
+    expect(prisma.competition.findMany).not.toHaveBeenCalled();
+  });
+
+  it('equipe pública: lista competições sem exigir sessão', async () => {
+    (prisma.team.findUnique as jest.Mock).mockResolvedValue({ ...mockTeam, isPublic: true });
     (prisma.competition.findMany as jest.Mock).mockResolvedValue([
       { id: 10, name: 'RobôChallenge', eventDate: new Date(), result: null },
     ]);

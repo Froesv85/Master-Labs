@@ -634,3 +634,14 @@ model FeedbackMessage {
   @@index([threadId, createdAt])
   @@index([authorId])
 }
+
+// Contador de visitas para as metricas: logadas x convidados (modo convidado).
+// Agregado por dia, sem dado pessoal (nem IP, nem usuario) — so a soma do dia.
+// Uma "visita" = uma sessao de aba do navegador (ver components/visit-tracker.tsx).
+model SiteVisitDaily {
+  day           DateTime @db.Date
+  authenticated Boolean
+  count         Int      @default(0)
+
+  @@id([day, authenticated])
+}

@@ -73,9 +73,10 @@ export async function GET(req: NextRequest, { params }: Params) {
 
   const community = await prisma.community.findUnique({
     where: { id: communityId },
-    select: { id: true },
+    select: { id: true, isPublic: true },
   });
-  if (!community) {
+  // convidado nao ve membros de comunidade privada
+  if (!community || (!community.isPublic && !(await getSession()))) {
     return NextResponse.json({ error: 'Community not found.' }, { status: 404 });
   }
 

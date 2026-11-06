@@ -5,7 +5,10 @@ import { uploadCover } from '@/lib/avatar-upload';
 import { isValidCoverPreset } from '@/lib/cover-presets';
 
 export async function GET() {
+  // convidado (sem sessao) so ve equipes publicas
+  const session = await getSession();
   const teams = await prisma.team.findMany({
+    where: session ? undefined : { isPublic: true },
     include: {
       owner: { select: { id: true, name: true } },
       members: {

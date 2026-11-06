@@ -97,7 +97,8 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
           teamName: project.team?.name ?? null,
           creatorId: project.creatorId,
           creatorName: project.creator.name,
-          creatorEmail: project.creator.email,
+          // e-mail so para o proprio dono (a pagina tambem e vista por convidados)
+          creatorEmail: isOwner ? project.creator.email : null,
           parentId: project.parent?.id ?? null,
           parentTitle: project.parent?.title ?? null,
           coverImageUrl: project.coverImageUrl,

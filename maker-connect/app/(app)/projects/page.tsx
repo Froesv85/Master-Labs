@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useAuthGate } from '@/components/guest-gate';
 import { Modal, Field, FormActions, inputCls, selectCls } from '@/components/modal';
 import { fetchProjectsFeed, voteProject } from '@/features/social/projects/api';
 import type { FeedCategory, FeedSort, ProjectItem, ProjectsFeedResponse } from '@/features/social/projects/types';
@@ -679,6 +680,7 @@ export default function ProjectsPage() {
   const [votingProjectId, setVotingProjectId] = useState<number | null>(null);
   const [response, setResponse] = useState<ProjectsFeedResponse | null>(null);
   const [showCreate, setShowCreate] = useState(false);
+  const { requireAccount } = useAuthGate();
 
   const categoryQuery = useMemo(() => selectedCategory === 'ALL' ? null : selectedCategory, [selectedCategory]);
 
@@ -701,6 +703,7 @@ export default function ProjectsPage() {
   }, [categoryQuery, page, searchQuery, sort]);
 
   async function handleVote(projectId: number) {
+    if (!requireAccount()) return; // convidado: votar exige conta
     setVotingProjectId(projectId); setError(null);
     try {
       const payload = await voteProject(projectId);
@@ -736,7 +739,7 @@ export default function ProjectsPage() {
             <p className="text-sm text-zinc-400">Compartilhamento de projetos públicos — comente, faça fork, vote e compartilhe.</p>
           </div>
           <button
-            onClick={() => setShowCreate(true)}
+            onClick={() => { if (requireAccount()) setShowCreate(true); }}
             className="flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2.5 text-sm font-bold text-black shadow-[0_0_14px_rgba(245,158,11,0.3)] transition hover:bg-amber-400"
           >
             + Criar Projeto
