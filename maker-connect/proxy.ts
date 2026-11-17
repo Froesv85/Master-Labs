@@ -3,7 +3,8 @@ import { verifySession } from '@/lib/auth';
 
 // /historia/: imagens da secao de historia da home (publica), em public/historia/
 const PUBLIC_PATHS = ['/login', '/signup', '/historia/'];
-const PUBLIC_EXACT_PATHS = ['/', '/termos', '/privacidade'];
+// /links: pagina estilo linktree apontada pelo QR code do poster do projeto
+const PUBLIC_EXACT_PATHS = ['/', '/termos', '/privacidade', '/links'];
 
 // API publica: autenticacao/OAuth, healthcheck do Docker e o callback do n8n
 // (este se autentica pelo webhookId, que so o dono do projeto ve). Todo o resto
