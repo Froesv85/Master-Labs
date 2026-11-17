@@ -7,13 +7,11 @@ import { takeNodoWelcome, type NodoWelcomeKind } from '@/components/nodo/welcome
 // useLayoutEffect evita um frame do app sem a saudação numa navegação client-side
 const useIsoLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 
-const WELCOME_DURATION_MS = 10_000;
-
 /**
  * Saudação depois do login: a tela do Nodo "liga" (flicker de CRT), a antena
  * acende e ele acena com o nome do maker. Some sozinha ou com um clique.
  */
-export default function NodoWelcome({ userName }: { userName: string | null }) {
+export default function NodoWelcome({ userName, durationMs }: { userName: string | null; durationMs: number }) {
   const [kind, setKind] = useState<NodoWelcomeKind | null>(null);
   const [leaving, setLeaving] = useState(false);
 
@@ -24,10 +22,10 @@ export default function NodoWelcome({ userName }: { userName: string | null }) {
 
   useEffect(() => {
     if (!kind) return;
-    // fica 10s na tela; o clique em qualquer ponto fecha antes
-    const out = setTimeout(() => setLeaving(true), WELCOME_DURATION_MS);
+    // tempo definido pelo admin (lib/ui-settings.ts); o clique fecha antes
+    const out = setTimeout(() => setLeaving(true), durationMs);
     return () => clearTimeout(out);
-  }, [kind]);
+  }, [kind, durationMs]);
 
   useEffect(() => {
     if (!leaving) return;
