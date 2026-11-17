@@ -130,7 +130,7 @@ describe('proxy (middleware de autenticação)', () => {
     });
   });
 
-  it.each(['/', '/termos', '/privacidade', '/login', '/historia/arduino-uno.webp'])(
+  it.each(['/', '/termos', '/privacidade', '/links', '/login', '/historia/arduino-uno.webp'])(
     'página pública %s passa sem sessão',
     async (path) => {
       const res = await proxy(req(path));
