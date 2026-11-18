@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
+import { ConnectionsModal, FollowButton, ReputationModal, type ReputationData } from './profile-social';
 import { use } from 'react';
 import { YoutubeEmbed } from '@/components/youtube-embed';
 import { Modal, Field, FormActions, inputCls, selectCls } from '@/components/modal';
@@ -45,6 +46,9 @@ type UserData = {
   communities: Community[];
   following: { followingId: number }[];
   followers: { followerId: number }[];
+  reputation: ReputationData;
+  isFollowing: boolean;
+  projectCount: number;
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -541,6 +545,7 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
   const [tab, setTab] = useState<'projects' | 'shared' | 'robots' | 'teams' | 'communities'>('projects');
   const [editing, setEditing] = useState(false);
   const [sessionUserId, setSessionUserId] = useState<number | null>(null);
+  const [socialModal, setSocialModal] = useState<'followers' | 'following' | 'reputation' | null>(null);
   const [avatarUploading, setAvatarUploading] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const [editingProjectId, setEditingProjectId] = useState<number | null>(null);
@@ -635,6 +640,27 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
         onSaved={(updated) => { setUser(updated); setEditing(false); }}
       />
     )}
+    {socialModal === 'reputation' && user.reputation && (
+      <ReputationModal reputation={user.reputation} onClose={() => setSocialModal(null)} />
+    )}
+    {(socialModal === 'followers' || socialModal === 'following') && (
+      <ConnectionsModal
+        key={socialModal}
+        userId={user.id}
+        type={socialModal}
+        onClose={() => setSocialModal(null)}
+        onMyFollowChange={(targetId, r) => {
+          if (!isOwner || sessionUserId === null) return;
+          // no proprio perfil, seguir/deixar de seguir pela lista muda o contador "Seguindo"
+          setUser((prev) => prev ? {
+            ...prev,
+            following: r.following
+              ? [...prev.following.filter((f) => f.followingId !== targetId), { followingId: targetId }]
+              : prev.following.filter((f) => f.followingId !== targetId),
+          } : prev);
+        }}
+      />
+    )}
     {/* Hidden avatar file input */}
     <input
       ref={avatarInputRef}
@@ -685,6 +711,22 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
                   <h1 className="text-2xl font-black text-white sm:text-3xl">{user.name ?? 'Maker Anônimo'}</h1>
                   <p className="text-sm text-zinc-400">{user.email}</p>
                 </div>
+                {!isOwner && sessionUserId !== null && (
+                  <FollowButton
+                    userId={user.id}
+                    following={user.isFollowing}
+                    onChange={(r) => setUser((prev) => prev ? {
+                      ...prev,
+                      isFollowing: r.following,
+                      // so o tamanho da lista importa para o contador; a lista real vem do modal
+                      followers: r.following
+                        ? [...prev.followers.filter((f) => f.followerId !== sessionUserId), { followerId: sessionUserId }]
+                        : prev.followers.filter((f) => f.followerId !== sessionUserId),
+                      profile: prev.profile ? { ...prev.profile, reputation: r.reputation, makerLevel: r.makerLevel as MakerLevel } : prev.profile,
+                      reputation: { ...prev.reputation, total: r.reputation, level: r.makerLevel },
+                    } : prev)}
+                  />
+                )}
                 {isOwner && (
                   <button
                     onClick={() => setEditing(true)}
@@ -726,12 +768,23 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
 
             {/* Stats panel */}
             <div className="flex shrink-0 flex-row gap-2 sm:flex-col">
-              {[
-                { label: 'Reputação', value: user.profile?.reputation ?? 0, color: 'text-amber-400' },
-                { label: 'Seguidores', value: user.followers.length, color: 'text-cyan-400' },
-                { label: 'Seguindo', value: user.following.length, color: 'text-violet-400' },
-                { label: 'Projetos', value: user.projects.length, color: 'text-emerald-400' },
-              ].map(({ label, value, color }) => (
+              {([
+                { label: 'Reputação', value: user.reputation?.total ?? user.profile?.reputation ?? 0, color: 'text-amber-400', open: 'reputation' },
+                { label: 'Seguidores', value: user.followers.length, color: 'text-cyan-400', open: 'followers' },
+                { label: 'Seguindo', value: user.following.length, color: 'text-violet-400', open: 'following' },
+                { label: 'Projetos', value: user.projectCount ?? user.projects.length, color: 'text-emerald-400', open: null },
+              ] as const).map(({ label, value, color, open }) => open ? (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={() => setSocialModal(open)}
+                  title={open === 'reputation' ? 'Ver como a reputação é calculada' : `Ver ${label.toLowerCase()}`}
+                  className="min-w-[72px] rounded-lg border border-white/10 bg-white/5 p-3 text-center transition hover:border-amber-500/40 hover:bg-white/10"
+                >
+                  <div className={`text-xl font-black ${color}`}>{value}</div>
+                  <div className="text-[10px] uppercase tracking-wide text-zinc-500">{label}</div>
+                </button>
+              ) : (
                 <div key={label} className="min-w-[72px] rounded-lg border border-white/10 bg-white/5 p-3 text-center">
                   <div className={`text-xl font-black ${color}`}>{value}</div>
                   <div className="text-[10px] uppercase tracking-wide text-zinc-500">{label}</div>

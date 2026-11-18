@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { canAccessProject } from '@/lib/project-access';
+import { syncReputation } from '@/lib/reputation';
 
 function parseProjectId(value: string) {
   const parsed = Number(value);
@@ -63,6 +64,11 @@ export async function POST(
         tags: { select: { tag: true } },
       },
     });
+
+    // fork de outra pessoa da reputacao ao autor original (o fork em si nao depende disso)
+    if (project.creatorId !== session.userId) {
+      await syncReputation(project.creatorId).catch((e) => console.error('syncReputation (fork) failed', e));
+    }
 
     return NextResponse.json({ data: { ...fork, tags: fork.tags.map((t) => t.tag) } }, { status: 201 });
   } catch (error) {
