@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
+import { getApprovedTeamIds } from '@/lib/project-access';
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -38,7 +39,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const robotId = parseInt(id);
   if (isNaN(robotId)) return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
 
-  const existing = await prisma.robot.findUnique({ where: { id: robotId }, select: { ownerId: true } });
+  const existing = await prisma.robot.findUnique({ where: { id: robotId }, select: { ownerId: true, teamId: true } });
   if (!existing) return NextResponse.json({ error: 'Robot not found' }, { status: 404 });
   if (existing.ownerId !== session.userId) return NextResponse.json({ error: 'Sem permissão' }, { status: 403 });
 
@@ -62,7 +63,14 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (body.description !== undefined) data.description = body.description.trim() || null;
   if (body.category !== undefined) data.category = body.category as never;
   if (body.status !== undefined) data.status = body.status;
-  if (body.teamId !== undefined) data.teamId = body.teamId;
+  if (body.teamId !== undefined) {
+    // so pode vincular o robo a uma equipe da qual o dono e membro aprovado
+    // (manter a equipe atual e sempre permitido, mesmo se ele saiu dela)
+    if (body.teamId !== null && body.teamId !== existing.teamId && !(await getApprovedTeamIds(session.userId)).includes(body.teamId)) {
+      return NextResponse.json({ error: 'Você não é membro dessa equipe.' }, { status: 403 });
+    }
+    data.teamId = body.teamId;
+  }
   if (body.weightKg !== undefined) data.weightKg = body.weightKg;
   if (body.lengthCm !== undefined) data.lengthCm = body.lengthCm;
   if (body.widthCm !== undefined) data.widthCm = body.widthCm;

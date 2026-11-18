@@ -79,7 +79,8 @@ function CreateRobotModal({ onClose, onCreated }: { onClose: () => void; onCreat
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('/api/teams').then((r) => r.ok ? r.json() : null).then((d) => { if (d?.teams) setTeams(d.teams); }).catch(() => {});
+    // so as equipes em que o usuario e membro aprovado (/api/teams devolve um array de todas)
+    fetch('/api/teams/mine').then((r) => r.ok ? r.json() : null).then((d) => { if (Array.isArray(d?.data)) setTeams(d.data); }).catch(() => {});
   }, []);
 
   function handlePhotoAdd(e: React.ChangeEvent<HTMLInputElement>) {
@@ -187,6 +188,11 @@ function CreateRobotModal({ onClose, onCreated }: { onClose: () => void; onCreat
                 <option value="">— Sem equipe —</option>
                 {teams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
               </select>
+              {teams.length === 0 && (
+                <p className="mt-1.5 text-xs text-zinc-500">
+                  Você não participa de nenhuma equipe. <Link href="/teams" className="text-amber-400 hover:underline">Crie ou entre em uma</Link> para vincular o robô.
+                </p>
+              )}
             </Field>
           </div>
         </div>
