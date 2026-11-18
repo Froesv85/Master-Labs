@@ -264,17 +264,20 @@ function CreateRobotModal({ onClose, onCreated }: { onClose: () => void; onCreat
             <p className="text-xs text-zinc-600">Motores, controladores, sensores, chassi...</p>
           )}
           {components.map((c, i) => (
-            <div key={i} className="flex gap-2">
-              <input value={c.name} onChange={(e) => setComponents((p) => p.map((x, j) => j === i ? { ...x, name: e.target.value } : x))}
-                placeholder="Nome do componente" className={`${inputCls} flex-1`} />
-              <input type="number" min="1" value={c.quantity} onChange={(e) => setComponents((p) => p.map((x, j) => j === i ? { ...x, quantity: e.target.value } : x))}
-                placeholder="Qtd" className={`${inputCls} w-16 text-center`} />
-              <input value={c.description} onChange={(e) => setComponents((p) => p.map((x, j) => j === i ? { ...x, description: e.target.value } : x))}
-                placeholder="Obs." className={`${inputCls} flex-1`} />
-              <button type="button" onClick={() => setComponents((p) => p.filter((_, j) => j !== i))}
-                className="flex items-center rounded-lg border border-white/10 bg-slate-800 px-2 text-zinc-600 hover:text-red-400">
-                <IconTrash />
-              </button>
+            <div key={i} className="space-y-2 rounded-xl border border-white/8 bg-slate-800/50 p-3">
+              <div className="flex gap-2">
+                <input value={c.name} onChange={(e) => setComponents((p) => p.map((x, j) => j === i ? { ...x, name: e.target.value } : x))}
+                  placeholder="Nome do componente" className={`${inputCls} !w-auto min-w-0 flex-1`} />
+                <input type="number" min="1" value={c.quantity} onChange={(e) => setComponents((p) => p.map((x, j) => j === i ? { ...x, quantity: e.target.value } : x))}
+                  placeholder="Qtd" title="Quantidade" className={`${inputCls} !w-20 shrink-0 !px-2 text-center`} />
+                <button type="button" onClick={() => setComponents((p) => p.filter((_, j) => j !== i))}
+                  className="flex shrink-0 items-center rounded-lg border border-white/10 px-2 text-zinc-600 hover:text-red-400">
+                  <IconTrash />
+                </button>
+              </div>
+              <textarea value={c.description} onChange={(e) => setComponents((p) => p.map((x, j) => j === i ? { ...x, description: e.target.value } : x))}
+                placeholder="Descrição / observações (modelo, especificações, função...)" rows={2}
+                className={`${inputCls} resize-y`} />
             </div>
           ))}
         </div>
