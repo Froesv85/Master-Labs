@@ -10,6 +10,7 @@ jest.mock('@/lib/prisma', () => ({
     robot: { updateMany: jest.fn() },
     competition: { deleteMany: jest.fn() },
     teamMember: { deleteMany: jest.fn() },
+    user: { findUnique: jest.fn() },
     $transaction: jest.fn(),
   },
 }));
@@ -83,8 +84,20 @@ describe('DELETE /api/teams/[id]', () => {
   it('retorna 403 quando quem pede não é o dono', async () => {
     (getSession as jest.Mock).mockResolvedValue({ userId: 2 });
     (prisma.team.findUnique as jest.Mock).mockResolvedValue({ ownerId: 1 });
+    (prisma.user.findUnique as jest.Mock).mockResolvedValue({ role: 'user' });
     const res = await DELETE(makeDeleteRequest('http://localhost:3000/api/teams/1'), { params: Promise.resolve({ id: '1' }) });
     expect(res.status).toBe(403);
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+
+  it('permite que o admin da plataforma exclua equipe de outro dono', async () => {
+    (getSession as jest.Mock).mockResolvedValue({ userId: 2 });
+    (prisma.team.findUnique as jest.Mock).mockResolvedValue({ ownerId: 1 });
+    (prisma.user.findUnique as jest.Mock).mockResolvedValue({ role: 'admin' });
+    (prisma.$transaction as jest.Mock).mockResolvedValue([]);
+    const res = await DELETE(makeDeleteRequest('http://localhost:3000/api/teams/1'), { params: Promise.resolve({ id: '1' }) });
+    expect(res.status).toBe(200);
+    expect(prisma.team.delete).toHaveBeenCalledWith({ where: { id: 1 } });
   });
 
   it('retorna 404 quando a equipe não existe', async () => {
