@@ -330,6 +330,7 @@ export default function TeamDetailPage({ params }: { params: Promise<{ id: strin
   const [tab, setTab] = useState<'members' | 'robots' | 'pending' | 'competitions'>('members');
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [currentUserName, setCurrentUserName] = useState<string | null>(null);
+  const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
   const [pendingMembers, setPendingMembers] = useState<Member[]>([]);
   const [pendingLoading, setPendingLoading] = useState(false);
   const [pendingFetched, setPendingFetched] = useState(false);
@@ -348,6 +349,7 @@ export default function TeamDetailPage({ params }: { params: Promise<{ id: strin
       if (sessionData?.userId) {
         setCurrentUserId(sessionData.userId);
         setCurrentUserName(sessionData.name ?? null);
+        setIsPlatformAdmin(sessionData.isAdmin === true);
       }
       setLoading(false);
     }).catch(() => setLoading(false));
@@ -517,7 +519,7 @@ export default function TeamDetailPage({ params }: { params: Promise<{ id: strin
                   onJoined={handleJoined}
                 />
               )}
-              {joinStatus === 'owner' && (
+              {(joinStatus === 'owner' || isPlatformAdmin) && (
                 <button
                   type="button"
                   onClick={handleDeleteTeam}

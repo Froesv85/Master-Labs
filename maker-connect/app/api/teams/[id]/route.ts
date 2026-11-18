@@ -60,7 +60,11 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   const team = await prisma.team.findUnique({ where: { id: teamId }, select: { ownerId: true } });
   if (!team) return NextResponse.json({ error: 'Equipe não encontrada' }, { status: 404 });
   if (team.ownerId !== session.userId) {
-    return NextResponse.json({ error: 'Apenas o dono pode excluir a equipe' }, { status: 403 });
+    // Admin da plataforma tambem pode excluir (moderacao de equipes de spam/teste).
+    const viewer = await prisma.user.findUnique({ where: { id: session.userId }, select: { role: true } });
+    if (viewer?.role !== 'admin') {
+      return NextResponse.json({ error: 'Apenas o dono pode excluir a equipe' }, { status: 403 });
+    }
   }
 
   await prisma.$transaction([
