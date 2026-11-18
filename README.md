@@ -84,7 +84,7 @@ A validação do pipeline de IA foi conduzida por meio de um processo estruturad
 
 O script de avaliação `rag-eval.mjs` calculou um score composto para cada projeto considerando três critérios ponderados: cobertura de palavras-chave (40%), pontuação de confiança do modelo (30%) e completude da saída gerada (30%). Na primeira rodada de avaliação, a média de relevância foi de 79%, abaixo da meta de 85%. A análise dos casos com pontuação inferior a 80% revelou duas causas: inconsistência no tratamento de acentuação em português e baixa completude para projetos com componentes altamente especializados.
 
-Após aplicação de três ajustes — normalização Unicode NFD, correção da escala do `confidenceScore` e detecção automática de escala 0–1 vs 0–10 — a média de relevância alcançou **98%**, superando expressivamente a meta de 85%. Em relação à latência, as medições em ambiente de desenvolvimento local sem GPU registraram p50 de 53 segundos e p95 de 137 segundos, valores esperados para execução em CPU com modelos locais via Ollama. Uma rodada posterior do mesmo holdout, já com o motor BullMQ e a Fase 5 (filtro de domínio na busca vetorial) ativos, manteve 95% de relevância com latência p50 de 34,2s e p95 de 46,0s — melhora relevante sobre o gate original, ainda sem depender de GPU. A suite de testes automatizados, composta por **300 testes distribuídos em 43 suites** (Jest + Pytest), é executada sem registrar falhas, garantindo a estabilidade e a confiabilidade das entregas em cada gate de validação.
+Após aplicação de três ajustes — normalização Unicode NFD, correção da escala do `confidenceScore` e detecção automática de escala 0–1 vs 0–10 — a média de relevância alcançou **98%**, superando expressivamente a meta de 85%. Em relação à latência, as medições em ambiente de desenvolvimento local sem GPU registraram p50 de 53 segundos e p95 de 137 segundos, valores esperados para execução em CPU com modelos locais via Ollama. Uma rodada posterior do mesmo holdout, já com o motor BullMQ e a Fase 5 (filtro de domínio na busca vetorial) ativos, manteve 95% de relevância com latência p50 de 34,2s e p95 de 46,0s — melhora relevante sobre o gate original, ainda sem depender de GPU. A suite de testes automatizados, composta por **409 testes distribuídos em 50 suites** (379 Jest em 46 suites + 30 Pytest em 4 suites), é executada sem registrar falhas, garantindo a estabilidade e a confiabilidade das entregas em cada gate de validação.
 
 ---
 
@@ -100,7 +100,7 @@ Para a etapa formal de coleta, será utilizado um formulário de avaliação com
 
 ## 6. Considerações Finais
 
-O objetivo geral do projeto foi alcançado. A MakerConnect foi desenvolvida como uma plataforma funcional de governança técnica para projetos Maker e IoT, integrando camada social, pipeline de IA com RAG e exportação automatizada de documentação em PDF. Os três objetivos específicos também foram cumpridos: o pipeline de IA foi implementado e validado com 95–98% de relevância semântica nas avaliações realizadas; a camada social foi construída com feed, fork com linhagem, upvote, log de dificuldades, comunidades e perfis de usuário; e a validação por métricas objetivas confirmou a estabilidade do sistema com 300 testes automatizados sem falhas.
+O objetivo geral do projeto foi alcançado. A MakerConnect foi desenvolvida como uma plataforma funcional de governança técnica para projetos Maker e IoT, integrando camada social, pipeline de IA com RAG e exportação automatizada de documentação em PDF. Os três objetivos específicos também foram cumpridos: o pipeline de IA foi implementado e validado com 95–98% de relevância semântica nas avaliações realizadas; a camada social foi construída com feed, fork com linhagem, upvote, log de dificuldades, comunidades e perfis de usuário; e a validação por métricas objetivas confirmou a estabilidade do sistema com 409 testes automatizados sem falhas.
 
 Os pontos fortes do projeto residem na solidez da arquitetura adotada, na integração funcional entre tecnologias modernas como Next.js, BullMQ, Ollama e Pinecone, e na aderência à LGPD desde as primeiras etapas do desenvolvimento. A rastreabilidade técnica garantida pelos mecanismos de fork com linhagem, estados assíncronos e logs de extração conferem ao projeto maturidade de engenharia acima do esperado para um trabalho acadêmico. Como ponto frágil, destaca-se a ausência de validação formal junto ao público beneficiado até o encerramento deste relatório. Quanto à latência do pipeline em ambiente sem GPU — antes um ponto frágil relevante (p95 de 137s) —, a migração do motor de extração para BullMQ combinada à busca vetorial filtrada por domínio (Fase 5) já reduziu o p95 para ~46s sem depender de GPU; o patamar ideal para uso fluido em produção ainda depende de infraestrutura dedicada, mas a lacuna diminuiu substancialmente.
 
@@ -261,7 +261,7 @@ Para atualizar: edite `scripts/diagrams/arquitetura-fluxo.mmd` e rode `node scri
 
 ### Fase 5 — Pipeline de Estruturação (microsserviço Python)
 
-Microsserviço FastAPI + scikit-learn separado (`ml-pipeline/`), chamado via HTTP pelo worker BullMQ. Segue a mesma filosofia do resto do pipeline: começa heurístico/regra e evolui pra modelos treinados conforme dados reais se acumulam — hoje a categoria já é um Naive Bayes treinado nos rótulos reais de `ProjectTag` (com fallback heurístico dado o dataset ainda pequeno), enquanto dificuldade e auditoria seguem heurísticos/baseados em regra por falta de rótulo real ainda (ver `ml-pipeline/README.md` para o detalhamento honesto de cada estágio):
+Microsserviço FastAPI + scikit-learn separado (`ml-pipeline/`), chamado via HTTP pelo worker BullMQ. Segue a mesma filosofia do resto do pipeline: começa heurístico/regra e evolui pra modelos treinados conforme dados reais se acumulam — hoje a categoria já é um Naive Bayes treinado nos rótulos reais de `ProjectTag` somados a 11.362 projetos públicos do Instructables (com fallback heurístico, porque o dataset externo é em inglês), enquanto dificuldade e auditoria seguem heurísticos/baseados em regra por falta de rótulo real ainda (ver `ml-pipeline/README.md` para o detalhamento honesto de cada estágio):
 
 ```mermaid
 graph TD
@@ -274,12 +274,23 @@ graph TD
 
 | Estágio | Algoritmo | Papel | Onde no código |
 |---|---|---|---|
-| 1. Classificação Prévia | Naive Bayes (TF-IDF) treinado em `ProjectTag` real, com fallback heurístico por palavra-chave (sem acento e por palavra inteira) | Define categoria, nível de dificuldade e domínios técnicos do projeto antes da geração | `ml-pipeline/app/stage1_classify.py` |
+| 1. Classificação Prévia | Naive Bayes (TF-IDF) treinado em `ProjectTag` real + 11.362 projetos do Instructables (Kaggle), com fallback heurístico por palavra-chave (sem acento e por palavra inteira) | Define categoria, nível de dificuldade e domínios técnicos do projeto antes da geração | `ml-pipeline/app/stage1_classify.py` |
 | 2. Validação & Agrupamento | K-Means (topologia de BOM) + Apriori (regras de associação) sobre BOMs reais, regras curadas de omissões clássicas e 16 regras de co-ocorrência mineradas de 54.599 artigos da Hackaday (só estatística agregada), com normalizador de componentes PT/EN | Detecta peças possivelmente esquecidas na BOM e agrupa projetos por topologia similar | `ml-pipeline/app/stage2_bom.py`, `ml-pipeline/app/components.py`, `ml-pipeline/app/external_bom_rules.json` |
 | 3. RAG Especializado | Busca vetorial no Pinecone filtrada por domínio (metadata filter), com fallback automático sem filtro | Prioriza evidências técnicas do domínio do projeto (sensor/atuador/protocolo/...) antes da geração via LLM | `queryByEmbedding()` em `lib/pinecone.ts` + `lib/extraction-queue.ts` |
 | 4. Auditoria Pós-Geração | Classificador baseado em regras (reaproveita as regras do estágio 2 + checagens de consistência BOM/requisitos) | Audita a saída gerada e sinaliza inconsistências/omissões antes da entrega final | `ml-pipeline/app/stage4_audit.py` |
 
 O worker BullMQ (`lib/extraction-queue.ts`) chama o `ml-pipeline` via `lib/ml-pipeline.ts` de forma defensiva: se o serviço estiver fora do ar, os campos de previsão ficam `null` e o pipeline principal (Ollama/qwen) continua funcionando normalmente. Previsões e flags ficam disponíveis em `ProjectExtractionLog` (`predictedCategory`, `predictedDifficulty`, `predictedDomains`, `missingComponents`, `bomClusterLabel`, `auditScore`, `auditFlags`), retornados ao dono do projeto por `GET /api/projects/[id]/extract`.
+
+**Dados de treino:** como a base real ainda é pequena (~20 projetos rotulados, ~14 BOMs), os modelos combinam dado real com datasets públicos, usados só para treino interno (não redistribuídos):
+
+| Dataset | Conteúdo | Uso |
+|---|---|---|
+| `ProjectTag` (MySQL) | ~20 projetos reais com categoria | treino do Naive Bayes |
+| [Instructables DIY](https://www.kaggle.com/datasets/kingburrito666/instructables-diy-all-projects) (Kaggle) | 11.362 títulos mapeados para as 4 categorias, teto de 3.000 por classe (seed 42) | treino do Naive Bayes, com `USE_BOOTSTRAP_TRAINING=1` |
+| [Hackaday Posts](https://huggingface.co/datasets/hybridfree/hackaday-posts) (Hugging Face) | 54.599 artigos → 13.898 transações de componentes | 16 regras externas de BOM (só estatística agregada) |
+| BOMs reais (MySQL) | ~14 BOMs de extrações concluídas | Apriori e K-Means |
+
+O modelo retreina a cada start do serviço e via `POST /retrain`, absorvendo os novos projetos rotulados. Em validação cruzada estratificada de 5 folds sobre o dataset de treino, o classificador de produção obteve **acurácia de 75,5% e F1-macro de 0,754** (F1 por classe: IoT 0,745 · Robotics 0,737 · 3D_Printing 0,726 · Woodworking 0,807).
 
 **Avaliação em português:** `ml-pipeline/eval/` tem 80 projetos rotulados (20 por categoria, 13 casos difíceis) e um script que compara variantes do classificador. Em 21/10/2026 o caminho de produção acertava 50/80 (era 43/80 antes da correção de acento e palavra inteira no fallback). Detalhes no [README do ml-pipeline](maker-connect/ml-pipeline/README.md).
 
@@ -353,7 +364,7 @@ normalizada = min(pontuação / 10, 1)
 | `association_rules(metric=...)` | `confidence`, `min_threshold=0.5` | só regras em que o consequente aparece em pelo menos metade dos casos |
 | Consequente | só regras com 1 item | a sugestão vira "falta a peça X", fácil de entender |
 | Regras curadas | 5 omissões clássicas (ESP32/ESP8266 sem regulador, relé sem diodo flyback, motor sem ponte H, sensor sem pull-up) com confiança fixa 0,6 | cobrem o domínio enquanto há poucas BOMs reais |
-| Regras externas | 16 regras de co-ocorrência mineradas de 54.599 artigos da Hackaday, lift ≥ 4, confiança 0,09–0,56 | estatística agregada, nenhum texto; entram com a própria confiança, abaixo das curadas |
+| Regras externas | 16 regras de co-ocorrência mineradas de 54.599 artigos da Hackaday, lift 4,2–51,0, confiança 0,07–0,56 | estatística agregada, nenhum texto; entram com a própria confiança, abaixo das curadas |
 | Sugestões devolvidas | até 5, ordenadas por confiança | |
 
 **Agrupamento por topologia — K-Means**
@@ -407,7 +418,8 @@ A nota começa em 100 e é limitada ao intervalo 0–100.
 | Avaliação | Método | Parâmetros |
 |---|---|---|
 | Relevância RAG (`scripts/rag-eval.mjs`) | holdout de 10 projetos reais (H01–H10) | nota = 0,4 × cobertura de palavras-chave + 0,3 × confiança do modelo + 0,3 × completude da saída; meta ≥ 85% |
-| Categoria (`ml-pipeline/eval/`) | 80 projetos rotulados (20 por categoria, 13 difíceis) | acerto quando a categoria prevista está entre as válidas |
+| Categoria — validação cruzada | 11.362 projetos do Instructables, `StratifiedKFold(5, shuffle=True, random_state=42)` | acurácia 75,5%, F1-macro 0,754 (desempenho dentro da distribuição de treino) |
+| Categoria (`ml-pipeline/eval/`) | 80 projetos rotulados (20 por categoria, 13 difíceis) | acerto quando a categoria prevista está entre as válidas; produção 50/80, modelo isolado 34/80 (transferência inglês → português) |
 
 > **Fundamentação.** Avaliar em dados que o modelo não viu no treino é a forma de estimar o erro de generalização (HASTIE; TIBSHIRANI; FRIEDMAN, 2009, cap. 7); por isso os projetos `[EVAL]` são excluídos das consultas de treino em `app/db.py`. Com apenas 10 casos no holdout, cada projeto vale 10 pontos percentuais: os 95–98% indicam que o pipeline funciona, mas não permitem distinguir variantes próximas. Ampliar o holdout é condição para comparações finas (MANNING; RAGHAVAN; SCHÜTZE, 2008, cap. 8).
 
@@ -501,6 +513,7 @@ Registro das principais entregas por período, com base no histórico de commits
 | 21/10 | Seção **"Nossa história"** na home (do *Make Do and Mend* à cultura maker), com linha do tempo, fontes e imagens de licença livre |
 | 21/10 | **Termos de Uso e Política de Privacidade** publicados |
 | 21/10 | **Correções de segurança:** autenticação em toda a API, checagem de dono nas rotas de usuário e projeto, rate limiting, Next.js 16.4.2 e fim do `ignoreBuildErrors` |
+| 27/10 | **Classificador de categoria treinado com dataset externo:** `ProjectTag` real + 11.362 projetos do Instructables (Kaggle) via `USE_BOOTSTRAP_TRAINING`; validação cruzada de 5 folds com acurácia de 75,5% e F1-macro de 0,754; artigo atualizado com parâmetros e métricas de cada algoritmo |
 
 ---
 
@@ -532,7 +545,7 @@ Para regenerar: `cd maker-connect && node ../scripts/gerar-cronograma.mjs`
 
 ## Telas do Sistema
 
-Screenshots capturadas em 04/06/2026 via Playwright (1440×900). Para atualizar: `cd maker-connect && node ../scripts/screenshot-all.mjs`
+Telas 01–05 recapturadas em 10/11/2026 no ambiente de produção ([makerconnect.com.br](https://makerconnect.com.br), modo convidado, 1440×900). Telas 06–14 capturadas em 04/06/2026 (MVP) via Playwright; para atualizá-las localmente: `cd maker-connect && node ../scripts/screenshot-all.mjs`
 
 <table>
   <tr>
