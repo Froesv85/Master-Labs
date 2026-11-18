@@ -158,8 +158,16 @@ function EditRobotModal({ robot, onClose, onSaved }: {
   const photoRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    fetch('/api/teams').then((r) => r.ok ? r.json() : null).then((d) => { if (d?.teams) setTeams(d.teams); }).catch(() => {});
-  }, []);
+    // so as equipes em que o usuario e membro aprovado (/api/teams devolve um array de todas)
+    // A equipe atual do robo entra na lista mesmo se o dono saiu dela; senao o select
+    // mostraria "Sem equipe" e salvar desvincularia o robo sem querer.
+    const current = robot.team;
+    fetch('/api/teams/mine').then((r) => r.ok ? r.json() : null).then((d) => {
+      if (!Array.isArray(d?.data)) return;
+      const mine = d.data as { id: number; name: string }[];
+      setTeams(current && !mine.some((t) => t.id === current.id) ? [current, ...mine] : mine);
+    }).catch(() => {});
+  }, [robot.team]);
 
   function handlePhotoAdd(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
@@ -293,6 +301,11 @@ function EditRobotModal({ robot, onClose, onSaved }: {
             <option value="">— Sem equipe —</option>
             {teams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
           </select>
+          {teams.length === 0 && (
+            <p className="mt-1.5 text-xs text-zinc-500">
+              Você não participa de nenhuma equipe. <Link href="/teams" className="text-amber-400 hover:underline">Crie ou entre em uma</Link> para vincular o robô.
+            </p>
+          )}
         </Field>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <Field label="Peso (kg)">

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { uploadProjectImage } from '@/lib/project-media';
+import { getApprovedTeamIds } from '@/lib/project-access';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -33,6 +34,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const session = await getSession();
+    if (!session) return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
     const body = await req.json() as {
       name: string;
       description?: string;
@@ -50,10 +52,14 @@ export async function POST(req: NextRequest) {
     };
 
     const { name, description, category } = body;
-    const ownerId = session?.userId ?? 1;
+    const ownerId = session.userId;
 
     if (!name?.trim()) return NextResponse.json({ error: 'Nome obrigatório' }, { status: 400 });
     if (!category) return NextResponse.json({ error: 'Categoria obrigatória' }, { status: 400 });
+    // so pode vincular o robo a uma equipe da qual o dono e membro aprovado
+    if (body.teamId != null && !(await getApprovedTeamIds(ownerId)).includes(body.teamId)) {
+      return NextResponse.json({ error: 'Você não é membro dessa equipe.' }, { status: 403 });
+    }
 
     const robot = await prisma.robot.create({
       data: {
