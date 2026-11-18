@@ -19,8 +19,8 @@
 \issn{2966-3938}
 \jyear{2026}
 \category{Engenharia de Software / Inteligencia Artificial}
-\title[Rede Social Maker com Governanca IoT e IA Generativa]{MakerConnect: Rede Social para Governanca de Projetos IoT com Documentacao Automatizada via Agentes de IA e n8n}
-\engtitle{\textcolor{engtitle}{MakerConnect: A Maker Social Network for IoT Project Governance with Automated Documentation via AI Agents and n8n}}
+\title[Rede Social Maker com Governanca IoT, IA Generativa e Machine Learning]{MakerConnect: Rede Social para Governanca de Projetos IoT com Documentacao Automatizada via IA Generativa, Machine Learning e Orquestracao Assincrona (BullMQ)}
+\engtitle{\textcolor{engtitle}{MakerConnect: A Maker Social Network for IoT Project Governance with Automated Documentation via Generative AI, Machine Learning and Asynchronous Orchestration (BullMQ)}}
 \author[Froes 2026]{
 \affil{\textbf{Vinicius Froes}~\orcidlink{0000-0000-0000-0000}~\textcolor{blue}{\faEnvelope}~~[{Catolica de Santa Catarina}~|\href{mailto:vinicius.froes@catolicasc.edu.br}{~{\textit{vinicius.froes@catolicasc.edu.br}}}~]}
 }
@@ -30,19 +30,19 @@
 \maketitle
 
 \begin{abstract-pt}
-Este trabalho apresenta a MakerConnect, uma rede social tecnica para a cultura Maker e Internet das Coisas (IoT) que integra um pipeline funcional de IA Generativa orquestrado via n8n. A plataforma aplica \textit{Retrieval-Augmented Generation} (RAG) com agentes baseados em modelos de linguagem de grande porte para extrair requisitos de entradas nao estruturadas e gerar automaticamente documentacao tecnica em PDF. A base de conhecimento vetorial (Pinecone) e populada com dados reais de componentes eletronicos, eliminando alucinacoes tecnicas. Mecanismos sociais --- \textit{forks}, \textit{upvotes} e logs de dificuldades --- promovem reprodutibilidade e rastreabilidade. A conformidade com a LGPD e garantida por anonimizacao de PII antes do processamento pela IA. Resultados empiricos obtidos com 10 projetos IoT reais indicam relevancia semantica de 98\%, superando a meta de 85\%, com suite de 263 testes automatizados sem falhas.
+Este trabalho apresenta a MakerConnect, uma rede social tecnica para a cultura Maker e Internet das Coisas (IoT) que integra um pipeline funcional hibrido de IA Generativa e Machine Learning classico, orquestrado por fila assincrona (BullMQ/Redis) como motor padrao em producao --- o antigo orquestrador n8n foi mantido apenas como motor legado, selecionavel por variavel de ambiente. A plataforma aplica \textit{Retrieval-Augmented Generation} (RAG) com agentes baseados em modelos de linguagem de grande porte para extrair requisitos de entradas nao estruturadas e gerar automaticamente documentacao tecnica em PDF, complementada por um microsservico de Machine Learning (Naive Bayes, K-Means e regras de associacao Apriori) que classifica previamente o projeto, identifica componentes possivelmente esquecidos na lista de materiais (BOM) e audita a saida gerada. O classificador de categoria (TF-IDF + Naive Bayes multinomial) foi treinado sobre os rotulos reais da plataforma somados a 11.362 projetos publicos do Instructables (Kaggle), atingindo acuracia de 75,5\% e F1-macro de 0,754 em validacao cruzada estratificada de 5 \textit{folds}; as regras de associacao de componentes foram mineradas de 54.599 artigos da Hackaday (16 regras com \textit{lift} entre 4,2 e 51,0). A base de conhecimento vetorial (Pinecone) e populada com dados reais de componentes eletronicos, eliminando alucinacoes tecnicas. Mecanismos sociais --- \textit{forks}, \textit{upvotes} e logs de dificuldades --- promovem reprodutibilidade e rastreabilidade. A conformidade com a LGPD e garantida por anonimizacao de PII antes do processamento pela IA. Resultados empiricos obtidos com 10 projetos IoT reais indicam relevancia semantica entre 95\% e 98\%, superando a meta de 85\%, com latencia p95 reduzida de 137s para 46s apos a migracao do motor de orquestracao para BullMQ, e suite de 409 testes automatizados em 50 suites sem falhas.
 \end{abstract-pt}
 
 \begin{abstract-en}
-This work presents MakerConnect, a technical social network for Maker culture and IoT that integrates a functional Generative AI pipeline orchestrated via n8n. The platform applies Retrieval-Augmented Generation (RAG) with large language model-based agents to extract requirements from unstructured inputs and automatically generate PDF technical documentation. The vector knowledge base (Pinecone) is populated with real electronic component data, preventing technical hallucinations. Social mechanisms --- forks, upvotes, and error logs --- promote reproducibility and traceability. LGPD compliance is ensured by anonymizing PII before AI processing. Empirical results obtained with 10 real IoT projects indicate 98\% semantic relevance, surpassing the 85\% target, with a suite of 263 automated tests passing without failures.
+This work presents MakerConnect, a technical social network for Maker culture and IoT that integrates a hybrid pipeline of Generative AI and classical Machine Learning, orchestrated by an asynchronous queue (BullMQ/Redis) as the default production engine --- the former n8n orchestrator was kept only as a legacy engine, selectable via environment variable. The platform applies Retrieval-Augmented Generation (RAG) with large language model-based agents to extract requirements from unstructured inputs and automatically generate PDF technical documentation, complemented by a Machine Learning microservice (Naive Bayes, K-Means, and Apriori association rules) that pre-classifies the project, flags components possibly missing from the bill of materials (BOM), and audits the generated output. The category classifier (TF-IDF + multinomial Naive Bayes) was trained on the platform's real labels plus 11,362 public Instructables projects (Kaggle), reaching 75.5\% accuracy and 0.754 macro-F1 under stratified 5-fold cross-validation; component association rules were mined from 54,599 Hackaday articles (16 rules with lift between 4.2 and 51.0). The vector knowledge base (Pinecone) is populated with real electronic component data, preventing technical hallucinations. Social mechanisms --- forks, upvotes, and error logs --- promote reproducibility and traceability. LGPD compliance is ensured by anonymizing PII before AI processing. Empirical results obtained with 10 real IoT projects indicate semantic relevance between 95\% and 98\%, surpassing the 85\% target, with p95 latency reduced from 137s to 46s after migrating the orchestration engine to BullMQ, and a suite of 409 automated tests across 50 suites passing without failures.
 \end{abstract-en}
 
 \begin{pchaves}
-Cultura Maker, IA Generativa, RAG, n8n, Engenharia de Software, IoT, LGPD.
+Cultura Maker, IA Generativa, Machine Learning, RAG, BullMQ, Engenharia de Software, IoT, LGPD.
 \end{pchaves}
 
 \begin{keywords}
-Maker Culture, Generative AI, RAG, n8n, Software Engineering, IoT, LGPD.
+Maker Culture, Generative AI, Machine Learning, RAG, BullMQ, Software Engineering, IoT, LGPD.
 \end{keywords}
 
 \end{frontmatter}
@@ -51,19 +51,19 @@ Maker Culture, Generative AI, RAG, n8n, Software Engineering, IoT, LGPD.
 \section{Introducao e Problema de Pesquisa}
 % ============================================================
 
-O movimento Maker enfrenta o fenomeno da \textit{documentacao fantasma}: projetos IoT inovadores se perdem pela ausencia de registros tecnicos estruturados. Plataformas existentes (GitHub, Instructables) oferecem compartilhamento, mas nao automatizam a producao documental nem orientam ativamente o maker. Isso resulta em baixa reprodutibilidade e reuso de hardware limitado. O problema de pesquisa central e: \textit{como agentes de IA Generativa, orquestrados via n8n, podem reduzir essa lacuna documental, promovendo reprodutibilidade e rastreabilidade em comunidades maker?}
+O movimento Maker enfrenta o fenomeno da \textit{documentacao fantasma}: projetos IoT inovadores se perdem pela ausencia de registros tecnicos estruturados. Plataformas existentes (GitHub, Instructables) oferecem compartilhamento, mas nao automatizam a producao documental nem orientam ativamente o maker. Isso resulta em baixa reprodutibilidade e reuso de hardware limitado. O problema de pesquisa central e: \textit{como agentes de IA Generativa e tecnicas de Machine Learning classico, orquestrados de forma assincrona, podem reduzir essa lacuna documental, promovendo reprodutibilidade e rastreabilidade em comunidades maker?}
 
-\textbf{Hipotese:} a integracao de um pipeline RAG em uma rede social maker reduz significativamente o tempo e o esforco cognitivo da documentacao tecnica, aumentando padronizacao, reuso de componentes e reprodutibilidade de projetos IoT.
+\textbf{Hipotese:} a integracao de um pipeline hibrido --- RAG para geracao de conteudo e Machine Learning classico para classificacao e auditoria --- em uma rede social maker reduz significativamente o tempo e o esforco cognitivo da documentacao tecnica, aumentando padronizacao, reuso de componentes e reprodutibilidade de projetos IoT.
 
-A MakerConnect responde a essa questao integrando tres pilares: (i)~camada social com feed, fork com linhagem e log de dificuldades; (ii)~pipeline de IA com RAG para geracao automatica de documentacao; (iii)~camada documental com exportacao em PDF auditavel, em conformidade com a LGPD.
+A MakerConnect responde a essa questao integrando tres pilares: (i)~camada social com feed, fork com linhagem e log de dificuldades; (ii)~pipeline hibrido de IA Generativa (RAG) e Machine Learning classico (classificacao previa, validacao de BOM e auditoria pos-geracao), orquestrado por fila assincrona (BullMQ) como motor padrao de producao; (iii)~camada documental com exportacao em PDF auditavel, em conformidade com a LGPD.
 
 % ============================================================
 \section{Objetivos}
 % ============================================================
 
-\textbf{Objetivo Geral:} Desenvolver a MakerConnect, integrando agentes de IA Generativa e orquestracao n8n para automatizar a documentacao tecnica e gerenciar o ciclo de vida de projetos IoT.
+\textbf{Objetivo Geral:} Desenvolver a MakerConnect, integrando agentes de IA Generativa, um pipeline complementar de Machine Learning classico e orquestracao assincrona via BullMQ para automatizar a documentacao tecnica e gerenciar o ciclo de vida de projetos IoT.
 
-\textbf{Objetivos Especificos:}~(i)~Implementar pipeline funcional de IA com estagios de Extracao, RAG e Pos-processamento; (ii)~Orquestrar workflows via n8n com embeddings locais via Ollama/nomic-embed-text; (iii)~Construir base de conhecimento vetorial com dados reais de componentes eletronicos no Pinecone; (iv)~Modelar estrutura social com \textit{forks}, \textit{upvotes}, log de dificuldades e BOM via MySQL; (v)~Garantir conformidade LGPD com anonimizacao de PII; (vi)~Validar reducao do esforco documental por metricas objetivas de relevancia e latencia.
+\textbf{Objetivos Especificos:}~(i)~Implementar pipeline funcional de IA com estagios de Extracao, RAG e Pos-processamento; (ii)~Orquestrar o pipeline via fila assincrona BullMQ/Redis --- motor padrao em producao, com o workflow n8n mantido como motor legado selecionavel por variavel de ambiente --- com embeddings locais via Ollama/nomic-embed-text; (iii)~Construir base de conhecimento vetorial com dados reais de componentes eletronicos no Pinecone; (iv)~Modelar estrutura social com \textit{forks}, \textit{upvotes}, log de dificuldades e BOM via MySQL; (v)~Garantir conformidade LGPD com anonimizacao de PII; (vi)~Implementar microsservico de Machine Learning classico (Fase 5), treinado sobre dados reais e datasets publicos do dominio maker, para classificacao previa do projeto, deteccao de componentes ausentes na BOM e auditoria pos-geracao; (vii)~Validar reducao do esforco documental por metricas objetivas de relevancia e latencia.
 
 % ============================================================
 \section{Metodologia}
@@ -77,11 +77,40 @@ O projeto e conduzido por um unico desenvolvedor sob o framework Scrum adaptado 
 
 \subsection{Metodologia de Avaliacao do Pipeline de IA}
 
-A avaliacao do pipeline utiliza protocolo estruturado com \textit{holdout dataset} de dez projetos IoT reais (H01--H10), cobrindo dominios distintos: sistemas LoRaWAN, estufas automatizadas, monitores de qualidade do ar, fechaduras RFID, monitores de energia, aquarios automatizados, sensores de nivel, \textit{gateways} Modbus, robos com camera e detectores de fumaca. O script \texttt{rag-eval.mjs} calcula score composto ponderado: cobertura de palavras-chave (40\%), pontuacao de confianca do modelo (30\%) e completude da saida (30\%). A meta minima de 85\% de relevancia foi estabelecida como gate obrigatorio para prosseguimento do sprint S1.3.
+A avaliacao do pipeline utiliza protocolo estruturado com \textit{holdout dataset} de dez projetos IoT reais (H01--H10), cobrindo dominios distintos: sistemas LoRaWAN, estufas automatizadas, monitores de qualidade do ar, fechaduras RFID, monitores de energia, aquarios automatizados, sensores de nivel, \textit{gateways} Modbus, robos com camera e detectores de fumaca. O script \texttt{rag-eval.mjs} calcula score composto ponderado: cobertura de palavras-chave (40\%), pontuacao de confianca do modelo (30\%) e completude da saida (30\%). A meta minima de 85\% de relevancia foi estabelecida como gate obrigatorio para prosseguimento do sprint S1.3. Uma segunda rodada do mesmo holdout, ja com o motor BullMQ e o pipeline de Machine Learning da Fase 5 (filtro de dominio na busca vetorial) ativos, foi executada no sprint S1.4 para medir o impacto da migracao de orquestrador sobre relevancia e latencia.
+
+\subsection{Datasets e Treinamento dos Modelos de Machine Learning}
+
+Como a base real da plataforma ainda e pequena (cerca de 20 projetos com conteudo extraido e rotulo de categoria, e cerca de 14 BOMs de extracoes concluidas), os modelos da Fase 5 foram treinados combinando dados reais com dois datasets publicos externos, conforme a Tabela~\ref{tab:datasets}. Os projetos de avaliacao (prefixo \texttt{[EVAL]}) sao excluidos de todas as consultas de treino, e o modelo e retreinado a cada inicializacao do servico e sob demanda (\texttt{POST /retrain}), absorvendo automaticamente novos projetos rotulados em producao.
+
+\begin{table}[!ht]
+\caption{Datasets utilizados no treinamento e na avaliacao dos modelos de Machine Learning.}
+\centering
+\footnotesize
+\begin{tblr}{%
+colspec={Q[l,0.22\linewidth] Q[l,0.40\linewidth] Q[l,0.28\linewidth]},
+row{1}={bg=gray!20, font=\bfseries},
+}
+\hline
+Dataset & Conteudo e preparo & Uso \\
+\hline
+\texttt{ProjectTag} (MySQL, real) & $\sim$20 projetos reais (titulo + descricao + conteudo) com categoria rotulada pelo autor; desbalanceado & Treino do Naive Bayes (estagio 1) \\
+Instructables DIY~\cite{kaggle2018instructables} & 11.362 titulos; subcategorias mapeadas para as 4 classes do produto (IoT, Robotics, 3D\_Printing, Woodworking); deduplicacao por titulo e teto de 3.000 por classe (\textit{seed}=42): IoT 3.000, Woodworking 3.000, 3D\_Printing 3.000, Robotics 2.362 & Treino do Naive Bayes (estagio 1), via \texttt{USE\_BOOTSTRAP\_TRAINING} \\
+Hackaday Posts~\cite{hackaday2025posts} & 54.599 artigos (2005--2025); autor e comentarios descartados (LGPD); 13.898 artigos com 2+ componentes viram transacoes; 9.645 textos rotulados & Mineracao das regras externas de BOM (estagio 2); variante de treino avaliada e descartada \\
+BOMs reais (MySQL) & $\sim$14 BOMs de extracoes concluidas, normalizadas para nomes canonicos PT/EN & Apriori e K-Means (estagio 2) \\
+Avaliacao PT (\texttt{eval/}) & 80 projetos em portugues no formato do app, 20 por categoria, 13 casos dificeis (sem palavra-chave obvia ou com armadilha lexical) & Teste do classificador em dominio-alvo \\
+\hline
+\end{tblr}
+\label{tab:datasets}
+\end{table}
+
+Os datasets externos sao usados apenas para treino interno, nunca redistribuidos nem exibidos na plataforma, respeitando as licencas dos autores originais; das transacoes da Hackaday entram em producao somente estatisticas agregadas (contagem, confianca e \textit{lift}), sem nenhum texto.
+
+O classificador de categoria foi avaliado em dois protocolos complementares: (i)~validacao cruzada estratificada de 5 \textit{folds} (\textit{shuffle}, \textit{seed}=42) sobre o dataset de treino, que mede o desempenho dentro da distribuicao de treino; e (ii)~teste no conjunto de 80 projetos em portugues, que mede a transferencia para o dominio-alvo (textos em portugues, no formato da plataforma). No segundo protocolo, considera-se acerto quando a categoria prevista esta entre as categorias validas do projeto, e compara-se o caminho de producao (modelo + \textit{fallback}) com variantes do classificador (\texttt{MultinomialNB}, \texttt{ComplementNB}~\cite{rennie2003tackling} e treino ampliado com a Hackaday).
 
 \subsection{Garantia de Qualidade e Testes}
 
-A qualidade do software e garantida por suite de 263 testes distribuidos em 39 suites (unitarios, de integracao e \textit{end-to-end}), cobrindo endpoints da API REST, pipeline de anonimizacao LGPD, fluxos de fork/upvote e ciclo assincrono de exportacao PDF. A execucao e integrada ao pipeline de CI/CD via GitHub Actions.
+A qualidade do software e garantida por suite de 409 testes distribuidos em 50 suites --- unitarios, de integracao e \textit{end-to-end} ---, sendo 379 testes em 46 suites Jest/ts-jest para a aplicacao Next.js e 30 testes em 4 suites Pytest para o microsservico de Machine Learning \texttt{ml-pipeline} (este com \textit{fixtures} que dispensam banco real), cobrindo endpoints da API REST, pipeline de anonimizacao LGPD, fluxos de fork/upvote, ciclo assincrono de exportacao PDF e os quatro estagios do pipeline de Machine Learning da Fase 5. A execucao e integrada ao pipeline de CI/CD via GitHub Actions.
 
 % ============================================================
 \section{Proposta de Portfolio}
@@ -90,8 +119,8 @@ A qualidade do software e garantida por suite de 263 testes distribuidos em 39 s
 A MakerConnect configura um portfolio tecnico de alta complexidade que demonstra, em producao, a integracao de competencias centrais da Engenharia de Software: desenvolvimento \textit{full-stack} (Next.js, Prisma, MySQL), arquitetura de microservicos, pipeline de IA aplicada, orquestracao de agentes e conformidade regulatoria (LGPD). O portfolio e estruturado em quatro camadas:
 
 \begin{itemize}
-  \item \textbf{Infraestrutura:} API REST em Next.js com Prisma ORM; banco relacional MySQL; servico de \textit{object storage} MinIO compativel com S3; orquestrador n8n com Ollama local; fila BullMQ/Redis como motor alternativo do pipeline de IA (\texttt{EXTRACTION\_ENGINE}); banco vetorial Pinecone.
-  \item \textbf{IA:} pipeline RAG com embeddings nomic-embed-text; modelo generativo qwen2.5:7b-instruct; middleware LGPD com anonimizacao de PII; metricas de relevancia e latencia; \textit{endpoint} de metricas p50/p95.
+  \item \textbf{Infraestrutura:} API REST em Next.js com Prisma ORM; banco relacional MySQL; servico de \textit{object storage} MinIO compativel com S3; fila assincrona BullMQ/Redis como motor padrao de orquestracao do pipeline de IA (o workflow n8n permanece no codigo como motor legado, selecionavel pela variavel \texttt{EXTRACTION\_ENGINE}); Ollama local para LLM e embeddings; banco vetorial Pinecone.
+  \item \textbf{IA:} pipeline RAG com embeddings nomic-embed-text; modelo generativo qwen2.5:7b-instruct; middleware LGPD com anonimizacao de PII; microsservico Python (FastAPI + scikit-learn) de Machine Learning classico com classificacao Naive Bayes, agrupamento K-Means e regras de associacao Apriori para validacao de BOM e auditoria pos-geracao; metricas de relevancia e latencia; \textit{endpoint} de metricas p50/p95.
   \item \textbf{Social:} feed de projetos com tags multiplas e visibilidade granular (publico / privado-dono / privado-equipe); fork com rastreamento de linhagem (\texttt{parentId}); upvote idempotente; log de dificuldades tecnicas; comunidades publicas/privadas; equipes com afiliacao mediante aprovacao e subsecao de competicoes; perfis de usuario; comentarios e reacoes.
   \item \textbf{Documental:} exportacao assincrona de PDF tecnico via BullMQ + Redis; \textit{template} com BOM, requisitos SW/HW e rodape LGPD; historico de exportacoes auditavel; rastreamento de status em tempo real (\textit{queued}, \textit{processing}, \textit{done}, \textit{failed}).
 \end{itemize}
@@ -102,7 +131,7 @@ O repositorio publico \texttt{Froesv85/Master-Labs} no GitHub documenta a evoluc
 \section{Inovacao}
 % ============================================================
 
-A contribuicao inovadora da MakerConnect articula-se em cinco dimensoes:
+A contribuicao inovadora da MakerConnect articula-se em seis dimensoes:
 
 \textbf{(i) RAG com base vetorial propria no dominio IoT/Maker.} Diferente de assistentes genericos, a plataforma constroi e mantem base de conhecimento especializada em componentes eletronicos reais (Arduino, ESP32, sensores, atuadores), eliminando alucinacoes criticas que poderiam comprometer prototipos fisicos.
 
@@ -110,15 +139,17 @@ A contribuicao inovadora da MakerConnect articula-se em cinco dimensoes:
 
 \textbf{(iii) Log de dificuldades como memoria tecnica coletiva.} Obstaculos individuais tornam-se ativo coletivo: um maker que registra problemas de compatibilidade com modulo SIM800L cria dado valioso para toda a comunidade, formando base organica de problemas e solucoes por pratica real.
 
-\textbf{(iv) Orquestracao n8n com ciclo assincrono e estados rastreraveis.} A combinacao de n8n + BullMQ + Redis confere ao pipeline caracteristicas de sistema de producao: resiliencia a falhas, rastreabilidade de estado e \textit{retry} automatico --- incomum em projetos academicos.
+\textbf{(iv) Orquestracao assincrona via BullMQ com ciclo de estados rastreaveis.} A fila BullMQ + Redis, hoje motor padrao em producao, confere ao pipeline caracteristicas de sistema de producao: resiliencia a falhas, rastreabilidade de estado e \textit{retry} automatico com \textit{backoff} exponencial --- incomum em projetos academicos. A migracao do motor de orquestracao, originalmente baseado em n8n (mantido no codigo como motor legado selecionavel por variavel de ambiente), para uma fila propria \textit{in-process} reduziu a latencia p95 de 137s para 46s sem depender de GPU, evidenciando maturidade de engenharia na evolucao incremental da arquitetura.
 
-\textbf{(v) LGPD-first by design.} A conformidade e requisito estrutural desde a primeira sprint: anonimizacao de PII antes de qualquer processamento pela IA, sem adicao de modulo post-hoc.
+\textbf{(v) Pipeline hibrido de IA Generativa e Machine Learning classico (Fase 5).} Um microsservico Python complementar (\texttt{ml-pipeline}, FastAPI + scikit-learn) classifica categoria, dificuldade e dominio do projeto por Naive Bayes treinado em rotulos reais somados a 11.362 projetos publicos do Instructables antes da geracao, filtra a busca vetorial por dominio, detecta componentes possivelmente esquecidos na BOM por agrupamento K-Means e regras de associacao Apriori (incluindo regras mineradas de 54.599 artigos da Hackaday), e audita a saida gerada por regras apos a geracao --- combinando tecnicas classicas de ML com IA Generativa na mesma esteira de producao, chamado de forma defensiva pelo \textit{worker} BullMQ (indisponibilidade do microsservico nao interrompe o pipeline principal).
+
+\textbf{(vi) LGPD-first by design.} A conformidade e requisito estrutural desde a primeira sprint: anonimizacao de PII antes de qualquer processamento pela IA, sem adicao de modulo post-hoc.
 
 % ============================================================
 \section{Abordagem de IA e Pipeline Funcional}
 % ============================================================
 
-A solucao aplica \textbf{IA Generativa com RAG} --- tecnica da categoria Transformer/NLP Generativa --- integrada funcionalmente a plataforma. O pipeline segue quatro estagios, conforme a Tabela~\ref{tab:pipeline}.
+A solucao aplica \textbf{IA Generativa com RAG}, complementada por \textbf{Machine Learning classico} --- tecnicas das categorias Transformer/NLP Generativa e Aprendizado Supervisionado/Nao Supervisionado --- integradas funcionalmente a plataforma e orquestradas por fila assincrona BullMQ (motor padrao em producao). O pipeline principal segue quatro estagios, conforme a Tabela~\ref{tab:pipeline}.
 
 \begin{table}[!ht]
 \caption{Pipeline Funcional de IA da MakerConnect.}
@@ -131,15 +162,91 @@ row{1}={bg=gray!20, font=\bfseries},
 Estagio & Tecnica / Ferramenta & Saida \\
 \hline
 Extracao & Upload via React; regex PII (LGPD); NLP para parsing e extracao de palavras-chave & Texto normalizado + metadados anonimizados \\
-Pre-proc. & Embeddings nomic-embed-text via Ollama; similaridade coseno; indexacao Pinecone & Vetores semanticos indexados \\
-Modelo IA & RAG: recuperacao vetorial + geracao com qwen2.5:7b-instruct; \textit{prompt engineering} com contexto tecnico & Requisitos SW/HW estruturados + BOM \\
-Pos-proc. & Renderizacao PDF (jsPDF + BullMQ); metricas de cobertura; logs de validacao; armazenamento MinIO & Documentacao tecnica auditavel \\
+Pre-proc. & Classificacao previa (Machine Learning, Fase 5) + embeddings nomic-embed-text via Ollama; similaridade coseno; indexacao/busca filtrada por dominio no Pinecone & Categoria/dificuldade/dominio previstos + vetores semanticos indexados \\
+Modelo IA & RAG: recuperacao vetorial filtrada + geracao com qwen2.5:7b-instruct; \textit{prompt engineering} com contexto tecnico; orquestracao via fila BullMQ (n8n como motor legado) & Requisitos SW/HW estruturados + BOM \\
+Pos-proc. & Auditoria por regras (Machine Learning, Fase 5); renderizacao PDF (jsPDF + BullMQ); metricas de cobertura; logs de validacao; armazenamento MinIO & Documentacao tecnica auditavel \\
 \hline
 \end{tblr}
 \label{tab:pipeline}
 \end{table}
 
-\textbf{Justificativa do modelo:} RAG foi escolhido por combinar recuperacao baseada em evidencias com geracao contextualizada, reduzindo alucinacoes tecnicas criticas em dominios como eletronica e IoT. A base vetorial propria com dados reais de componentes garante aderencia ao dominio e permite auditoria das fontes utilizadas na geracao documental.
+\textbf{Justificativa do modelo:} RAG foi escolhido por combinar recuperacao baseada em evidencias com geracao contextualizada, reduzindo alucinacoes tecnicas criticas em dominios como eletronica e IoT. A base vetorial propria com dados reais de componentes garante aderencia ao dominio e permite auditoria das fontes utilizadas na geracao documental. A camada de Machine Learning classico foi adicionada para tratar tarefas para as quais um LLM generativo e um ajuste caro ou instavel --- classificacao categorica, agrupamento de padroes de BOM e deteccao de omissoes --- delegando-as a modelos leves, interpretaveis e baratos de treinar/inferir (Naive Bayes, K-Means, Apriori), enquanto o LLM permanece responsavel apenas pela geracao de texto tecnico ancorada em evidencias.
+
+\subsection{Pipeline Complementar de Machine Learning (Fase 5)}
+
+Um microsservico Python independente (\texttt{ml-pipeline/}, FastAPI + scikit-learn), chamado via HTTP pelo \textit{worker} BullMQ de forma defensiva (indisponibilidade do servico nao interrompe o pipeline principal de RAG), adiciona quatro estagios de Machine Learning classico ao redor da geracao via LLM, conforme a Tabela~\ref{tab:ml-pipeline}.
+
+\begin{table}[!ht]
+\caption{Estagios do Pipeline de Machine Learning (Fase 5).}
+\centering
+\begin{tblr}{%
+colspec={Q[l,0.20\linewidth] Q[l,0.30\linewidth] Q[l,0.40\linewidth]},
+row{1}={bg=gray!20, font=\bfseries},
+}
+\hline
+Estagio & Algoritmo & Papel \\
+\hline
+1. Classificacao Previa & Naive Bayes multinomial (TF-IDF) treinado em rotulos reais de \texttt{ProjectTag} + 11.362 projetos do Instructables, com \textit{fallback} heuristico por palavra-chave & Define categoria, dificuldade e dominios tecnicos do projeto antes da geracao \\
+2. Validacao \& Agrupamento & K-Means (topologia de BOM) + Apriori sobre BOMs reais, 5 regras curadas e 16 regras de co-ocorrencia mineradas da Hackaday & Detecta pecas possivelmente esquecidas na BOM e agrupa projetos por topologia similar \\
+3. RAG Especializado & Busca vetorial no Pinecone filtrada por dominio (metadata filter), com \textit{fallback} automatico sem filtro & Prioriza evidencias tecnicas do dominio do projeto antes da geracao via LLM \\
+4. Auditoria Pos-Geracao & Classificador baseado em regras (reaproveita as regras do estagio 2 + checagens de consistencia) & Audita a saida gerada e sinaliza inconsistencias/omissoes antes da entrega final \\
+\hline
+\end{tblr}
+\label{tab:ml-pipeline}
+\end{table}
+
+A categoria do estagio 1 conta com modelo efetivamente treinado (dados reais + Instructables), e as regras de BOM do estagio 2 sao mineradas de dados reais e da Hackaday; dificuldade, dominio e a auditoria do estagio 4 permanecem heuristicos, pois ainda nao existe rotulo supervisionado para eles no banco --- evolucao planejada para o PAC 8 conforme mais dados sejam coletados em producao.
+
+\subsection{Parametros dos Algoritmos}
+
+A Tabela~\ref{tab:ml-params} registra os parametros efetivamente configurados no codigo de cada algoritmo. Valores marcados com $^{*}$ nao sao passados explicitamente e correspondem ao padrao das bibliotecas nas versoes fixadas (scikit-learn 1.6.0~\cite{pedregosa2011sklearn} e mlxtend 0.23.4~\cite{raschka2018mlxtend}), o que garante a reprodutibilidade dos resultados.
+
+\begin{table}[!ht]
+\caption{Parametros configurados por algoritmo no pipeline de Machine Learning e no RAG.}
+\centering
+\footnotesize
+\begin{tblr}{%
+colspec={Q[l,0.22\linewidth] Q[l,0.34\linewidth] Q[l,0.34\linewidth]},
+row{1}={bg=gray!20, font=\bfseries},
+}
+\hline
+Algoritmo & Parametro & Valor \\
+\hline
+\SetCell[r=4]{l} TF-IDF + Naive Bayes multinomial~\cite{manning2008ir} (categoria) & \texttt{max\_features} / \texttt{ngram\_range} & 2.000 / (1, 2) \\
+ & \texttt{norm} / \texttt{lowercase} / \texttt{alpha} (Laplace) & $l_2^{*}$ / \texttt{True}$^{*}$ / 1,0$^{*}$ \\
+ & \texttt{MIN\_TRAINING\_SAMPLES} & 8 (abaixo disso, so heuristica) \\
+ & \texttt{LOW\_CONFIDENCE\_THRESHOLD} & 0,6 (abaixo disso, \textit{fallback}) \\
+\hline
+\SetCell[r=2]{l} Heuristica de categoria e dominio & Palavras-chave & 4 categorias, 7 dominios (MCU, Sensor, Protocol, Actuator, PowerMgmt, Display, Storage); texto sem acento; palavra inteira para termos $\leq$ 3 letras \\
+ & Confianca & acertos da melhor classe $\div$ acertos totais \\
+\hline
+Heuristica de dificuldade & Pontuacao & $\min((1{,}5 d + 0{,}3 \min(o,12))/10,\,1)$, $d$ = dominios, $o$ = oracoes; cortes 0,25 / 0,50 / 0,75 \\
+\hline
+\SetCell[r=4]{l} Apriori~\cite{agrawal1994fast} (BOMs reais) & \texttt{MIN\_TRANSACTIONS\_FOR\_RULES} & 5 \\
+ & \texttt{min\_support} & $\max(0{,}15;\ 2/n)$ \\
+ & \texttt{metric} / \texttt{min\_threshold} & \textit{confidence} / 0,5 \\
+ & Consequente & 1 item; ate 5 sugestoes por confianca \\
+\hline
+\SetCell[r=2]{l} Regras externas (Hackaday) & Suporte / \textit{lift}~\cite{brin1997dynamic} / confianca minimos & 25 artigos / 4,0 / 0,05 \\
+ & Consequente & so pecas de apoio do antecedente (ex.: ESC para motor \textit{brushless}) \\
+\hline
+Regras curadas & Confianca fixa & 0,6 (5 omissoes classicas, ex.: rele sem diodo \textit{flyback}) \\
+\hline
+\SetCell[r=3]{l} K-Means~\cite{arthur2007kmeans} (topologia) & Representacao & TF-IDF, \texttt{max\_features}=500 \\
+ & $k$ / \texttt{init} & $\min(3, n)$ / \texttt{k-means++}$^{*}$ \\
+ & \texttt{n\_init} / \texttt{random\_state} & 10 / 42 \\
+\hline
+\SetCell[r=3]{l} RAG (estagio 3) & Embedding & nomic-embed-text, 768 dim., \textit{timeout} 30\,s \\
+ & Busca & \texttt{topK}=3, filtro \texttt{category \$in} dominios; sem resultado, repete sem filtro \\
+ & Geracao (qwen2.5:7b-instruct) & \texttt{temperature}=0,1; \texttt{num\_predict}=500; \texttt{format}=json; \textit{timeout} 180\,s \\
+\hline
+Auditoria por regras (estagio 4) & Descontos sobre nota 100 & BOM vazia $-30$; sem requisitos $-20$; $|$BOM $-$ requisitos$|>3$ $-10$; confianca $<50$ $-15$; sem evidencia RAG $-20$; pecas esquecidas ate $-20$ \\
+\hline
+\end{tblr}
+\label{tab:ml-params}
+\end{table}
+
+O limiar de 0,6 e uma regra de engenharia e nao uma probabilidade calibrada: as probabilidades do Naive Bayes sao sabidamente mal calibradas, embora suas decisoes sejam boas~\cite{manning2008ir}. As regras externas exigem \textit{lift} alto em vez de confianca alta porque um artigo de blog nao e uma BOM completa, e a confianca bruta subestima a co-ocorrencia real; o \textit{lift} isola a associacao do efeito de componentes muito frequentes~\cite{brin1997dynamic}. O K-Means usa varias inicializacoes \texttt{k-means++} e semente fixa para mitigar minimos locais e garantir resultado reprodutivel~\cite{arthur2007kmeans}.
 
 % ============================================================
 \section{Arquitetura e Tecnologias}
@@ -159,14 +266,15 @@ Componente & Tecnologia & Funcao \\
 \hline
 Frontend & Next.js 16 / React 19 & Interface maker: projetos, equipes, comunidades, pipeline de IA \\
 Backend/ORM & Node.js + Prisma + MySQL & API REST; persistencia transacional; migracoes \\
-Orquestrador & n8n + BullMQ + Ollama (local) & Coordenacao de agentes (motor duplo via \texttt{EXTRACTION\_ENGINE}); integracao de modelos LLM \\
+Orquestrador & BullMQ + Redis + Ollama (local) & Motor padrao de orquestracao do pipeline de IA em producao; n8n mantido como motor legado via \texttt{EXTRACTION\_ENGINE}; integracao de modelos LLM \\
 Modelo LLM & qwen2.5:7b-instruct & Extracao de requisitos e geracao documental \\
 Embeddings & nomic-embed-text via Ollama & Geracao de vetores semanticos para busca por similaridade \\
-Vector DB & Pinecone & Base de conhecimento tecnico para RAG \\
-Fila/Worker & BullMQ + Redis & Exportacao PDF assincrona e motor alternativo do pipeline de extracao, ambos com rastreamento de estado \\
+Vector DB & Pinecone & Base de conhecimento tecnico para RAG, com filtro por dominio (Fase 5) \\
+ML classico & Python + FastAPI + scikit-learn (\texttt{ml-pipeline/}) & Classificacao previa (Naive Bayes), agrupamento/validacao de BOM (K-Means + Apriori) e auditoria pos-geracao (Fase 5) \\
+Fila/Worker & BullMQ + Redis & Exportacao PDF assincrona e motor padrao de orquestracao do pipeline de extracao, ambos com rastreamento de estado \\
 Object Storage & MinIO (S3-compatible) & Armazenamento de PDFs gerados \\
 Seguranca & LGPD Middleware & Anonimizacao de PII pre-processamento \\
-CI/CD & GitHub Actions & Suite automatizada de 263 testes em cada push \\
+CI/CD & GitHub Actions & Suite automatizada de 409 testes (Jest + Pytest) em 50 suites, em cada push \\
 \hline
 \end{tblr}
 \label{tab:arch}
@@ -178,7 +286,7 @@ CI/CD & GitHub Actions & Suite automatizada de 263 testes em cada push \\
 
 A presente pesquisa situa-se na intersecao de tres dominios emergentes: (i)~redes sociais tecnicas para comunidades maker; (ii)~orquestracao de agentes de IA generativa com RAG; (iii)~governanca e rastreabilidade de projetos IoT com conformidade regulatoria (LGPD).
 
-\cite{dong2025chatiot} propoe o ChatIoT, assistente baseado em LLM com RAG para seguranca em IoT, demonstrando a viabilidade de RAG especializado no dominio, mas sem mecanismos sociais de rastreabilidade. \cite{hangyu2026federated} apresenta abordagem federada de RAG para dispositivos IoT com restricoes de recursos, priorizando privacidade distribuida, proxima ao requisito LGPD, mas sem camada social ou exportacao documental. \cite{singh2025agentic} mapeia arquiteturas \textit{agentic} RAG para orquestracao autonoma de workflows complexos, base teorica para a escolha do n8n, mas sem aplicacao pratica em IoT maker.
+\cite{dong2025chatiot} propoe o ChatIoT, assistente baseado em LLM com RAG para seguranca em IoT, demonstrando a viabilidade de RAG especializado no dominio, mas sem mecanismos sociais de rastreabilidade. \cite{hangyu2026federated} apresenta abordagem federada de RAG para dispositivos IoT com restricoes de recursos, priorizando privacidade distribuida, proxima ao requisito LGPD, mas sem camada social ou exportacao documental. \cite{singh2025agentic} mapeia arquiteturas \textit{agentic} RAG para orquestracao autonoma de workflows complexos, base teorica para a escolha de orquestracao assincrona do pipeline (inicialmente via n8n, hoje via fila BullMQ propria), mas sem aplicacao pratica em IoT maker.
 
 \begin{table}[!ht]
 \caption{Matriz Comparativa: Trabalhos Relacionados e MakerConnect.}
@@ -212,17 +320,69 @@ Rabbit Agents & \ding{55} & \ding{55} & \ding{51} & \ding{55} & \ding{55} & \din
 \label{tab:comparative}
 \end{table}
 
-Nenhum trabalho antecedente combina todas as dimensoes criticas. A MakerConnect preenche essa lacuna ao propor integracao entre RAG + IoT, orquestracao n8n, mecanismos sociais (fork lineage, upvotes, log de dificuldades), conformidade LGPD e implementacao funcional MVP validada empiricamente.
+Nenhum trabalho antecedente combina todas as dimensoes criticas. A MakerConnect preenche essa lacuna ao propor integracao entre RAG + Machine Learning classico + IoT, orquestracao assincrona via BullMQ, mecanismos sociais (fork lineage, upvotes, log de dificuldades), conformidade LGPD e implementacao funcional MVP validada empiricamente.
 
 % ============================================================
 \section{Resultados Esperados}
 % ============================================================
 
-Com base nos resultados empiricos obtidos na fase S1.3 e nas metricas acumuladas ao longo das sprints:
+Com base nos resultados empiricos obtidos nas fases S1.3 e S1.4 e nas metricas acumuladas ao longo das sprints:
 
-\subsection{Resultados Empiricos Obtidos (ate junho/2026)}
+\subsection{Resultados Empiricos Obtidos (ate outubro/2026)}
 
-Relevancia semantica do pipeline RAG: \textbf{98\%} no holdout de 10 projetos IoT reais, superando a meta de 85\%. Suite de testes: 161 testes em 22 suites, \textbf{0 falhas}. Latencia do pipeline em CPU sem GPU: p50 = 53s, p95 = 137s --- dentro do esperado para execucao local; migracao para infraestrutura com GPU planejada para o segundo semestre. Conformidade LGPD: 100\% dos fluxos com anonimizacao de PII validada.
+Relevancia semantica do pipeline RAG: \textbf{98\%} no holdout de 10 projetos IoT reais na avaliacao original (motor n8n, sem Fase 5), superando a meta de 85\%. Latencia do pipeline em CPU sem GPU nessa mesma rodada: p50 = 53s, p95 = 137s. Apos a migracao do motor de orquestracao para BullMQ e a ativacao do filtro de dominio da Fase 5 na busca vetorial, uma nova rodada do mesmo holdout manteve \textbf{95\%} de relevancia com latencia p50 = 34,2s e p95 = 46,0s --- reducao de aproximadamente 66\% no p95 sem depender de GPU. Suite de testes: 409 testes em 50 suites (Jest + Pytest), \textbf{0 falhas}. Conformidade LGPD: 100\% dos fluxos com anonimizacao de PII validada.
+
+\subsection{Metricas dos Modelos de Machine Learning (Fase 5)}
+
+Na validacao cruzada estratificada de 5 \textit{folds} sobre o dataset de treino (11.362 projetos), o pipeline TF-IDF + Naive Bayes multinomial com os parametros de producao obteve \textbf{acuracia de 75,5\%} e \textbf{F1-macro de 0,754}, com desempenho equilibrado entre as classes (Tabela~\ref{tab:cv}).
+
+\begin{table}[!ht]
+\caption{Classificador de categoria: validacao cruzada estratificada (5 \textit{folds}, \textit{seed}=42).}
+\centering
+\footnotesize
+\begin{tblr}{%
+colspec={Q[l,0.24\linewidth] Q[c,0.14\linewidth] Q[c,0.14\linewidth] Q[c,0.14\linewidth] Q[c,0.14\linewidth]},
+row{1}={bg=gray!20, font=\bfseries},
+}
+\hline
+Classe & Precisao & Revocacao & F1 & Suporte \\
+\hline
+IoT & 0,745 & 0,746 & 0,745 & 3.000 \\
+Robotics & 0,778 & 0,699 & 0,737 & 2.362 \\
+3D\_Printing & 0,720 & 0,731 & 0,726 & 3.000 \\
+Woodworking & 0,784 & 0,832 & 0,807 & 3.000 \\
+\hline
+\textbf{Media macro} & 0,757 & 0,752 & \textbf{0,754} & 11.362 \\
+\hline
+\end{tblr}
+\label{tab:cv}
+\end{table}
+
+No conjunto de 80 projetos em portugues, que representa o dominio-alvo, o desempenho cai sensivelmente (Tabela~\ref{tab:pt-eval}): o modelo isolado acerta 34/80, pois foi treinado em textos em ingles (titulos do Instructables) e encontra vocabulario majoritariamente desconhecido. O caminho de producao, que combina o modelo com o \textit{fallback} heuristico pelo limiar de confianca de 0,6, alcanca \textbf{50/80 (62,5\%)} e 7/13 nos casos dificeis; nele, o modelo decide 8 dos 80 casos e a heuristica, os demais. Ampliar o treino com a Hackaday e usar \texttt{ComplementNB} elevou o modelo isolado a 37/80, mas colapsou a classe Woodworking (1/20, apenas 141 exemplos), e por isso essa variante foi descartada.
+
+\begin{table}[!ht]
+\caption{Classificador de categoria: avaliacao nos 80 projetos em portugues (21/10/2026).}
+\centering
+\footnotesize
+\begin{tblr}{%
+colspec={Q[l,0.34\linewidth] Q[c,0.09\linewidth] Q[c,0.09\linewidth] Q[c,0.07\linewidth] Q[c,0.09\linewidth] Q[c,0.10\linewidth] Q[c,0.10\linewidth]},
+row{1}={bg=gray!20, font=\bfseries},
+row{3}={font=\bfseries},
+}
+\hline
+Variante & Acerto & Dificeis & IoT & Robotics & 3D\_Print. & Woodw. \\
+\hline
+Heuristica isolada & 49/80 & 7/13 & 19/20 & 11/20 & 8/20 & 11/20 \\
+Producao: Kaggle + \textit{fallback} 0,6 & 50/80 & 7/13 & 19/20 & 11/20 & 9/20 & 11/20 \\
+Kaggle, \texttt{MultinomialNB} & 34/80 & 6/13 & 16/20 & 4/20 & 9/20 & 5/20 \\
+Kaggle, \texttt{ComplementNB} & 33/80 & 6/13 & 14/20 & 5/20 & 9/20 & 5/20 \\
+Kaggle + Hackaday, \texttt{ComplementNB} & 37/80 & 5/13 & 16/20 & 10/20 & 10/20 & 1/20 \\
+\hline
+\end{tblr}
+\label{tab:pt-eval}
+\end{table}
+
+Para o estagio 2, a mineracao sobre os 54.599 artigos da Hackaday produziu 16 regras externas de componentes de apoio, com suporte entre 27 e 353 artigos, \textit{lift} entre 4,2 e 51,0 e confianca entre 0,07 e 0,56 --- por exemplo, motor \textit{brushless} $\to$ ESC (\textit{lift} 51,0), sensor Hall $\to$ ima (confianca 0,56, \textit{lift} 22,2) e motor DC $\to$ driver de motor (\textit{lift} 16,1). Essas regras entram com a propria confianca, abaixo das 5 regras curadas (0,6). Sobre as BOMs reais, o Apriori opera com suporte minimo de 15\% e confianca minima de 0,5, e o K-Means agrupa as BOMs em $k=3$ topologias; ambos ganham poder estatistico conforme novas extracoes sao concluidas.
 
 \subsection{Resultados Projetados (PAC 8 --- 2o Semestre 2026)}
 
@@ -232,15 +392,17 @@ Apos deploy em infraestrutura com GPU e validacao com usuarios reais, espera-se:
 \caption{Metricas de Resultado: Obtidas vs.\ Projetadas.}
 \centering
 \begin{tblr}{%
-colspec={Q[l,0.38\linewidth] Q[c,0.15\linewidth] Q[c,0.22\linewidth] Q[c,0.15\linewidth]},
+colspec={Q[l,0.36\linewidth] Q[c,0.15\linewidth] Q[c,0.28\linewidth] Q[c,0.15\linewidth]},
 row{1}={bg=gray!20, font=\bfseries},
 }
 \hline
-Metrica & Meta & Obtido (Jun/2026) & Projetado (Dez/2026) \\
+Metrica & Meta & Obtido (Out/2026) & Projetado (Dez/2026) \\
 \hline
-Relevancia RAG (holdout) & $\geq 85\%$ & 98\% & $>95\%$ (GPU) \\
-Testes automatizados & 0 falhas & 161 / 0 falhas & $>200$ / 0 falhas \\
-Latencia p95 & $<15.000$\,ms & 137.000\,ms (CPU) & $<15.000$\,ms (GPU) \\
+Relevancia RAG (holdout) & $\geq 85\%$ & 95--98\% (motor/rodada) & $>95\%$ (GPU) \\
+Categoria: F1-macro (CV 5 \textit{folds}) & --- & 0,754 & $\geq 0,80$ (dados PT) \\
+Categoria: acerto em PT (producao) & --- & 50/80 (62,5\%) & $\geq 70\%$ (rotulos reais) \\
+Testes automatizados & 0 falhas & 409 / 50 suites / 0 falhas & $>420$ / 0 falhas \\
+Latencia p95 & $<15.000$\,ms & 46.000\,ms (BullMQ+F5, CPU) & $<15.000$\,ms (GPU) \\
 Reducao tempo documental & $\geq 60\%$ & N/A (sem usuarios) & 60--70\% \\
 Satisfacao Likert & $\geq 4,0/5,0$ & Nao aplicado & $\geq 4,0/5,0$ \\
 Makers ativos & $\geq 30$ & N/A & $\geq 30$ usuarios \\
@@ -263,27 +425,29 @@ Para os criterios de qualidade, a plataforma adota: metricas de desempenho docum
 
 \subsection{Discussao dos Resultados}
 
-Os resultados empiricos validam a hipotese central: a integracao de um pipeline RAG especializado em uma rede social maker e tecnicamente viavel e produz documentacao de alta relevancia semantica. A taxa de 98\% na avaliacao holdout supera os 85\% estabelecidos como meta e posiciona o pipeline como competitivo com abordagens da literatura~\cite{dong2025chatiot}.
+Os resultados empiricos validam a hipotese central: a integracao de um pipeline hibrido de RAG e Machine Learning classico em uma rede social maker e tecnicamente viavel e produz documentacao de alta relevancia semantica. A taxa de 95--98\% na avaliacao holdout supera os 85\% estabelecidos como meta e posiciona o pipeline como competitivo com abordagens da literatura~\cite{dong2025chatiot}.
 
-A principal limitacao identificada e a latencia em ambiente sem GPU: p95 de 137 segundos e inadequado para producao com usuarios reais. Essa limitacao e mitigavel pela migracao para infraestrutura com GPU T4 ou equivalente, com reducao esperada de 8--10x na latencia. A ausencia de validacao formal com usuarios reais ate o encerramento do PAC 7 e o segundo ponto de atencao; a coleta formal com formulario Likert e amostra $\geq$ 30 makers esta planejada para o primeiro mes do PAC 8.
+A principal limitacao identificada originalmente foi a latencia em ambiente sem GPU: p95 de 137 segundos, inadequado para producao com usuarios reais. A migracao do motor de orquestracao de n8n para uma fila BullMQ propria \textit{in-process}, combinada ao filtro de dominio da busca vetorial introduzido pela Fase 5, ja reduziu o p95 para cerca de 46 segundos sem depender de GPU --- uma melhora de aproximadamente 66\% que mitiga parcialmente essa limitacao, mesmo que o patamar ideal para uso fluido em producao ($<$15s) ainda dependa de infraestrutura com GPU dedicada. No pipeline de Machine Learning, o resultado mais relevante e a diferenca entre o desempenho dentro da distribuicao de treino (F1-macro de 0,754) e no dominio-alvo em portugues (34/80 para o modelo isolado): treinar em dataset publico resolve a escassez de rotulos, mas introduz mudanca de idioma e de formato (titulos curtos em ingles contra descricoes em portugues). O limiar de confianca de 0,6 com \textit{fallback} heuristico mostrou-se a decisao correta nesse regime, pois impede que o modelo imponha palpites pouco confiaveis e mantem o caminho de producao acima de qualquer variante isolada (50/80). Os pontos fracos remanescentes sao Robotics (11/20) e 3D\_Printing (9/20), em que o \textit{fallback} tende a desempatar a favor de IoT. O modelo, porem, e retreinado a cada inicializacao e incorpora os rotulos reais em portugues conforme os makers publicam projetos, de modo que seu peso no caminho de producao deve crescer naturalmente.
+
+A ausencia de validacao formal com usuarios reais ate o encerramento do PAC 7 e outro ponto de atencao; a coleta formal com formulario Likert e amostra $\geq$ 30 makers esta planejada para o inicio do PAC 8.
 
 \subsection{Contribuicoes}
 
-Este trabalho contribui com: (i)~pipeline RAG funcional e avaliado empiricamente para o dominio IoT/maker, com base vetorial propria; (ii)~o mecanismo de fork com linhagem como instrumento de governanca tecnica em plataformas colaborativas; (iii)~modelo de conformidade LGPD-first integrado ao pipeline de IA desde a concepcao; (iv)~suite de 263 testes automatizados como referencia de qualidade para projetos academicos full-stack de alta complexidade.
+Este trabalho contribui com: (i)~pipeline hibrido de IA Generativa (RAG) e Machine Learning classico (Naive Bayes, K-Means, Apriori) funcional e avaliado empiricamente para o dominio IoT/maker, com base vetorial propria, parametros documentados e modelos treinados sobre dados reais e datasets publicos (Instructables e Hackaday); (ii)~o mecanismo de fork com linhagem como instrumento de governanca tecnica em plataformas colaborativas; (iii)~modelo de conformidade LGPD-first integrado ao pipeline de IA desde a concepcao; (iv)~evidencia empirica de que a migracao de um orquestrador de workflow visual (n8n) para uma fila assincrona propria (BullMQ) reduz substancialmente a latencia de um pipeline de IA em producao, sem depender de GPU; (v)~conjunto de avaliacao de categoria em portugues (80 projetos, 13 casos dificeis) e evidencia empirica da perda de desempenho na transferencia ingles $\to$ portugues; (vi)~suite de 409 testes automatizados em 50 suites como referencia de qualidade para projetos academicos full-stack de alta complexidade.
 
 \subsection{Trabalhos Futuros}
 
-As proximas etapas incluem: (i)~deploy em infraestrutura com GPU para reducao de latencia; (ii)~validacao empirica formal com makers reais e formulario Likert; (iii)~recomendacoes de componentes por filtragem colaborativa sobre historico de forks; (iv)~gamificacao com insignias por contribuicao documental; (v)~API publica para integracao com Instructables e Hackster.io; (vi)~analise de reproducibilidade automatica por comparacao de BOMs entre forks.
+As proximas etapas incluem: (i)~deploy em infraestrutura com GPU para reducao adicional de latencia; (ii)~validacao empirica formal com makers reais e formulario Likert; (iii)~evolucao dos classificadores heuristicos de dificuldade e dominio da Fase 5 para modelos efetivamente treinados, conforme o dataset de projetos reais crescer, e reducao da mudanca de dominio do classificador de categoria por rotulos reais em portugues, traducao do dataset de treino ou embeddings multilingues; (iv)~substituicao da auditoria por regras por \textit{Isolation Forest} ou classificador supervisionado quando houver auditorias humanas rotuladas; (v)~recomendacoes de componentes por filtragem colaborativa sobre historico de forks; (vi)~gamificacao com insignias por contribuicao documental; (vii)~API publica para integracao com Instructables e Hackster.io; (viii)~analise de reproducibilidade automatica por comparacao de BOMs entre forks.
 
 \subsection{Conclusao}
 
-A MakerConnect demonstra como IA Generativa com RAG pode transformar uma rede social maker em ferramenta ativa de governanca tecnica, atacando diretamente o problema da documentacao fantasma em projetos IoT. O pipeline funcional atende integralmente aos requisitos de qualidade: relevancia semantica de 98\%, pipeline end-to-end operacional, conformidade LGPD validada e suite de testes robusta. O projeto entrega valor academico --- contribuicao original para a literatura de RAG aplicado a IoT --- e valor social, ao democratizar boas praticas de engenharia para a comunidade maker brasileira.
+A MakerConnect demonstra como um pipeline hibrido de IA Generativa (RAG) e Machine Learning classico pode transformar uma rede social maker em ferramenta ativa de governanca tecnica, atacando diretamente o problema da documentacao fantasma em projetos IoT. O pipeline funcional atende integralmente aos requisitos de qualidade: relevancia semantica de 95--98\%, latencia p95 reduzida de 137s para 46s apos a migracao do motor de orquestracao para BullMQ, classificador de categoria treinado com F1-macro de 0,754 em validacao cruzada e 62,5\% de acerto em portugues no caminho de producao, pipeline end-to-end operacional, conformidade LGPD validada e suite de 409 testes robusta. O projeto entrega valor academico --- contribuicao original para a literatura de RAG combinado a Machine Learning classico aplicado a IoT --- e valor social, ao democratizar boas praticas de engenharia para a comunidade maker brasileira.
 
 % --- DECLARACOES OBRIGATORIAS ---
 \begin{declarations}
 
 \begin{contributions}
-Vinicius Froes (VF) foi responsavel pela concepcao e arquitetura geral da plataforma, implementacao do pipeline de IA, configuracao do ambiente n8n e Ollama, modelagem do banco de dados relacional e vetorial, desenvolvimento \textit{full-stack} (Next.js, Prisma, MySQL), implementacao do middleware LGPD, construcao da suite de testes automatizados e escrita do presente artigo.
+Vinicius Froes (VF) foi responsavel pela concepcao e arquitetura geral da plataforma, implementacao do pipeline de IA, configuracao do ambiente n8n, BullMQ/Redis e Ollama, desenvolvimento do microsservico de Machine Learning (\texttt{ml-pipeline}, FastAPI + scikit-learn), modelagem do banco de dados relacional e vetorial, desenvolvimento \textit{full-stack} (Next.js, Prisma, MySQL), implementacao do middleware LGPD, construcao da suite de testes automatizados e escrita do presente artigo.
 \end{contributions}
 
 \begin{interests}
@@ -291,7 +455,7 @@ O autor declara nao haver conflitos de interesse.
 \end{interests}
 
 \begin{materials}
-O repositorio \texttt{Froesv85/Master-Labs} no GitHub contera o codigo-fonte completo, as definicoes de workflow do n8n, os scripts de avaliacao RAG (\texttt{rag-eval.mjs}) e o dataset holdout de 10 projetos IoT utilizados nos experimentos.
+O repositorio \texttt{Froesv85/Master-Labs} no GitHub contera o codigo-fonte completo, as definicoes de workflow do n8n (motor legado), o codigo do microsservico de Machine Learning \texttt{ml-pipeline}, os scripts de avaliacao RAG (\texttt{rag-eval.mjs}) e de categoria (\texttt{eval/evaluate\_category.py}), o conjunto de avaliacao em portugues (\texttt{eval/category\_eval\_pt.jsonl}), as regras agregadas de BOM (\texttt{external\_bom\_rules.json}) e o dataset holdout de 10 projetos IoT utilizados nos experimentos. Os datasets externos de treino (Instructables/Kaggle e Hackaday) nao sao redistribuidos, por restricao de licenca dos autores originais; o repositorio documenta sua origem, o mapeamento de rotulos e o script de derivacao para que possam ser regenerados.
 \end{materials}
 
 \end{declarations}
