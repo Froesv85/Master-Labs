@@ -34,7 +34,8 @@ Regras:
 3) assemblySteps: maximo 6 etapas, numeradas em ordem a partir de 1
 4) Nao invente numeros de peca especificos nem marcas - mantenha generico
 5) Se faltar informacao pra um campo, faca sua melhor estimativa a partir do titulo/categoria
-6) Nao incluir chaves fora do schema`;
+6) Nao incluir chaves fora do schema
+7) Escreva em portugues do Brasil com acentuacao e ortografia corretas (ex.: módulo, relé, proteção, posição, impressão, programação)`;
 }
 
 function ensureString(value: unknown, fallback = ''): string {

@@ -35,7 +35,8 @@ Regras:
 3) technicalRequirements e suggestedBOM com maximo 6 itens
 4) assemblySteps com maximo 8 etapas, numeradas em ordem a partir de 1
 5) Se nao houver informacao, mantenha a chave e use string vazia
-6) Nao incluir chaves fora do schema`;
+6) Nao incluir chaves fora do schema
+7) Em portugues, escreva com acentuacao e ortografia corretas (ex.: módulo, relé, proteção, posição, portátil, impressão, programação)`;
 }
 
 export type NormalizedExtractionOutput = {

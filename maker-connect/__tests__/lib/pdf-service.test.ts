@@ -39,3 +39,32 @@ describe('buildPdf', () => {
     expect(buffer.length).toBeGreaterThan(0);
   });
 });
+
+describe('pdfSafe', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { pdfSafe } = require('@/lib/pdf-service') as typeof import('@/lib/pdf-service');
+
+  it('preserva acentos e a pontuacao que a fonte do PDF suporta', () => {
+    const s = 'Ação, coração, é, ô, ü, Ç — “aspas” • item – 0,35–0,40 … 470 µF, 3 × M3, 25 °C';
+    expect(pdfSafe(s)).toBe(s);
+  });
+
+  it('troca simbolos fora do WinAnsi por equivalentes legiveis', () => {
+    expect(pdfSafe('━━ PASSO ━━')).toBe('—— PASSO ——');
+    expect(pdfSafe('Bateria → BMS ↔ buck')).toBe('Bateria -> BMS <-> buck');
+    expect(pdfSafe('4 Ω, ≥ 3 A, ≤ 5 V, ≈ 2,7 A')).toBe('4 ohm, >= 3 A, <= 5 V, ~ 2,7 A');
+  });
+
+  it('descarta emoji e mantem o resto da linha', () => {
+    expect(pdfSafe('Pronto 🚀 para imprimir')).toBe('Pronto  para imprimir');
+  });
+
+  it('nenhum caractere do resultado forca a codificacao de 2 bytes do jsPDF', () => {
+    const out = pdfSafe('━ → Ω ≥ ≤ ✓ 🚀 ő ação');
+    for (const ch of out) {
+      const ok = ch.codePointAt(0)! <= 0xff || '€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ'.includes(ch);
+      expect(ok).toBe(true);
+    }
+    expect(out).toContain('ação');
+  });
+});
