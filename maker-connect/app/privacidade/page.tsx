@@ -46,7 +46,13 @@ export default function PrivacidadePage() {
           </li>
           <li>
             <strong>Perfil (opcional):</strong> foto, biografia, cidade, site, perfil do GitHub, link de vídeo e áreas de
-            interesse. O nível maker e a reputação são calculados pela própria plataforma.
+            interesse. O nível maker e a reputação são calculados pela própria plataforma, a partir de votos, forks,
+            seguidores, projetos públicos e premiações de robôs.
+          </li>
+          <li>
+            <strong>Quem você segue:</strong> quando você segue outro maker, guardamos essa ligação e a data. As listas de
+            seguidores e de quem você segue aparecem no seu perfil para outros usuários logados. Você pode deixar de seguir a
+            qualquer momento, e a ligação é apagada.
           </li>
           <li>
             <strong>Conteúdo que você publica:</strong> projetos, descrições, imagens, arquivos 3D, código, lista de

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { projectVisibilityWhere } from '@/lib/project-access';
+import { syncReputation } from '@/lib/reputation';
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -14,6 +15,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
   // select explicito: antes o `include` devolvia a linha inteira de User, com hash
   // da senha, googleId/githubId e role, para qualquer pessoa (inclusive sem login)
+  const visibleProjects = await projectVisibilityWhere(session.userId);
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: {
@@ -28,7 +30,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
         orderBy: { eloScore: 'desc' },
       },
       projects: {
-        where: await projectVisibilityWhere(session.userId),
+        where: visibleProjects,
         orderBy: { createdAt: 'desc' },
         take: 6,
         include: { tags: { select: { tag: true } } },
@@ -65,8 +67,22 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
   if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
+  // Reputacao e derivada (votos, forks, seguidores...): recalcula ao abrir o perfil
+  // para o numero nunca ficar parado em 0 como antes.
+  const [reputation, projectCount] = await Promise.all([
+    syncReputation(userId),
+    prisma.project.count({ where: { AND: [{ creatorId: userId }, visibleProjects] } }),
+  ]);
+  const isFollowing = !isSelf && user.followers.some((f) => f.followerId === session.userId);
+
   return NextResponse.json({
     ...user,
+    profile: user.profile
+      ? { ...user.profile, reputation: reputation.total, makerLevel: reputation.level }
+      : { reputation: reputation.total, makerLevel: reputation.level },
+    reputation,
+    isFollowing,
+    projectCount,
     email: isSelf ? user.email : null,
     language: isSelf ? user.language : null,
     projects: user.projects.map((p) => ({ ...p, tags: p.tags.map((t) => t.tag) })),

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { syncReputation } from '@/lib/reputation';
 
 function parseProjectId(value: string) {
   const parsed = Number(value);
@@ -31,7 +32,7 @@ export async function POST(
 
     const project = await prisma.project.findUnique({
       where: { id: projectId },
-      select: { id: true },
+      select: { id: true, creatorId: true },
     });
 
     if (!project) {
@@ -55,6 +56,11 @@ export async function POST(
           projectId,
         },
       });
+    }
+
+    // voto novo de outra pessoa sobe a reputacao do autor (falha aqui nao derruba o voto)
+    if (!existingVote && project.creatorId !== userId) {
+      await syncReputation(project.creatorId).catch((e) => console.error('syncReputation (vote) failed', e));
     }
 
     const votes = await prisma.projectVote.count({

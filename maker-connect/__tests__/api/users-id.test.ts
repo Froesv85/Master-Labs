@@ -7,8 +7,13 @@ jest.mock('@/lib/prisma', () => ({
       update: jest.fn(),
     },
     teamMember: { findMany: jest.fn().mockResolvedValue([]) },
+    project: { count: jest.fn().mockResolvedValue(0) },
     $transaction: jest.fn(),
   },
+}));
+
+jest.mock('@/lib/reputation', () => ({
+  syncReputation: jest.fn().mockResolvedValue({ total: 0, level: 'apprentice', nextLevel: null, breakdown: [] }),
 }));
 
 jest.mock('@/lib/auth', () => ({ getSession: jest.fn() }));
