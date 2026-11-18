@@ -16,6 +16,38 @@ export type ExportData = {
   videoUrl?: string | null;
 };
 
+// As fontes padrao do jsPDF (helvetica/courier) so cobrem Latin-1 + WinAnsi
+// (acentos, ç, •, –, —, aspas curvas, …). Basta UM caractere fora disso
+// (━, →, Ω, ≥, emoji) para o jsPDF codificar a linha inteira em 2 bytes e a linha
+// sair ilegivel no PDF. Aqui trocamos os simbolos comuns por equivalentes e
+// descartamos o resto, preservando a acentuacao do portugues.
+const WIN_ANSI_EXTRA = new Set('€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ');
+const SYMBOL_MAP: Record<string, string> = {
+  '━': '—', '─': '—', '═': '—', '▬': '—',
+  '→': '->', '←': '<-', '↔': '<->', '⇒': '=>', '↑': '^', '↓': 'v',
+  'Ω': 'ohm', 'Δ': 'delta', 'π': 'pi',
+  '≥': '>=', '≤': '<=', '≈': '~', '≠': '!=', '∞': 'infinito',
+  '✓': 'v', '✔': 'v', '✗': 'x', '✘': 'x', '★': '*', '☆': '*',
+  '′': "'", '″': '"', '‐': '-', '‑': '-', '−': '-', '\u2009': ' ', '\u202F': ' ',
+};
+
+export function pdfSafe(text: string): string {
+  let out = '';
+  for (const ch of text.normalize('NFC')) {
+    const code = ch.codePointAt(0)!;
+    if (code === 10 || code === 9 || (code >= 0x20 && code <= 0xff) || WIN_ANSI_EXTRA.has(ch)) {
+      out += ch;
+    } else if (SYMBOL_MAP[ch] !== undefined) {
+      out += SYMBOL_MAP[ch];
+    } else {
+      // tenta a letra base (ex.: ő -> o); se nao der, descarta o simbolo
+      const base = ch.normalize('NFKD').replace(/[\u0300-\u036f]/g, '');
+      if ([...base].every((c) => c.codePointAt(0)! <= 0xff)) out += base;
+    }
+  }
+  return out;
+}
+
 export async function buildPdf(data: ExportData): Promise<Buffer> {
   const doc = new jsPDF();
   let cursorY = 20;
@@ -36,7 +68,7 @@ export async function buildPdf(data: ExportData): Promise<Buffer> {
     doc.setTextColor(color[0], color[1], color[2]);
     
     // Converte e garante que sempre é string
-    const stringText = typeof text === 'object' ? JSON.stringify(text) : String(text);
+    const stringText = pdfSafe(typeof text === 'object' ? JSON.stringify(text) : String(text));
     const lines = doc.splitTextToSize(stringText, maxWidth);
     
     lines.forEach((line: string) => {
@@ -53,7 +85,7 @@ export async function buildPdf(data: ExportData): Promise<Buffer> {
     doc.setFontSize(10);
     doc.setTextColor(37, 99, 235); // Blue-600
     checkPage(6);
-    doc.textWithLink(label, marginLeft, cursorY, { url });
+    doc.textWithLink(pdfSafe(label), marginLeft, cursorY, { url });
     cursorY += 6;
   };
 
@@ -82,13 +114,13 @@ export async function buildPdf(data: ExportData): Promise<Buffer> {
   // Metadata
   addText(`Criador: ${data.creator}`, 11);
   addText(`Tags: ${data.tags.join(', ')}`, 11);
-  addText(`Data de Exportacao: ${new Date().toLocaleString('pt-BR')}`, 11);
+  addText(`Data de exportação: ${new Date().toLocaleString('pt-BR')}`, 11);
   if (data.projectUrl) addLink('Ver projeto online', data.projectUrl);
-  if (data.videoUrl) addLink('Assistir video do projeto', data.videoUrl);
+  if (data.videoUrl) addLink('Assistir ao vídeo do projeto', data.videoUrl);
   cursorY += 5;
 
   if (data.projectDescription) {
-    addText('Visao Geral', 14, true, [16, 185, 129]);
+    addText('Visão Geral', 14, true, [16, 185, 129]);
     cursorY += 2;
     addText(data.projectDescription, 10, false, [100, 100, 100]);
     cursorY += 5;
@@ -96,7 +128,7 @@ export async function buildPdf(data: ExportData): Promise<Buffer> {
 
   // Tech Reqs
   if (data.technicalRequirements && data.technicalRequirements.length > 0) {
-    addText('Requisitos Tecnicos', 14, true, [16, 185, 129]);
+    addText('Requisitos Técnicos', 14, true, [16, 185, 129]);
     cursorY += 2;
     data.technicalRequirements.forEach((req) => {
       addText(`• ${req}`, 10);
@@ -127,7 +159,7 @@ export async function buildPdf(data: ExportData): Promise<Buffer> {
 
   // Dificuldades
   if (data.difficulties && data.difficulties.length > 0) {
-    addText('Log de Dificuldades Tecnicas', 14, true, [16, 185, 129]);
+    addText('Log de Dificuldades Técnicas', 14, true, [16, 185, 129]);
     cursorY += 2;
     data.difficulties.forEach((diff) => {
       addText(`[${diff.date}]: ${diff.description}`, 10);
@@ -137,11 +169,11 @@ export async function buildPdf(data: ExportData): Promise<Buffer> {
   // SUGGESTED CODE
   if (data.suggestedCode) {
     checkPage(40);
-    addText('Codigo Fonte Sugerido (Arduino C++)', 14, true, [16, 185, 129]);
+    addText('Código-Fonte Sugerido (Arduino C++)', 14, true, [16, 185, 129]);
     cursorY += 2;
     
     // Draw a light grey background box for the code
-    const codeLines = doc.splitTextToSize(data.suggestedCode, maxWidth - 10);
+    const codeLines = doc.splitTextToSize(pdfSafe(data.suggestedCode), maxWidth - 10);
     const boxHeight = (codeLines.length * 4) + 10;
     
     checkPage(boxHeight + 10);
@@ -160,7 +192,7 @@ export async function buildPdf(data: ExportData): Promise<Buffer> {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
   doc.setTextColor(150, 150, 150);
-  doc.text('Gerado por MakerConnect desenvolvido pela Master By tech', 105, 290, { align: 'center' });
+  doc.text('Gerado pelo MakerConnect, desenvolvido pela Master by Tech', 105, 290, { align: 'center' });
 
   return Buffer.from(doc.output('arraybuffer'));
 }
